@@ -119,24 +119,24 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    //output file, historgrams and trees
    tree                     = iFile->make<TTree>("caloTree","caloTree"); 
 
-   tree->Branch("genPart_id", &genPart_id,"genPart_id/i");
-   tree->Branch("genPart_energy", &genPart_energy,"genPart_energy/F");
-   tree->Branch("genPart_pt", &genPart_pt,"genPart_pt/F");
-   tree->Branch("genPart_eta", &genPart_eta,"genPart_eta/F");
-   tree->Branch("genPart_phi", &genPart_phi,"genPart_phi/F");
-   tree->Branch("caloPart_energy", &caloPart_energy,"caloPart_energy/F");
-   tree->Branch("caloPart_pt", &caloPart_pt,"caloPart_pt/F");
-   tree->Branch("caloPart_eta", &caloPart_eta,"caloPart_eta/F");
-   tree->Branch("caloPart_phi", &caloPart_phi,"caloPart_phi/F");
-   tree->Branch("simHit_energy","std::vector<float>",&simHit_energy);
-   tree->Branch("simHit_eta","std::vector<float>",&simHit_eta);
-   tree->Branch("simHit_phi","std::vector<float>",&simHit_phi);
-   tree->Branch("simHit_ieta","std::vector<int>",&simHit_ieta);
-   tree->Branch("simHit_iphi","std::vector<int>",&simHit_iphi);
-   tree->Branch("simHit_iz","std::vector<int>",&simHit_iz);
+   tree->Branch("genParticle_id", &genParticle_id,"genParticle_id/i");
+   tree->Branch("genParticle_energy", &genParticle_energy,"genParticle_energy/F");
+   tree->Branch("genParticle_pt", &genParticle_pt,"genParticle_pt/F");
+   tree->Branch("genParticle_eta", &genParticle_eta,"genParticle_eta/F");
+   tree->Branch("genParticle_phi", &genParticle_phi,"genParticle_phi/F");
+   tree->Branch("caloParticle_energy", &caloParticle_energy,"caloParticle_energy/F");
+   tree->Branch("caloParticle_pt", &caloParticle_pt,"caloParticle_pt/F");
+   tree->Branch("caloParticle_eta", &caloParticle_eta,"caloParticle_eta/F");
+   tree->Branch("caloParticle_phi", &caloParticle_phi,"caloParticle_phi/F");
+   tree->Branch("caloParticle_simHit_energy","std::vector<float>",&caloParticle_simHit_energy);
+   tree->Branch("caloParticle_simHit_eta","std::vector<float>",&caloParticle_simHit_eta);
+   tree->Branch("caloParticle_simHit_phi","std::vector<float>",&caloParticle_simHit_phi);
+   tree->Branch("caloParticle_simHit_ieta","std::vector<int>",&caloParticle_simHit_ieta);
+   tree->Branch("caloParticle_simHit_iphi","std::vector<int>",&caloParticle_simHit_iphi);
+   tree->Branch("caloParticle_simHit_iz","std::vector<int>",&caloParticle_simHit_iz);
    if(useRechits_){ 
-      tree->Branch("recHit_energy","std::vector<float>",&recHit_energy);
-      tree->Branch("recHit_time","std::vector<float>",&recHit_time);  
+      tree->Branch("caloParticle_recHit_energy","std::vector<float>",&caloParticle_recHit_energy);
+      tree->Branch("caloParticle_recHit_time","std::vector<float>",&caloParticle_recHit_time);  
    }
    if(useSuperCluster_){
       tree->Branch("superCluster_energy","std::vector<float>",&superCluster_energy);
@@ -231,14 +231,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
        //SetBranch values to default
        setDefaultValues(); 
-       simHit_energy.clear();
-       simHit_eta.clear();
-       simHit_phi.clear();
-       simHit_ieta.clear();
-       simHit_iphi.clear();
-       simHit_iz.clear();
-       recHit_energy.clear();
-       recHit_time.clear();
+       caloParticle_simHit_energy.clear();
+       caloParticle_simHit_eta.clear();
+       caloParticle_simHit_phi.clear();
+       caloParticle_simHit_ieta.clear();
+       caloParticle_simHit_iphi.clear();
+       caloParticle_simHit_iz.clear();
+       caloParticle_recHit_energy.clear();
+       caloParticle_recHit_time.clear();
        superCluster_energy.clear();
        superCluster_eta.clear();
        superCluster_phi.clear();
@@ -255,26 +255,30 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        
        simHit_detIds_.clear();
        GlobalPoint cell;
+
+       for(reco::GenParticleRefVector::iterator iGen = iCalo.genParticle_begin(); iGen != iCalo.genParticle_end(); ++iGen ){
+           cout <<"iGen energy: " << (*iGen)->energy() << endl;
+       }  
        
        const auto& genParticles = iCalo.genParticles();
-       genPart_id = iCalo.pdgId();
+       genParticle_id = iCalo.pdgId();
        if(genParticles.empty()){
           cout << "WARNING: no associated genParticle found" << endl;
-          genPart_energy = iCalo.energy();
-          genPart_pt = iCalo.pt();
-          genPart_eta = iCalo.eta();
-          genPart_phi = iCalo.phi();
+          genParticle_energy = iCalo.energy();
+          genParticle_pt = iCalo.pt();
+          genParticle_eta = iCalo.eta();
+          genParticle_phi = iCalo.phi();
        }else{
-          genPart_energy = (*genParticles.begin())->energy();
-          genPart_pt = (*genParticles.begin())->pt();
-          genPart_eta = (*genParticles.begin())->eta();
-          genPart_phi = (*genParticles.begin())->phi();
+          genParticle_energy = (*genParticles.begin())->energy();
+          genParticle_pt = (*genParticles.begin())->pt();
+          genParticle_eta = (*genParticles.begin())->eta();
+          genParticle_phi = (*genParticles.begin())->phi();
        }
  
-       caloPart_energy = iCalo.energy();
-       caloPart_pt = iCalo.pt();
-       caloPart_eta = iCalo.eta();
-       caloPart_phi = iCalo.phi();
+       caloParticle_energy = iCalo.energy();
+       caloParticle_pt = iCalo.pt();
+       caloParticle_eta = iCalo.eta();
+       caloParticle_phi = iCalo.phi();
 
        //Get hits from simClusters, and associated rechits 
        const auto& simClusters = iCalo.simClusters();
@@ -285,29 +289,29 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                 DetId id(hits_and_fractions[iHit].first);
                 cell = geometry->getPosition(id);
                 simHit_detIds_.push_back(id.rawId());
-                simHit_energy.push_back(hits_and_fractions[iHit].second*simCluster->energy());
-                simHit_eta.push_back(cell.eta());
-                simHit_phi.push_back(cell.phi());
+                caloParticle_simHit_energy.push_back(hits_and_fractions[iHit].second*simCluster->energy());
+                caloParticle_simHit_eta.push_back(cell.eta());
+                caloParticle_simHit_phi.push_back(cell.phi());
                 if(id.subdetId()==EcalBarrel){
                    EBDetId eb_id(id);
-                   simHit_ieta.push_back(eb_id.ieta());
-                   simHit_iphi.push_back(eb_id.iphi());
-                   simHit_iz.push_back(0);
+                   caloParticle_simHit_ieta.push_back(eb_id.ieta());
+                   caloParticle_simHit_iphi.push_back(eb_id.iphi());
+                   caloParticle_simHit_iz.push_back(0);
                    if(useRechits_){
-                      recHit_energy.push_back((*(recHitsEB.product())->find(id)).energy());
-                      recHit_time.push_back((*(recHitsEB.product())->find(id)).time());
+                      caloParticle_recHit_energy.push_back((*(recHitsEB.product())->find(id)).energy());
+                      caloParticle_recHit_time.push_back((*(recHitsEB.product())->find(id)).time());
                    }
                 }else if(id.subdetId()==EcalEndcap){
                    EEDetId ee_id(id);
                    int iz=0;
                    if(ee_id.zside()<0) iz=-1;
                    if(ee_id.zside()>0) iz=1;
-                   simHit_ieta.push_back(ee_id.ix());
-                   simHit_iphi.push_back(ee_id.iy());
-                   simHit_iz.push_back(iz);
+                   caloParticle_simHit_ieta.push_back(ee_id.ix());
+                   caloParticle_simHit_iphi.push_back(ee_id.iy());
+                   caloParticle_simHit_iz.push_back(iz);
                    if(useRechits_){
-                      recHit_energy.push_back((*(recHitsEE.product())->find(id)).energy());
-                      recHit_time.push_back((*(recHitsEE.product())->find(id)).time());
+                      caloParticle_recHit_energy.push_back((*(recHitsEE.product())->find(id)).energy());
+                      caloParticle_recHit_time.push_back((*(recHitsEE.product())->find(id)).time());
                    } 
                 }
             }    
@@ -427,25 +431,25 @@ void RecoSimDumper::endJob()
 ///------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void RecoSimDumper::setDefaultValues() 
 {
-    genPart_id=0;
-    genPart_energy=-999.;
-    genPart_pt=-999.;
-    genPart_eta=-999.;
-    genPart_phi=-999.; 
+    genParticle_id=0;
+    genParticle_energy=-999.;
+    genParticle_pt=-999.;
+    genParticle_eta=-999.;
+    genParticle_phi=-999.; 
 
-    caloPart_energy=-999.;
-    caloPart_pt=-999.;
-    caloPart_eta=-999.;
-    caloPart_phi=-999.; 
+    caloParticle_energy=-999.;
+    caloParticle_pt=-999.;
+    caloParticle_eta=-999.;
+    caloParticle_phi=-999.; 
 }
 
-std::vector<reco::SuperCluster> RecoSimDumper::matchedSuperClusters(std::vector<uint32_t>* simHit_detIds, const std::vector<reco::SuperCluster> superClusters)
+std::vector<reco::SuperCluster> RecoSimDumper::matchedSuperClusters(std::vector<uint32_t>* caloParticle_simHit_detIds, const std::vector<reco::SuperCluster> superClusters)
 {
     std::vector<reco::SuperCluster> skimmedSuperClusters;
     for(unsigned int iSC=0; iSC<superClusters.size(); iSC++){
         reco::CaloCluster caloBC = *superClusters[iSC].seed();
         const DetId& seed_id = superClusters[iSC].seed()->hitsAndFractions().at(0).first;
-        if(std::find(simHit_detIds->begin(),simHit_detIds->end(),seed_id.rawId())!= simHit_detIds->end()) skimmedSuperClusters.push_back(superClusters[iSC]); 
+        if(std::find(caloParticle_simHit_detIds->begin(),caloParticle_simHit_detIds->end(),seed_id.rawId())!= caloParticle_simHit_detIds->end()) skimmedSuperClusters.push_back(superClusters[iSC]); 
     } 
 
     return skimmedSuperClusters;
