@@ -256,9 +256,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        simHit_detIds_.clear();
        GlobalPoint cell;
 
-       for(reco::GenParticleRefVector::iterator iGen = iCalo.genParticle_begin(); iGen != iCalo.genParticle_end(); ++iGen ){
+       /*for(reco::GenParticleRefVector::iterator iGen = iCalo.genParticle_begin(); iGen != iCalo.genParticle_end(); ++iGen ){
            cout <<"iGen energy: " << (*iGen)->energy() << endl;
-       }  
+       }*/  
        
        const auto& genParticles = iCalo.genParticles();
        genParticle_id = iCalo.pdgId();
