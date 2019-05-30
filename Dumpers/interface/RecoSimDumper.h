@@ -134,6 +134,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool usePFRechits_; 
       bool usePFCluster_;
       bool useSuperCluster_;
+      bool useEnergyRegression_;
       int motherID_;
       
       // ----------histograms & trees & branches-------------------

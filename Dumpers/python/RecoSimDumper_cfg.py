@@ -18,7 +18,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 1 )
                                                                        
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),                       
-    fileNames = cms.untracked.vstring("file:/afs/cern.ch/work/b/bmarzocc/Clustering/CMSSW_10_6_0/src/SimGeneral/CaloAnalysis/10005.0_SingleGammaPt35+SingleGammaPt35_pythia8_2017_GenSimFull+DigiFull_2017+RecoFull_2017+HARVESTFull_2017+ALCAFull_2017/step3.root"),
+    fileNames = cms.untracked.vstring("file:test/step3.root"),
     secondaryFileNames = cms.untracked.vstring()
     ) 
 

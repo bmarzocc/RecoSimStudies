@@ -120,6 +120,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    usePFRechits_            = iConfig.getParameter<bool>("usePFRechits"); 
    usePFCluster_            = iConfig.getParameter<bool>("usePFCluster");
    useSuperCluster_         = iConfig.getParameter<bool>("useSuperCluster");
+   useEnergyRegression_     = iConfig.getParameter<bool>("useEnergyRegression"); 
    motherID_                = iConfig.getParameter<int>("motherID");
 
    //output file, historgrams and trees
@@ -339,16 +340,20 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
                    //Save associated SuperClusterHit energy
                    float superClusterHit_energy_ = -999.;
+                   int superCluster_index_tmp=0;
                    if(useSuperCluster_){
                       for(const auto& iSuperCluster : *(superClusterEB.product())){
                           std::map<DetId,float> scInfos = superClusterXtalInfo(iSuperCluster);  
                           for(std::map<DetId,float>::iterator iter = scInfos.begin(); iter != scInfos.end(); ++iter)
                           {
                               if(iter->first.rawId() == id.rawId()){      
-                                 superClusterHit_energy_ = iSuperCluster.energy()*iter->second;
+                                 if(useEnergyRegression_) superClusterHit_energy_ = iSuperCluster.energy()*iter->second;
+                                 else superClusterHit_energy_ = iSuperCluster.rawEnergy()*iter->second;
+                                 superCluster_index = superCluster_index_tmp;
                                  break;
                               }  
                           }
+                          superCluster_index_tmp++;
                       }
                       superClusterHit_energy.push_back(superClusterHit_energy_);
                    }
@@ -378,7 +383,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                           for(std::map<DetId,float>::iterator iter = scInfos.begin(); iter != scInfos.end(); ++iter)
                           {
                               if(iter->first.rawId() == id.rawId()){      
-                                 superClusterHit_energy_ = iSuperCluster.energy()*iter->second;
+                                 if(useEnergyRegression_) superClusterHit_energy_ = iSuperCluster.energy()*iter->second;
+                                 else superClusterHit_energy_ = iSuperCluster.rawEnergy()*iter->second;
                                  superCluster_index = superCluster_index_tmp;
                                  break;
                               }  
@@ -410,7 +416,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                        const std::vector< std::pair<DetId,float> > &hitsAndFractions = caloBC.hitsAndFractions();
                        for(unsigned int i = 0; i < hitsAndFractions.size(); i++){
                            if(hitsAndFractions[i].first.rawId() == id.rawId()){      
-                              pfClusterHit_energy_ = iPFCluster.energy()*hitsAndFractions[i].second;
+                              if(!useEnergyRegression_) pfClusterHit_energy_ = iPFCluster.energy()*hitsAndFractions[i].second;
+                              else pfClusterHit_energy_ = iPFCluster.correctedEnergy()*hitsAndFractions[i].second;
                               pfCluster_index = pfCluster_index_tmp;
                               break;
                            }  
