@@ -50,6 +50,8 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecHit.h"
 #include "DataFormats/CaloRecHit/interface/CaloCluster.h"
+#include "DataFormats/CaloRecHit/interface/CaloCluster.h"
+#include "DataFormats/Math/interface/libminifloat.h"
 
 #include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
@@ -116,6 +118,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------additional functions-------------------
       void setDefaultValues();
       std::map<DetId,float> superClusterXtalInfo(reco::SuperCluster iSC);
+      float reduceFloat(float val, int bits);
       
       // ----------collection tokens-------------------
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
@@ -130,10 +133,13 @@ class RecoSimDumper : public edm::EDAnalyzer
       edm::Service<TFileService> iFile;
 
       // ----------config inputs-------------------
-      bool useRechits_;
-      bool usePFRechits_; 
-      bool usePFCluster_;
-      bool useSuperCluster_;
+      bool doCompression_;
+      int nBits_;
+      bool saveSimhits_;
+      bool saveRechits_;
+      bool savePFRechits_; 
+      bool savePFCluster_;
+      bool saveSuperCluster_;
       bool useEnergyRegression_;
       int motherID_;
       
@@ -156,17 +162,44 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> simHit_iphi;
       std::vector<int> simHit_iz;
       std::vector<float> recHit_energy;
+      std::vector<float> recHit_eta;
+      std::vector<float> recHit_phi;
+      std::vector<int> recHit_ieta;
+      std::vector<int> recHit_iphi;
+      std::vector<int> recHit_iz;
+      std::vector<bool> pfRecHit_isMatched;
       std::vector<float> pfRecHit_energy;
+      std::vector<float> pfRecHit_eta;
+      std::vector<float> pfRecHit_phi;
+      std::vector<int> pfRecHit_ieta;
+      std::vector<int> pfRecHit_iphi;
+      std::vector<int> pfRecHit_iz;
       std::vector<float> pfClusterHit_energy;
+      std::vector<float> pfClusterHit_eta;
+      std::vector<float> pfClusterHit_phi;
+      std::vector<int> pfClusterHit_ieta;
+      std::vector<int> pfClusterHit_iphi;
+      std::vector<int> pfClusterHit_iz;
       std::vector<float> pfCluster_energy;
       std::vector<float> pfCluster_eta;
       std::vector<float> pfCluster_phi;
       std::vector<float> superClusterHit_energy;
+      std::vector<float> superClusterHit_eta;
+      std::vector<float> superClusterHit_phi;  
+      std::vector<int> superClusterHit_ieta;
+      std::vector<int> superClusterHit_iphi;    
+      std::vector<int> superClusterHit_iz;    
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
       std::vector<float> superCluster_phi;
       std::map<int,int> map_simHit_pfCLuster; 
-      std::map<int,int> map_simHit_superCLuster;  
+      std::map<int,int> map_recHit_pfCLuster;
+      std::map<int,int> map_pfRecHit_pfCLuster;
+      std::map<int,int> map_pfClusterHit_pfCLuster;   
+      std::map<int,int> map_simHit_superCLuster; 
+      std::map<int,int> map_recHit_superCLuster;
+      std::map<int,int> map_pfRecHit_superCLuster;
+      std::map<int,int> map_superClusterHit_superCLuster;    
 };
 
 #endif
