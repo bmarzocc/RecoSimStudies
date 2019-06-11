@@ -44,6 +44,7 @@
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
+#include "SimDataFormats/CaloHit/interface/PCaloHit.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
@@ -123,6 +124,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------collection tokens-------------------
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_; 
+      edm::EDGetTokenT<std::vector<PCaloHit>  > PCaloHitEBToken_;
+      edm::EDGetTokenT<std::vector<PCaloHit>  > PCaloHitEEToken_;
       edm::EDGetTokenT<EcalRecHitCollection> ebRechitToken_; 
       edm::EDGetTokenT<EcalRecHitCollection> eeRechitToken_; 
       edm::EDGetTokenT<std::vector<reco::PFRecHit>  > pfRecHitToken_; 
@@ -135,6 +138,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------config inputs-------------------
       bool doCompression_;
       int nBits_;
+      bool saveCalohits_;
       bool saveSimhits_;
       bool saveRechits_;
       bool savePFRechits_; 
@@ -155,6 +159,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       float caloParticle_pt;
       float caloParticle_eta;
       float caloParticle_phi;
+      std::vector<float> caloHit_energy;
+      std::vector<float> caloHit_time;
+      std::vector<int> caloHit_ieta;
+      std::vector<int> caloHit_iphi;
+      std::vector<int> caloHit_iz;
       std::vector<float> simHit_energy;
       std::vector<float> simHit_eta;
       std::vector<float> simHit_phi;

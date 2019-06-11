@@ -40,6 +40,7 @@
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
+#include "SimDataFormats/CaloHit/interface/PCaloHit.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
@@ -110,6 +111,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
 {
    genToken_                = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
    caloPartToken_           = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticleCollection"));
+   PCaloHitEBToken_         = consumes< std::vector<PCaloHit> >(iConfig.getParameter<edm::InputTag>("PCaloHitEBCollection"));
+   PCaloHitEEToken_         = consumes< std::vector<PCaloHit> >(iConfig.getParameter<edm::InputTag>("PCaloHitEECollection"));
    ebRechitToken_           = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ebRechitCollection"));
    eeRechitToken_           = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("eeRechitCollection"));
    pfRecHitToken_           = consumes<std::vector<reco::PFRecHit> >(iConfig.getParameter<edm::InputTag>("pfRechitCollection")); 
@@ -144,6 +147,13 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    tree->Branch("caloParticle_pt", &caloParticle_pt,"caloParticle_pt/F");
    tree->Branch("caloParticle_eta", &caloParticle_eta,"caloParticle_eta/F");
    tree->Branch("caloParticle_phi", &caloParticle_phi,"caloParticle_phi/F");
+   if(saveCalohits_){
+      tree->Branch("caloHit_energy","std::vector<float>",&caloHit_energy);
+      tree->Branch("caloHit_time","std::vector<float>",&caloHit_time);
+      tree->Branch("caloHit_ieta","std::vector<int>",&caloHit_ieta);
+      tree->Branch("caloHit_iphi","std::vector<int>",&caloHit_iphi);
+      tree->Branch("caloHit_iz","std::vector<int>",&caloHit_iz);
+   }
    if(saveSimhits_){
       tree->Branch("simHit_energy","std::vector<float>",&simHit_energy);
       tree->Branch("simHit_eta","std::vector<float>",&simHit_eta);
@@ -243,6 +253,21 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        return;
    }
 
+   edm::Handle<std::vector<PCaloHit> > PCaloHitsEB;
+   edm::Handle<std::vector<PCaloHit> > PCaloHitsEE;
+   ev.getByToken(PCaloHitEBToken_, PCaloHitsEB);
+   ev.getByToken(PCaloHitEEToken_, PCaloHitsEE);
+   if(saveCalohits_){
+      if (!PCaloHitsEB.isValid()) {
+          std::cerr << "Analyze --> PCaloHitsEB not found" << std::endl; 
+          return;
+      }
+      if (!PCaloHitsEE.isValid()) {
+          std::cerr << "Analyze --> PCaloHitsEE not found" << std::endl; 
+          return;
+      }
+   }
+
    edm::Handle<EcalRecHitCollection> recHitsEB;
    ev.getByToken(ebRechitToken_, recHitsEB);
    if(saveRechits_) {
@@ -296,6 +321,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           return;
       }
    } 
+
+   
 
    for(const auto& iCalo : *(caloParticles.product()))
    {
@@ -418,6 +445,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                 }
 
                 if(id.subdetId()==EcalBarrel){
+
+                   if(saveCalohits_){
+                      for (auto & pch : *(PCaloHitsEB.product())){
+                         if (pch.id() == id.rawId()){
+                           caloHit_energy.push_back(reduceFloat(pch.energy(),nBits_));
+                           caloHit_time.push_back(reduceFloat(pch.time(),nBits_));
+                           caloHit_ieta.push_back(ieta);
+                           caloHit_iphi.push_back(iphi);
+                           caloHit_iz.push_back(iz);
+                         }
+                      }                      
+                   }
                    
                    if(saveSimhits_){
                       simHit_ieta.push_back(ieta);
@@ -467,6 +506,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                    }
 
                 }else if(id.subdetId()==EcalEndcap){
+
+                   if(saveCalohits_){
+                      for (auto & pch : *(PCaloHitsEE.product())){
+                         if (pch.id() == id.rawId()){
+                           caloHit_energy.push_back(reduceFloat(pch.energy(),nBits_));
+                           caloHit_time.push_back(reduceFloat(pch.time(),nBits_));
+                           caloHit_ieta.push_back(ieta);
+                           caloHit_iphi.push_back(iphi);
+                           caloHit_iz.push_back(iz);
+                         }
+                      }                      
+                   }
                    
                    if(saveSimhits_){
                       simHit_ieta.push_back(ieta);

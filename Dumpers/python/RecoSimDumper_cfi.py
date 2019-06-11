@@ -21,4 +21,10 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     useEnergyRegression               = cms.bool(False), #save corrected energy
     motherID                          = cms.int32(22),   #save only caloParticles with this pdgId 
     #motherID                          = cms.int32(0),   #save only caloParticles with this pdgId 
+
+    ######################
+    # PCaloHits analysis
+    saveCalohits                      = cms.bool(False),
+    PCaloHitEBCollection              = cms.InputTag("g4SimHits","EcalHitsEB","SIM"),
+    PCaloHitEECollection              = cms.InputTag("g4SimHits","EcalHitsEE","SIM")
 )

@@ -26,6 +26,8 @@
     * cmsRun step2_DIGI_L1_DIGI2RAW_HLT.py
 
 5) Produce RECO:
+
+In case of studies including PCaloHits uncomment line #67 to keep the PCaloHit collection. 
     
     * cd RecoSimStudies/Dumpers/test/
     * cmsRun step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py
