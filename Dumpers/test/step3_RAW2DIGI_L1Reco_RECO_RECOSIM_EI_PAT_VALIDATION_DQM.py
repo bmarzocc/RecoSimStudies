@@ -61,9 +61,10 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     outputCommands = process.RECOSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
-process.RECOSIMoutput.outputCommands.extend(['keep *_mix_MergedCaloTruth_*'])
-process.RECOSIMoutput.outputCommands.extend(['keep *_particleFlowRecHitECAL_*_*'])
-#process.RECOSIMoutput.outputCommands.extend(['keep *_*genParticle*_*_*'])
+process.RECOSIMoutput.outputCommands.extend(['keep *_mix_MergedCaloTruth_*',
+                'keep *_particleFlowRecHitECAL_*_*'])
+
+#process.RECOSIMoutput.outputCommands.extend(['keep *PCaloHit*_g4SimHits_EcalHitsE*_*'])
 
 
 process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
