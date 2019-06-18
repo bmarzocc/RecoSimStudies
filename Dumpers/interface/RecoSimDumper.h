@@ -161,9 +161,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       float caloParticle_phi;
       std::vector<float> caloHit_energy;
       std::vector<float> caloHit_time;
-      std::vector<int> caloHit_ieta;
-      std::vector<int> caloHit_iphi;
-      std::vector<int> caloHit_iz;
       std::vector<float> simHit_energy;
       std::vector<float> simHit_eta;
       std::vector<float> simHit_phi;
@@ -201,14 +198,14 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
       std::vector<float> superCluster_phi;
-      std::map<int,int> map_simHit_pfCLuster; 
-      std::map<int,int> map_recHit_pfCLuster;
-      std::map<int,int> map_pfRecHit_pfCLuster;
-      std::map<int,int> map_pfClusterHit_pfCLuster;   
-      std::map<int,int> map_simHit_superCLuster; 
-      std::map<int,int> map_recHit_superCLuster;
-      std::map<int,int> map_pfRecHit_superCLuster;
-      std::map<int,int> map_superClusterHit_superCLuster;    
+      std::map<int,int> map_simHit_pfCluster; 
+      std::map<int,int> map_recHit_pfCluster;
+      std::map<int,int> map_pfRecHit_pfCluster;
+      std::map<int,int> map_pfClusterHit_pfCluster;   
+      std::map<int,int> map_simHit_superCluster; 
+      std::map<int,int> map_recHit_superCluster;
+      std::map<int,int> map_pfRecHit_superCluster;
+      std::map<int,int> map_superClusterHit_superCluster;    
 };
 
 #endif

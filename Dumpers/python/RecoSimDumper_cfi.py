@@ -4,6 +4,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
 
     genParticleCollection             = cms.InputTag("genParticles","","HLT"),
     caloParticleCollection            = cms.InputTag("mix","MergedCaloTruth","HLT"),
+    PCaloHitEBCollection              = cms.InputTag("g4SimHits","EcalHitsEB","SIM"),
+    PCaloHitEECollection              = cms.InputTag("g4SimHits","EcalHitsEE","SIM"),
     ebRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     eeRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
     pfRechitCollection                = cms.InputTag("particleFlowRecHitECAL","","RECO"),
@@ -13,18 +15,15 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     
     doCompression                     = cms.bool(True),  #do the compression of floats
     nBits                             = cms.int32(12),   #nbits for float compression (<=23)
+    saveCalohits                      = cms.bool(False),
     saveSimhits                       = cms.bool(True),  #save simHits information
     saveRechits                       = cms.bool(True),  #save recHits information
     savePFRechits                     = cms.bool(True),  #save pfRecHits information
     savePFCluster                     = cms.bool(True),  #save pfClusters information
     saveSuperCluster                  = cms.bool(False), #save superClusters information
     useEnergyRegression               = cms.bool(False), #save corrected energy
-    motherID                          = cms.int32(22),   #save only caloParticles with this pdgId 
+    motherID                          = cms.int32(22)  #save only caloParticles with this pdgId 
     #motherID                          = cms.int32(0),   #save only caloParticles with this pdgId 
 
-    ######################
-    # PCaloHits analysis
-    saveCalohits                      = cms.bool(False),
-    PCaloHitEBCollection              = cms.InputTag("g4SimHits","EcalHitsEB","SIM"),
-    PCaloHitEECollection              = cms.InputTag("g4SimHits","EcalHitsEE","SIM")
+    
 )
