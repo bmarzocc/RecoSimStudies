@@ -9,21 +9,20 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     ebRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     eeRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
     pfRechitCollection                = cms.InputTag("particleFlowRecHitECAL","","RECO"),
-    pfClusterCollection               = cms.InputTag("particleFlowEGamma","EBEEClusters","RECO"),
+    pfClusterCollection               = cms.InputTag("particleFlowClusterECAL","","RECO"),
     ebSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALBarrel","RECO"), 
     eeSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
     
     doCompression                     = cms.bool(True),  #do the compression of floats
     nBits                             = cms.int32(12),   #nbits for float compression (<=23)
-    saveCalohits                      = cms.bool(False),
+
+    saveCalohits                      = cms.bool(False), #save pCaloHits information
     saveSimhits                       = cms.bool(True),  #save simHits information
     saveRechits                       = cms.bool(True),  #save recHits information
     savePFRechits                     = cms.bool(True),  #save pfRecHits information
     savePFCluster                     = cms.bool(True),  #save pfClusters information
-    saveSuperCluster                  = cms.bool(False), #save superClusters information
+    saveSuperCluster                  = cms.bool(True),  #save superClusters information
     useEnergyRegression               = cms.bool(False), #save corrected energy
-    motherID                          = cms.int32(22)  #save only caloParticles with this pdgId 
-    #motherID                          = cms.int32(0),   #save only caloParticles with this pdgId 
-
-    
+    genID                             = cms.vint32(22,11)  #save only caloParticles with this pdgId 
+    #genID                            = cms.vdouble(0),  #save only caloParticles with this pdgId 
 )
