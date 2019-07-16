@@ -152,6 +152,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    tree->Branch("genParticle_eta","std::vector<float>",&genParticle_eta);
    tree->Branch("genParticle_phi","std::vector<float>",&genParticle_phi);
    tree->Branch("caloParticle_energy","std::vector<float>",&caloParticle_energy);
+   tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy); 
    tree->Branch("caloParticle_pt","std::vector<float>",&caloParticle_pt);
    tree->Branch("caloParticle_eta","std::vector<float>",&caloParticle_eta);
    tree->Branch("caloParticle_phi","std::vector<float>",&caloParticle_phi);
@@ -347,6 +348,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    genParticle_eta.clear();
    genParticle_phi.clear();
    caloParticle_energy.clear();
+   caloParticle_simEnergy.clear();
    caloParticle_pt.clear();
    caloParticle_eta.clear();
    caloParticle_phi.clear();
@@ -521,6 +523,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        caloParticle_eta.push_back(iCalo.eta());
        caloParticle_phi.push_back(iCalo.phi());
 
+       float calo_simEnergy=-1.;
+
        //Get hits from simClusters, and associated recHits, pfRechits, PFClusterhit and superClusterhit 
        int simHit_index=-1; 
        const auto& simClusters = iCalo.simClusters();
@@ -555,6 +559,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                    if(ee_id.zside()>0) iz=1;   
                 }
 
+                calo_simEnergy += hits_and_fractions[iHit].second*detIDtoTotEn_[id.rawId()]; 
                 if(saveSimhits_){
                    simHit_energy[iCaloCount].push_back(reduceFloat(hits_and_fractions[iHit].second*detIDtoTotEn_[id.rawId()],nBits_));
                    simHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
@@ -781,6 +786,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                superCluster_phi[iCaloCount].push_back(reduceFloat(iSuperCluster.phi(),nBits_));
           } 
        }
+       
+       caloParticle_simEnergy.push_back(reduceFloat(calo_simEnergy,nBits_));
 
        iCaloCount++; 
    }

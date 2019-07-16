@@ -158,6 +158,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> genParticle_eta;
       std::vector<float> genParticle_phi;
       std::vector<float> caloParticle_energy;
+      std::vector<float> caloParticle_simEnergy;
       std::vector<float> caloParticle_pt;
       std::vector<float> caloParticle_eta;
       std::vector<float> caloParticle_phi;   
