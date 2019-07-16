@@ -3,7 +3,7 @@ import FWCore.Utilities.FileUtils as FileUtils
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 
-options = VarParsing ('option parser')
+options = VarParsing ('analysis') # keep this name
 options.outputFile = 'RecoSimDumper.root'
 options.inputFiles = 'file:test/step3.root'
 options.maxEvents = -1 # -1 means all events, maxEvents considers the total over files considered
