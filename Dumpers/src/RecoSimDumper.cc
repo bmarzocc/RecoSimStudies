@@ -339,17 +339,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    runId = ev.id().run();
    lumiId = ev.luminosityBlock();
    eventId = ev.id().event();
-   std::cout << "Event=" << eventId << " run=" << runId << std::endl;
+   //std::cout << "Event=" << eventId << " run=" << runId << std::endl;
    int nCaloParticles = nSkimmedCaloParticles(caloParticles,&genID_);
-   std::cout << "nCaloParticles=" <<nCaloParticles << std::endl; 
-   int nGenParticles = 0;
+   //std::cout << "nCaloParticles=" <<nCaloParticles << std::endl; 
+   /*int nGenParticles = 0;
    for(auto& genP : *(genParticles.product())){
      if(genP.status()==1) {
-       std::cout << "id=" << genP.pdgId() << std::endl;
+       std::cout << "nGenP=" << nGenParticles << " id=" << genP.pdgId() << std::endl;
        nGenParticles++;
      }
    }
-
+*/
 
 
    genParticle_id.clear();
@@ -477,8 +477,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    {
        bool isGoodParticle = false; 
        for(unsigned int id=0; id<genID_.size(); id++) 
-           //M.G. if(iCalo.pdgId()==genID_.at(id) || genID_.at(id)==0) isGoodParticle=true;
-           isGoodParticle=true;
+           //M.G. 
+           if(iCalo.pdgId()==genID_.at(id) || genID_.at(id)==0) isGoodParticle=true;
+           //iisGoodParticle=true;
 
        if(!isGoodParticle) continue;     
 
@@ -719,8 +720,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                 int pfCluster_index_tmp=0;
                 if(savePFCluster_){                         
                    for(const auto& iPFCluster : *(pfClusters.product())){
-                       reco::CaloCluster caloBC(iPFCluster);
-                       const std::vector<std::pair<DetId,float> > &hitsAndFractions = caloBC.hitsAndFractions();
+                       reco::PFCluster pfCl(iPFCluster);
+                       const std::vector<std::pair<DetId,float> > &hitsAndFractions = pfCl.hitsAndFractions();
                        for(unsigned int i = 0; i < hitsAndFractions.size(); i++){
                            if(hitsAndFractions[i].first.rawId() == id.rawId()){       
                               if(!useEnergyRegression_) pfClusterHit_energy_ = recHit_energy_*hitsAndFractions[i].second;
@@ -812,9 +813,10 @@ int RecoSimDumper::nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> >
     {
        bool isGoodParticle = false; 
        for(unsigned int id=0; id<genID_->size(); id++){
-           // std::cout << "i=" << id << " genID=" <<genID_->at(id) << " iCalo.pdgId()=" << iCalo.pdgId() << std::endl;
-           //M.G. if(iCalo.pdgId()==genID_->at(id) || genID_->at(id)==0) isGoodParticle=true;
-           isGoodParticle=true
+           //std::cout << "i=" << id << " genID=" <<genID_->at(id) << " iCalo.pdgId()=" << iCalo.pdgId() << std::endl;
+           // M.G.
+           if(iCalo.pdgId()==genID_->at(id) || genID_->at(id)==0) isGoodParticle=true;
+           //isGoodParticle=true;
        }
        if(isGoodParticle) nCaloParticles++;  
     } 
