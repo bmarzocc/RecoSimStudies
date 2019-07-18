@@ -802,7 +802,7 @@ int RecoSimDumper::nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> >
     for(const auto& iCalo : *(caloParticles.product()))
     {
        bool isGoodParticle = false; 
-       for(unsigned int id=0; id<genID_->size(); id++){
+       for(unsigned int id=0; id<genID_->size(); id++)
            //std::cout << "i=" << id << " genID=" <<genID_->at(id) << " iCalo.pdgId()=" << iCalo.pdgId() << std::endl;
            // M.G.
            if(iCalo.pdgId()==genID_->at(id) || genID_->at(id)==0) isGoodParticle=true;
