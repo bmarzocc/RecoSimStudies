@@ -341,17 +341,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    eventId = ev.id().event();
    //std::cout << "Event=" << eventId << " run=" << runId << std::endl;
    int nCaloParticles = nSkimmedCaloParticles(caloParticles,&genID_);
-   //std::cout << "nCaloParticles=" <<nCaloParticles << std::endl; 
-   /*int nGenParticles = 0;
-   for(auto& genP : *(genParticles.product())){
-     if(genP.status()==1) {
-       std::cout << "nGenP=" << nGenParticles << " id=" << genP.pdgId() << std::endl;
-       nGenParticles++;
-     }
-   }
-   */
-
- 
+  
    genParticle_id.clear();
    genParticle_energy.clear();
    genParticle_pt.clear();
@@ -816,7 +806,7 @@ int RecoSimDumper::nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> >
            //std::cout << "i=" << id << " genID=" <<genID_->at(id) << " iCalo.pdgId()=" << iCalo.pdgId() << std::endl;
            // M.G.
            if(iCalo.pdgId()==genID_->at(id) || genID_->at(id)==0) isGoodParticle=true;
-
+      
        if(isGoodParticle) nCaloParticles++;  
     } 
 
