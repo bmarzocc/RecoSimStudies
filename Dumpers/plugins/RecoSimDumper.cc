@@ -63,7 +63,7 @@
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
-#include "RecoSimStudies/Dumpers/interface/RecoSimDumper.h"
+#include "RecoSimStudies/Dumpers/plugins/RecoSimDumper.h"
 
 #include "TSystem.h"
 #include "TFile.h"
@@ -139,8 +139,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
 
    //output file, historgrams and trees
 
-   gInterpreter->GenerateDictionary("vector<vector<bool>>","vector;vector");
-   gInterpreter->GenerateDictionary("vector<map<int,int>>","map;vector"); 
+   //gInterpreter->GenerateDictionary("vector<vector<bool>>","vector;vector");
+   //gInterpreter->GenerateDictionary("vector<map<int,int>>","map;vector"); 
 
    tree = iFile->make<TTree>("caloTree","caloTree"); 
    tree->Branch("eventId", &eventId, "eventId/L");
@@ -349,9 +349,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        nGenParticles++;
      }
    }
-*/
+   */
 
-
+ 
    genParticle_id.clear();
    genParticle_energy.clear();
    genParticle_pt.clear();
@@ -503,21 +503,21 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           } 
           const auto& genParticles_tmp = *(genParticles.product());
           auto genParticle = genParticles_tmp[igen_tmp]; 
-          genParticle_energy.push_back(genParticle.energy());
-          genParticle_pt.push_back(genParticle.pt());
-          genParticle_eta.push_back(genParticle.eta());
-          genParticle_phi.push_back(genParticle.phi());
+          genParticle_energy.push_back(reduceFloat(genParticle.energy(),nBits_));
+          genParticle_pt.push_back(reduceFloat(genParticle.pt(),nBits_));
+          genParticle_eta.push_back(reduceFloat(genParticle.eta(),nBits_));
+          genParticle_phi.push_back(reduceFloat(genParticle.phi(),nBits_));
        }else{
-          genParticle_energy.push_back((*genParticles_caloPart.begin())->energy());
-          genParticle_pt.push_back((*genParticles_caloPart.begin())->pt());
-          genParticle_eta.push_back((*genParticles_caloPart.begin())->eta());
-          genParticle_phi.push_back((*genParticles_caloPart.begin())->phi());
+          genParticle_energy.push_back(reduceFloat((*genParticles_caloPart.begin())->energy(),nBits_));
+          genParticle_pt.push_back(reduceFloat((*genParticles_caloPart.begin())->pt(),nBits_));
+          genParticle_eta.push_back(reduceFloat((*genParticles_caloPart.begin())->eta(),nBits_));
+          genParticle_phi.push_back(reduceFloat((*genParticles_caloPart.begin())->phi(),nBits_));
        }
  
-       caloParticle_energy.push_back(iCalo.energy());
-       caloParticle_pt.push_back(iCalo.pt());
-       caloParticle_eta.push_back(iCalo.eta());
-       caloParticle_phi.push_back(iCalo.phi());
+       caloParticle_energy.push_back(reduceFloat(iCalo.energy(),nBits_));
+       caloParticle_pt.push_back(reduceFloat(iCalo.pt(),nBits_));
+       caloParticle_eta.push_back(reduceFloat(iCalo.eta(),nBits_));
+       caloParticle_phi.push_back(reduceFloat(iCalo.phi(),nBits_));
 
        float calo_simEnergy=-1.;
 
@@ -816,8 +816,7 @@ int RecoSimDumper::nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> >
            //std::cout << "i=" << id << " genID=" <<genID_->at(id) << " iCalo.pdgId()=" << iCalo.pdgId() << std::endl;
            // M.G.
            if(iCalo.pdgId()==genID_->at(id) || genID_->at(id)==0) isGoodParticle=true;
-           //isGoodParticle=true;
-       }
+
        if(isGoodParticle) nCaloParticles++;  
     } 
 
