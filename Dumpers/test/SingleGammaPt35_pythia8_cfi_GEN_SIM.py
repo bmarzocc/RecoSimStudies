@@ -66,24 +66,49 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-process.generator = cms.EDFilter("Pythia8PtGun",
-    PGunParameters = cms.PSet(
-        AddAntiParticle = cms.bool(True),
-        MaxEta = cms.double(2.5),
-        MaxPhi = cms.double(3.14159265359),
-        MaxPt = cms.double(35.01),
-        MinEta = cms.double(-2.5),
-        MinPhi = cms.double(-3.14159265359),
-        MinPt = cms.double(34.99),
-        ParticleID = cms.vint32(22)
-    ),
-    PythiaParameters = cms.PSet(
-        parameterSets = cms.vstring()
-    ),
-    Verbosity = cms.untracked.int32(0),
-    firstRun = cms.untracked.uint32(1),
-    psethack = cms.string('single gamma pt 35')
+#process.generator = cms.EDFilter("Pythia8PtGun",
+#    PGunParameters = cms.PSet(
+#        AddAntiParticle = cms.bool(True),
+#        MaxEta = cms.double(2.5),
+#        MaxPhi = cms.double(3.14159265359),
+#        MaxPt = cms.double(35.01),
+#        MinEta = cms.double(-2.5),
+#        MinPhi = cms.double(-3.14159265359),
+#        MinPt = cms.double(34.99),
+#        ParticleID = cms.vint32(22)
+#    ),
+#    PythiaParameters = cms.PSet(
+#        parameterSets = cms.vstring()
+#    ),
+#    Verbosity = cms.untracked.int32(0),
+#    firstRun = cms.untracked.uint32(1),
+#    psethack = cms.string('single gamma pt 35')
+#)
+
+process.generator = cms.EDProducer("CloseByParticleGunProducer",
+   PGunParameters = cms.PSet(PartID = cms.vint32(22, 22),
+   NParticles = cms.int32(1),
+   EnMin = cms.double(1.),   # in GeV
+   EnMax = cms.double(100.),
+   RMin = cms.double(123.8), # in cm
+   RMax = cms.double(123.8),
+   ZMin = cms.double(-304.5),    # in cm
+   ZMax = cms.double(304.5),
+   Delta = cms.double(300),  # in cm  -> phi1-phi2 = Delta/R # for NParticles=1 irrelevant
+   Pointing = cms.bool(True),# otherwise showers parallel/perpendicular to beam axis
+   Overlapping = cms.bool(False),
+   RandomShoot = cms.bool(False),
+   MaxPhi = cms.double(3.14159265359),
+   MinPhi = cms.double(-3.14159265359),
+   MaxEta = cms.double(0.), # dummy, it is not used
+   MinEta = cms.double(0.), # dummy, it is not used
+   ),
+  Verbosity = cms.untracked.int32(1),
+  psethack = cms.string('two particles close to EB'),
+  AddAntiParticle = cms.bool(False),
+  firstRun = cms.untracked.uint32(1)
 )
+
 
 
 # Path and EndPath definitions
