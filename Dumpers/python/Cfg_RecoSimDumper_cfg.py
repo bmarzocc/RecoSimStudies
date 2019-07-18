@@ -22,7 +22,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag,'106X_mc2017_realistic_v3','')
 
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(options.maxEvents))
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 1 )
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 100 )
                                                                        
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),                       
@@ -36,6 +36,16 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outputFile)
 )
 
+#Setup FWK for multithreaded 
+process.options = cms.untracked.PSet( 
+ 
+ )
+# uncomment these lines for multithreaded
+#process.options.numberOfThreads=cms.untracked.uint32(8)
+#process.options.numberOfStreams=cms.untracked.uint32(0)
+#process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+
 process.p = cms.Path(
     process.recosimdumper
 )
+
