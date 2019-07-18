@@ -76,10 +76,8 @@ process.FEVTDEBUGHLToutput = cms.OutputModule("PoolOutputModule",
     outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
-process.FEVTDEBUGHLTEventContent.outputCommands.extend(
-                ['keep *_mix_MergedCaloTruth_*',
-                 'keep *_*genParticle*_*_*',
-                 'keep *PCaloHit*_g4SimHits_EcalHitsE*_*'])
+process.FEVTDEBUGHLTEventContent.outputCommands.extend(['keep *_mix_MergedCaloTruth_*'])
+#process.FEVTDEBUGHLTEventContent.outputCommands.extend(['keep *PCaloHit*_g4SimHits_EcalHitsE*_*'])
 
 # Additional output definition
 
