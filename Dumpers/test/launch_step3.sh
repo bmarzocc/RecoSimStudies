@@ -25,8 +25,8 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEE=false
+doEB=false
+doEE=true
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
 saveWork=true
@@ -47,7 +47,6 @@ fi
 if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
    DIRNAME=$DIRNAME"_EE"
 fi
-
 
 
 # Job configuration
