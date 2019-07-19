@@ -53,7 +53,7 @@ process.FEVTDEBUGoutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string('GEN-SIM'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:outputfiles/step1.root'),
+    fileName = cms.untracked.string('file:step1.root'),
     outputCommands = process.FEVTDEBUGEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -125,6 +125,12 @@ associatePatAlgosToolsTask(process)
 # filter all path with the production filter sequence
 for path in process.paths:
 	getattr(process,path).insert(0, process.generator)
+
+
+#Setup FWK for multithreaded 
+process.options.numberOfThreads=cms.untracked.uint32(8) 
+process.options.numberOfStreams=cms.untracked.uint32(0) 
+process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1) 
 
 
 # Customisation from command line
