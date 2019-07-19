@@ -118,6 +118,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
       int nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> > caloParticles, std::vector<int>* genID_);
+      std::map<int,std::map<DetId,float> > unMatchedHits(std::map<int,std::map<DetId,float> >* unmatchedHit_energy_, int nClusters, int nCaloParts);
       
       // ----------collection tokens-------------------
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
@@ -147,6 +148,10 @@ class RecoSimDumper : public edm::EDAnalyzer
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;
+      std::map<int,std::map<DetId,float> > unmatchedHit_energy_Cl_;
+      std::map<int,std::map<DetId,float> > unmatchedHit_energy_SCEB_;
+      std::map<int,std::map<DetId,float> > unmatchedHit_energy_SCEE_;
+      std::vector<std::vector<uint32_t> > cry_IDs_;
       
       long int eventId;
       int lumiId;
@@ -193,6 +198,12 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > pfClusterHit_ieta;
       std::vector<std::vector<int> > pfClusterHit_iphi;
       std::vector<std::vector<int> > pfClusterHit_iz;
+      std::vector<std::vector<float> > pfClusterHit_noCaloPart_energy;
+      std::vector<std::vector<float> > pfClusterHit_noCaloPart_eta;
+      std::vector<std::vector<float> > pfClusterHit_noCaloPart_phi;
+      std::vector<std::vector<int> > pfClusterHit_noCaloPart_ieta;
+      std::vector<std::vector<int> > pfClusterHit_noCaloPart_iphi;
+      std::vector<std::vector<int> > pfClusterHit_noCaloPart_iz;
       std::vector<float> pfCluster_energy;
       std::vector<float> pfCluster_eta;
       std::vector<float> pfCluster_phi;
@@ -201,7 +212,13 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<float> > superClusterHit_phi;  
       std::vector<std::vector<int> > superClusterHit_ieta;
       std::vector<std::vector<int> > superClusterHit_iphi;    
-      std::vector<std::vector<int> > superClusterHit_iz;    
+      std::vector<std::vector<int> > superClusterHit_iz;  
+      std::vector<std::vector<float> > superClusterHit_noCaloPart_energy;
+      std::vector<std::vector<float> > superClusterHit_noCaloPart_eta;
+      std::vector<std::vector<float> > superClusterHit_noCaloPart_phi;
+      std::vector<std::vector<int> > superClusterHit_noCaloPart_ieta;
+      std::vector<std::vector<int> > superClusterHit_noCaloPart_iphi;
+      std::vector<std::vector<int> > superClusterHit_noCaloPart_iz;  
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
       std::vector<float> superCluster_phi;

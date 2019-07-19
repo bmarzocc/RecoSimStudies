@@ -10,7 +10,7 @@
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step3.out -e logs/step3.err -q long.q launch_step3.sh
+# sbatch -p wn -o logs/step3.out -e logs/step3.err -q long.q --ntasks=8 launch_step3.sh
 #
 #2. or use the gpu ressources
 #
@@ -33,7 +33,7 @@ saveWork=true
 saveSE=false
 
 #Choose name of the directory
-DIRNAME="test"
+DIRNAME="singlePhoton_5k"
 
 
 ###############################################################

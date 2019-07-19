@@ -25,8 +25,8 @@ process.load('CommonTools.ParticleFlow.EITopPAG_cff')
 process.load('PhysicsTools.PatAlgos.slimming.metFilterPaths_cff')
 process.load('Configuration.StandardSequences.PATMC_cff')
 process.load('Configuration.StandardSequences.Validation_cff')
-process.load('DQMServices.Core.DQMStoreNonLegacy_cff')
-process.load('DQMOffline.Configuration.DQMOfflineMC_cff')
+#process.load('DQMServices.Core.DQMStoreNonLegacy_cff')
+#process.load('DQMOffline.Configuration.DQMOfflineMC_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
@@ -62,8 +62,9 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 process.RECOSIMoutput.outputCommands.extend(['keep *_mix_MergedCaloTruth_*',
-                                            #'keep *PCaloHit*_g4SimHits_EcalHitsE*_*',
-                                             'keep *_particleFlowRecHitECAL_*_*'])
+                                    'keep *_particleFlowRecHitECAL_*_*')
+                                    #'keep *PCaloHit*_g4SimHits_EcalHitsE*_*',
+                                    #'keep *_*genParticle*_*_*'])
 
 process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
@@ -131,15 +132,15 @@ process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 
-process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
-    dataset = cms.untracked.PSet(
-        dataTier = cms.untracked.string('DQMIO'),
-        filterName = cms.untracked.string('')
-    ),
-    fileName = cms.untracked.string('file:step3_inDQM.root'),
-    outputCommands = process.DQMEventContent.outputCommands,
-    splitLevel = cms.untracked.int32(0)
-)
+# process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
+#     dataset = cms.untracked.PSet(
+#         dataTier = cms.untracked.string('DQMIO'),
+#         filterName = cms.untracked.string('')
+#     ),
+#     fileName = cms.untracked.string('file:step3_inDQM.root'),
+#     outputCommands = process.DQMEventContent.outputCommands,
+#     splitLevel = cms.untracked.int32(0)
+# )
 
 # Additional output definition
 
@@ -159,47 +160,80 @@ process.recosim_step = cms.Path(process.recosim)
 process.eventinterpretaion_step = cms.Path(process.EIsequence)
 process.Flag_trackingFailureFilter = cms.Path(process.goodVertices+process.trackingFailureFilter)
 process.Flag_goodVertices = cms.Path(process.primaryVertexFilter)
-process.Flag_CSCTightHaloFilter = cms.Path(process.CSCTightHaloFilter)
-process.Flag_trkPOGFilters = cms.Path(process.trkPOGFilters)
-process.Flag_HcalStripHaloFilter = cms.Path(process.HcalStripHaloFilter)
-process.Flag_trkPOG_logErrorTooManyClusters = cms.Path(~process.logErrorTooManyClusters)
+# process.Flag_CSCTightHaloFilter = cms.Path(process.CSCTightHaloFilter)
+# process.Flag_trkPOGFilters = cms.Path(process.trkPOGFilters)
+# process.Flag_HcalStripHaloFilter = cms.Path(process.HcalStripHaloFilter)
+# process.Flag_trkPOG_logErrorTooManyClusters = cms.Path(~process.logErrorTooManyClusters)
 process.Flag_EcalDeadCellTriggerPrimitiveFilter = cms.Path(process.EcalDeadCellTriggerPrimitiveFilter)
 process.Flag_ecalLaserCorrFilter = cms.Path(process.ecalLaserCorrFilter)
-process.Flag_globalSuperTightHalo2016Filter = cms.Path(process.globalSuperTightHalo2016Filter)
+#process.Flag_globalSuperTightHalo2016Filter = cms.Path(process.globalSuperTightHalo2016Filter)
 process.Flag_eeBadScFilter = cms.Path(process.eeBadScFilter)
 process.Flag_METFilters = cms.Path(process.metFilters)
 process.Flag_chargedHadronTrackResolutionFilter = cms.Path(process.chargedHadronTrackResolutionFilter)
-process.Flag_globalTightHalo2016Filter = cms.Path(process.globalTightHalo2016Filter)
-process.Flag_CSCTightHaloTrkMuUnvetoFilter = cms.Path(process.CSCTightHaloTrkMuUnvetoFilter)
-process.Flag_HBHENoiseIsoFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseIsoFilter)
+# process.Flag_globalTightHalo2016Filter = cms.Path(process.globalTightHalo2016Filter)
+# process.Flag_CSCTightHaloTrkMuUnvetoFilter = cms.Path(process.CSCTightHaloTrkMuUnvetoFilter)
+# process.Flag_HBHENoiseIsoFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseIsoFilter)
 process.Flag_BadChargedCandidateSummer16Filter = cms.Path(process.BadChargedCandidateSummer16Filter)
-process.Flag_hcalLaserEventFilter = cms.Path(process.hcalLaserEventFilter)
-process.Flag_BadPFMuonFilter = cms.Path(process.BadPFMuonFilter)
+# process.Flag_hcalLaserEventFilter = cms.Path(process.hcalLaserEventFilter)
+# process.Flag_BadPFMuonFilter = cms.Path(process.BadPFMuonFilter)
 process.Flag_ecalBadCalibFilter = cms.Path(process.ecalBadCalibFilter)
-process.Flag_HBHENoiseFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseFilter)
-process.Flag_trkPOG_toomanystripclus53X = cms.Path(~process.toomanystripclus53X)
+# process.Flag_HBHENoiseFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseFilter)
+# process.Flag_trkPOG_toomanystripclus53X = cms.Path(~process.toomanystripclus53X)
 process.Flag_EcalDeadCellBoundaryEnergyFilter = cms.Path(process.EcalDeadCellBoundaryEnergyFilter)
 process.Flag_BadChargedCandidateFilter = cms.Path(process.BadChargedCandidateFilter)
-process.Flag_trkPOG_manystripclus53X = cms.Path(~process.manystripclus53X)
-process.Flag_BadPFMuonSummer16Filter = cms.Path(process.BadPFMuonSummer16Filter)
-process.Flag_muonBadTrackFilter = cms.Path(process.muonBadTrackFilter)
-process.Flag_CSCTightHalo2015Filter = cms.Path(process.CSCTightHalo2015Filter)
-process.prevalidation_step = cms.Path(process.prevalidation)
-process.prevalidation_step1 = cms.Path(process.prevalidationMiniAOD)
-process.validation_step = cms.EndPath(process.validation)
-process.validation_step1 = cms.EndPath(process.validationMiniAOD)
-process.dqmoffline_step = cms.EndPath(process.DQMOffline)
-process.dqmoffline_1_step = cms.EndPath(process.DQMOfflineExtraHLT)
-process.dqmoffline_2_step = cms.EndPath(process.DQMOfflineMiniAOD)
-process.dqmofflineOnPAT_step = cms.EndPath(process.PostDQMOffline)
-process.dqmofflineOnPAT_1_step = cms.EndPath(process.PostDQMOffline)
-process.dqmofflineOnPAT_2_step = cms.EndPath(process.PostDQMOfflineMiniAOD)
+# process.Flag_trkPOG_manystripclus53X = cms.Path(~process.manystripclus53X)
+# process.Flag_BadPFMuonSummer16Filter = cms.Path(process.BadPFMuonSummer16Filter)
+# process.Flag_muonBadTrackFilter = cms.Path(process.muonBadTrackFilter)
+# process.Flag_CSCTightHalo2015Filter = cms.Path(process.CSCTightHalo2015Filter)
+# process.prevalidation_step = cms.Path(process.prevalidation)
+# process.prevalidation_step1 = cms.Path(process.prevalidationMiniAOD)
+# process.validation_step = cms.EndPath(process.validation)
+# process.validation_step1 = cms.EndPath(process.validationMiniAOD)
+# process.dqmoffline_step = cms.EndPath(process.DQMOffline)
+# process.dqmoffline_1_step = cms.EndPath(process.DQMOfflineExtraHLT)
+# process.dqmoffline_2_step = cms.EndPath(process.DQMOfflineMiniAOD)
+# process.dqmofflineOnPAT_step = cms.EndPath(process.PostDQMOffline)
+# process.dqmofflineOnPAT_1_step = cms.EndPath(process.PostDQMOffline)
+# process.dqmofflineOnPAT_2_step = cms.EndPath(process.PostDQMOfflineMiniAOD)
 process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 process.MINIAODSIMoutput_step = cms.EndPath(process.MINIAODSIMoutput)
-process.DQMoutput_step = cms.EndPath(process.DQMoutput)
+# process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.eventinterpretaion_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.prevalidation_step,process.prevalidation_step1,process.validation_step,process.validation_step1,process.dqmoffline_step,process.dqmoffline_1_step,process.dqmoffline_2_step,process.dqmofflineOnPAT_step,process.dqmofflineOnPAT_1_step,process.dqmofflineOnPAT_2_step,process.RECOSIMoutput_step,process.MINIAODSIMoutput_step,process.DQMoutput_step)
+# process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.eventinterpretaion_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.prevalidation_step,process.prevalidation_step1,process.validation_step,process.validation_step1,\
+#     process.dqmoffline_step,process.dqmoffline_1_step,process.dqmoffline_2_step,process.dqmofflineOnPAT_step,process.dqmofflineOnPAT_1_step,process.dqmofflineOnPAT_2_step,\
+#         process.RECOSIMoutput_step,process.MINIAODSIMoutput_step,\
+#             process.DQMoutput_step)
+# process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,
+#                             process.eventinterpretaion_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,  
+#                             process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,
+#                             process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,
+#                             process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,
+#                             process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,
+#                             process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,
+#                             process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,
+#                             process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,
+#                             process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,
+#                             process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,
+#                             process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,
+#                             process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,
+#                             process.Flag_METFilters,process.prevalidation_step,process.prevalidation_step1,
+#                             process.validation_step,process.validation_step1,process.RECOSIMoutput_step,
+#                             process.MINIAODSIMoutput_step)
+
+# Remove because of errors in condor
+#process.pfTausBaseSequence.remove(pfTausProducerSansRefs)
+
+
+process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,
+                            process.eventinterpretaion_step,  
+                            process.Flag_EcalDeadCellTriggerPrimitiveFilter,
+                            process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,
+                            process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,
+                            process.Flag_BadChargedCandidateFilter,
+                            process.Flag_METFilters,
+                            process.RECOSIMoutput_step,
+                            process.MINIAODSIMoutput_step)
 process.schedule.associate(process.patTask)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)

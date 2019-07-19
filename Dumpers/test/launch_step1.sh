@@ -10,7 +10,7 @@
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q launch_step1.sh
+# sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q --ntasks=8 launch_step1.sh
 #
 #2. or use the gpu ressources
 #
@@ -26,15 +26,15 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEE=false
+doEB=false
+doEE=true
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
 saveWork=true
 saveSE=false
 
 #Choose name of the directory
-DIRNAME="test"
+DIRNAME="singlePhoton_5k"
 
 
 ###############################################################
