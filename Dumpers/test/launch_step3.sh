@@ -20,6 +20,33 @@
 ###############################################################
 
 
+###############################################################
+#                  User's decision board                      #
+
+#Do you want to launch the production for EE or EB
+#(choose one at a time)
+doEB=true
+doEE=false
+#Do you want to store the output file in your work are or in the 
+#storage element? (choose one at a time)
+saveWork=true
+saveSE=false
+
+#Choose name of the directory
+DIRNAME="test"
+
+
+###############################################################
+
+
+
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
+   DIRNAME=$DIRNAME"_EB"
+fi
+
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE"
+fi
 
 
 
@@ -27,8 +54,15 @@
 JOBOPFILENAME="step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py"
 FILENAME="step3.root"
 INFILENAME="step2.root"
-#SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/step1/test/"
-SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/singlePhoton_5k"
+
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/"$DIRNAME
+fi
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
+   SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
+fi
+
+
 
 STARTDIR=`pwd`
 TOPWORKDIR="/scratch/anlyon/"
@@ -65,10 +99,12 @@ cp $JOBOPFILENAME $WORKDIR/$JOBOPFILENAME
 
 echo ""
 echo "Going to copy input file"
-#if interaction with the storage element:
-#xrdcp  $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
-#otherwise:
-cp $SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   xrdcp  $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
+fi
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
+  cp $SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
+fi
 
 cd $WORKDIR
 
@@ -89,10 +125,12 @@ ls -al
 echo ""
 echo "Going to copy the output to the output directory"
 
-#if interaction with the storage element:
-#xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
-#otherwise:
-cp $FILENAME $SERESULTDIR/$FILENAME
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
+fi
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
+   cp $FILENAME $SERESULTDIR/$FILENAME
+fi
 
 #echo ""
 #echo "Cleaning up $WORKDIR"

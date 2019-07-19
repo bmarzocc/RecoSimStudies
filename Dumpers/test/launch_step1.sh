@@ -21,21 +21,53 @@
 
 
 
+###############################################################
+#                  User's decision board                      #
+
+#Do you want to launch the production for EE or EB
+#(choose one at a time)
+doEB=true
+doEE=false
+#Do you want to store the output file in your work are or in the 
+#storage element? (choose one at a time)
+saveWork=true
+saveSE=false
+
+#Choose name of the directory
+DIRNAME="test"
+
+
+###############################################################
+
+JOBOPFILENAME=""
+
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
+   DIRNAME=$DIRNAME"_EB"
+   JOBOPFILENAME="step1_EB_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+fi
+
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE" 
+   JOBOPFILENAME="step1_EE_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+fi
 
 
 # Job configuration
-JOBOPFILENAME="step1_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
 FILENAME="step1.root"
-#SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/step1/test"
-SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/singlePhoton_5k"
+
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/step1/"$DIRNAME
+fi
+
+if [ "$saveWork" = true ] && [ "$saveSE" = false ]; then
+   SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
+fi
 
 STARTDIR=`pwd`
 TOPWORKDIR="/scratch/anlyon/"
 JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
-
-
 
 
 # Job instructions
@@ -80,10 +112,13 @@ ls -al
 echo ""
 echo "Going to copy the output to the output directory"
 
-#if interaction with the storage element:
-#xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
-#otherwise:
-cp $FILENAME $SERESULTDIR/$FILENAME
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
+fi
+
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
+  cp $FILENAME $SERESULTDIR/$FILENAME
+fi
 
 #echo ""
 #echo "Cleaning up $WORKDIR"
