@@ -28,11 +28,11 @@ JOBOPFILENAME="step2_DIGI_L1_DIGI2RAW_HLT.py"
 FILENAME="step2.root"
 INFILENAME="step1.root"
 #SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/step1/test/"
-SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/test"
+SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/singlePhoton_5k"
 
 STARTDIR=`pwd`
 TOPWORKDIR="/scratch/anlyon/"
-JOBDIR="gen_"$JOB_ID
+JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
 
@@ -51,6 +51,12 @@ cmsenv
 echo ""
 echo "Going to create work dir"
 mkdir -p $WORKDIR
+
+
+echo ""
+echo "Going to create the output dir"
+mkdir -p $SERESULTDIR
+
 
 echo ""
 echo "Going to copy cms driver"
@@ -81,17 +87,16 @@ echo "Content of current directory"
 ls -al
 
 echo ""
-echo "Going to copy output to storage element area"
+echo "Going to copy the output to the output directory"
 
 #if interaction with the storage element:
 #xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
 #otherwise:
 cp $FILENAME $SERESULTDIR/$FILENAME
 
-echo ""
-echo "Cleaning up $WORKDIR"
-
-rm -rf $WORKDIR
+#echo ""
+#echo "Cleaning up $WORKDIR"
+#rm -rf $WORKDIR
 
 RUNTIME=$((DATE_END-DATE_START))
 echo "Wallclock running time: $RUNTIME s"
