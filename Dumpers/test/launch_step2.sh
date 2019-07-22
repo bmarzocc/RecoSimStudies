@@ -12,8 +12,8 @@
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step1_EB.out -e logs/step1_EB.err --job-name=step1_EB -q long.q --ntasks=8 launch_step2.sh
-# sbatch -p wn -o logs/step1_EE.out -e logs/step1_EE.err --job-name=step1_EE -q long.q --ntasks=8 launch_step2.sh
+# sbatch -p wn -o logs/step2_EB.out -e logs/step2_EB.err --job-name=step2_EB --ntasks=8 launch_step2.sh
+# sbatch -p wn -o logs/step2_EE.out -e logs/step2_EE.err --job-name=step2_EE --ntasks=8 launch_step2.sh
 #
 #2. or use the gpu ressources
 #
