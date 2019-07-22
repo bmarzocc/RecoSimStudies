@@ -20,13 +20,9 @@ If you get an error, make sure that the remote machine on which you are working 
 cd RecoSimStudies/Dumpers/test/
 ```
 
-Note: the following instructions will allow you to generate single photon events in front of ECAL
+Note: the following instructions will allow you to generate single photon events in front of ECAL.
 
-First, choose the number of events that you want to generate by modifying in step1_EB_SingleGammaPt35_pythia8_cfi_GEN_SIM.py and/or step1_EE_SingleGammaPt35_pythia8_cfi_GEN_SIM.py the following line:
-```
-input = cms.untracked.int32(150000)
-```
-Then, choose the parameters you want in the "User's decision board" in launch_step1.sh
+Choose the parameters you want in the "User's decision board" in launch_step1.sh. You may also want to change the output directories SERESULTDIR and TOPWORKDIR.
 
 Finally, launch this bash script following the instructions written directly in the file. For instance, to run the file on the batch, do
 ```
@@ -39,11 +35,7 @@ sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q --ntasks=8 launch_ste
 cd RecoSimStudies/Dumpers/test/
 ```
 
-First, choose the number of events that you want to generate by modifying in step2_DIGI_L1_DIGI2RAW_HLT.py the following line:
-```
-input = cms.untracked.int32(150000)
-```
-Then, choose the parameters you want in the "User's decision board" in launch_step2.sh
+Choose the parameters you want in the "User's decision board" in launch_step2.sh. You may also want to change the output directories SERESULTDIR and TOPWORKDIR.
 
 Finally, launch this bash script following the instructions written directly in the file. For instance, to run the file on the batch, do
 ```
@@ -56,11 +48,7 @@ sbatch -p wn -o logs/step2.out -e logs/step2.err -q long.q --ntasks=8 launch_ste
 cd RecoSimStudies/Dumpers/test/
 ```
 
-First, choose the number of events that you want to generate by modifying in step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py the following line:
-```
-input = cms.untracked.int32(150000)
-```
-Then, choose the parameters you want in the "User's decision board" in launch_step3.sh
+Choose the parameters you want in the "User's decision board" in launch_step3.sh. You may also want to change the output directories SERESULTDIR and TOPWORKDIR.
 
 Finally, launch this bash script following the instructions written directly in the file. For instance, to run the file on the batch, do
 ```
