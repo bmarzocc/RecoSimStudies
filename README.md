@@ -1,39 +1,74 @@
 # RecoSimStudies
 
-1) Install:
+In this repository, you find all the necessary codes for the production of samples, from the generation to the dumping.
 
-    * scram project CMSSW_10_6_0
+## Installation
+
+    * cmsrel CMSSW_10_6_0
+If you get an error, make sure that the remote machine on which you are working on works for the CMSSW_10_6_0 release. At the moment of writing, this release only works for machines with SL7 architecture at least, and one has typically to ask for a t3ui07 account to the PSI-T3 administrators.
+
     * cd CMSSW_10_6_0/src/
     * cmsenv
     * git cms-init
     * git cms-merge-topic bmarzocc:RecoSimStudies 
-    * git clone https://github.com/bmarzocc/RecoSimStudies
+    * git clone git@github.com:pfclustering/RecoSimStudies.git
     * scram b -j 5
 
-2) Produce GEN-SIM of standard PhotonGun:
+## Generation
+# GEN_SIM production
+```    
+cd RecoSimStudies/Dumpers/test/
+```
+
+Note: the following instructions will allow you to generate single photon events in front of ECAL
+
+First, choose the number of events that you want to generate by modifying in step1_EB_SingleGammaPt35_pythia8_cfi_GEN_SIM.py and/or step1_EE_SingleGammaPt35_pythia8_cfi_GEN_SIM.py the following line:
+```
+input = cms.untracked.int32(150000)
+```
+Then, choose the parameters you want in the "User's decision board" in launch_step1.sh
+
+Finally, launch this bash script following the instructions written directly in the file. For instance, to run the file on the batch, do
+```
+sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q --ntasks=8 launch_step1.sh
+```
+
+#DIGI-RAW production
+
+```                         
+cd RecoSimStudies/Dumpers/test/
+```
+
+First, choose the number of events that you want to generate by modifying in step2_DIGI_L1_DIGI2RAW_HLT.py the following line:
+```
+input = cms.untracked.int32(150000)
+```
+Then, choose the parameters you want in the "User's decision board" in launch_step2.sh
+
+Finally, launch this bash script following the instructions written directly in the file. For instance, to run the file on the batch, do
+```
+sbatch -p wn -o logs/step2.out -e logs/step2.err -q long.q --ntasks=8 launch_step2.sh
+```
+
+# RECO production
+
+```                         
+cd RecoSimStudies/Dumpers/test/
+```
+
+First, choose the number of events that you want to generate by modifying in step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py the following line:
+```
+input = cms.untracked.int32(150000)
+```
+Then, choose the parameters you want in the "User's decision board" in launch_step3.sh
+
+Finally, launch this bash script following the instructions written directly in the file. For instance, to run the file on the batch, do
+```
+sbatch -p wn -o logs/step3.out -e logs/step3.err -q long.q --ntasks=8 launch_step3.sh
+```
+
+
     
-    * cd RecoSimStudies/Dumpers/test/
-    * cmsRun SingleGammaPt35_pythia8_cfi_GEN_SIM.py
-
-3) Produce GEN-SIM of PhotonGun in front of ECAL:
-    
-    * cd RecoSimStudies/Dumpers/test/
-    * cmsRun DoubleGammaE50_CloseEcal_cfi_GEN_SIM.py
-
-4) Produce DIGI-RAW:
-    
-    In case of studies including PCaloHits uncomment line #80 to keep the PCaloHit collection. 
-
-    * cd RecoSimStudies/Dumpers/test/
-    * cmsRun step2_DIGI_L1_DIGI2RAW_HLT.py
-
-5) Produce RECO:
-
-    In case of studies including PCaloHits uncomment line #65 to keep the PCaloHit collection. 
-    
-    * cd RecoSimStudies/Dumpers/test/
-    * cmsRun step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py
-
 6) Run the dumper on a RECO sample (produced in the previous steps):
     
     * cd RecoSimStudies/Dumpers/

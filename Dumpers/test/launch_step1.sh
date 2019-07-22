@@ -28,15 +28,15 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=false
-doEE=true
+doEB=true
+doEE=false
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
 saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="test"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
 
 
 ###############################################################
@@ -66,7 +66,7 @@ if [ "$saveWork" = true ] && [ "$saveSE" = false ]; then
 fi
 
 STARTDIR=`pwd`
-TOPWORKDIR="/scratch/anlyon/"
+TOPWORKDIR="/scratch/anlyon"
 JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
@@ -85,11 +85,14 @@ echo ""
 echo "Going to create work dir"
 mkdir -p $WORKDIR
 
+echo "workdir: "
+echo $WORKDIR
 
 echo ""
 echo "Going to create the output dir"
+echo "May give an error if the directory already exists, which can be safely ignored"
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR #may give an error if the directory already exists, which can be safely ignored
+   xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR 
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
    mkdir -p $SERESULTDIR
@@ -114,6 +117,7 @@ echo "Finished running"
 
 echo ""
 echo "Content of current directory"
+pwd
 ls -al
 
 echo ""
