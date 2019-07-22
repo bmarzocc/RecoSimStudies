@@ -1,3 +1,5 @@
+#example of utilisation: cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/dumpedFiles/dumped_singlePhoton_5k_EB.root inputFiles=file:test/outputfiles/singlePhoton_5k_EB/step3.root 
+
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 

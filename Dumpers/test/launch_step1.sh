@@ -12,7 +12,8 @@
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q --ntasks=8 launch_step1.sh
+# sbatch -p wn -o logs/step1_EB.out -e logs/step1_EB.err --job-name=step1_EB -q long.q --ntasks=8 launch_step1.sh
+# sbatch -p wn -o logs/step1_EE.out -e logs/step1_EE.err --job-name=step1_EE -q long.q --ntasks=8 launch_step1.sh
 #
 #2. or use the gpu ressources
 #
@@ -32,13 +33,14 @@ doEB=true
 doEE=false
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
-saveWork=false
-saveSE=true
+saveWork=true
+saveSE=false
 
 #Choose name of the directory
 DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
 
-
+#Choose the number of events that you want to generate
+NEVENTS=5
 ###############################################################
 
 JOBOPFILENAME=""
@@ -109,7 +111,7 @@ echo ""
 echo "Going to run"
 
 DATE_START=`date +%s`
-cmsRun $JOBOPFILENAME 
+cmsRun $JOBOPFILENAME maxEvents=$NEVENTS
 DATE_END=`date +%s`
 
 echo ""

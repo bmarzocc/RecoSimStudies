@@ -5,7 +5,7 @@ In this repository, you find all the necessary codes for the production of sampl
 ## Installation
 
     * cmsrel CMSSW_10_6_0
-If you get an error, make sure that the remote machine on which you are working on works for the CMSSW_10_6_0 release. At the moment of writing, this release only works for machines with SL7 architecture at least, and one has typically to ask for a t3ui07 account to the PSI-T3 administrators.
+If you get an error, make sure that the remote machine on which you are working on is new enough to be compatible with the CMSSW_10_6_0 release. At the moment of writing, this release only works for machines with SL7 architecture at least, and one has typically to ask for a t3ui07 account to the PSI-T3 administrators.
 
     * cd CMSSW_10_6_0/src/
     * cmsenv
@@ -15,7 +15,7 @@ If you get an error, make sure that the remote machine on which you are working 
     * scram b -j 5
 
 ## Generation
-# GEN_SIM production
+### GEN_SIM production
 ```    
 cd RecoSimStudies/Dumpers/test/
 ```
@@ -33,7 +33,7 @@ Finally, launch this bash script following the instructions written directly in 
 sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q --ntasks=8 launch_step1.sh
 ```
 
-#DIGI-RAW production
+### DIGI-RAW production
 
 ```                         
 cd RecoSimStudies/Dumpers/test/
@@ -50,7 +50,7 @@ Finally, launch this bash script following the instructions written directly in 
 sbatch -p wn -o logs/step2.out -e logs/step2.err -q long.q --ntasks=8 launch_step2.sh
 ```
 
-# RECO production
+### RECO production
 
 ```                         
 cd RecoSimStudies/Dumpers/test/
