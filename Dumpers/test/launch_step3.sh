@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#NOTE: files in the Storage Element cannot be overwritten
+
 ###############################################################
 #How to launch this script:
 #if you want to run it locally: 
@@ -29,11 +31,11 @@ doEB=false
 doEE=true
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
-saveWork=true
-saveSE=false
+saveWork=false
+saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_5k"
+DIRNAME="test"
 
 
 ###############################################################
@@ -88,21 +90,28 @@ mkdir -p $WORKDIR
 
 echo ""
 echo "Going to create the output dir"
-mkdir -p $SERESULTDIR
+echo "May give an error if the directory already exists, which can be safely ignored"
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR 
+fi
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
+   mkdir -p $SERESULTDIR
+fi
 
 
 echo ""
 echo "Going to copy cms driver"
 cp $JOBOPFILENAME $WORKDIR/$JOBOPFILENAME
 
-
+#in case we decide to clean the scratch area
 echo ""
 echo "Going to copy input file"
+echo "May give an error if the file still exists in the scratch , but can be safely ignored"
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   xrdcp  $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
+   xrdcp  $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME  
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
-  cp $SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
+   cp $SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
 fi
 
 cd $WORKDIR

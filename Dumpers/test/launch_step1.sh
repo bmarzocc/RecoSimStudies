@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#NOTE: files in the Storage Element cannot be overwritten
+
 ###############################################################
 #How to launch this script:
 #if you want to run it locally: 
@@ -30,11 +32,11 @@ doEB=false
 doEE=true
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
-saveWork=true
-saveSE=false
+saveWork=false
+saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_5k"
+DIRNAME="test"
 
 
 ###############################################################
@@ -56,7 +58,7 @@ fi
 FILENAME="step1.root"
 
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/step1/"$DIRNAME
+   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/"$DIRNAME 
 fi
 
 if [ "$saveWork" = true ] && [ "$saveSE" = false ]; then
@@ -86,7 +88,12 @@ mkdir -p $WORKDIR
 
 echo ""
 echo "Going to create the output dir"
-mkdir -p $SERESULTDIR
+if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
+   xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR #may give an error if the directory already exists, which can be safely ignored
+fi
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
+   mkdir -p $SERESULTDIR
+fi
 
 
 echo ""
