@@ -118,7 +118,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
       int nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> > caloParticles, std::vector<int>* genID_);
-      std::map<int,std::map<DetId,float> > unMatchedHits(std::map<int,std::map<DetId,float> >* unmatchedHit_energy_, int nClusters, int nCaloParts);
+      std::vector<uint32_t> caloParticleXtals(edm::Handle<std::vector<CaloParticle> > caloParticles, std::vector<int>* genID_);
       
       // ----------collection tokens-------------------
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
@@ -148,10 +148,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;
-      std::map<int,std::map<DetId,float> > unmatchedHit_energy_Cl_;
-      std::map<int,std::map<DetId,float> > unmatchedHit_energy_SCEB_;
-      std::map<int,std::map<DetId,float> > unmatchedHit_energy_SCEE_;
-      std::vector<std::vector<uint32_t> > cry_IDs_;
+      std::vector<uint32_t> caloParticleXtals_;
       
       long int eventId;
       int lumiId;
