@@ -62,9 +62,8 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 process.RECOSIMoutput.outputCommands.extend(['keep *_mix_MergedCaloTruth_*',
-                                    'keep *_particleFlowRecHitECAL_*_*')
-                                    #'keep *PCaloHit*_g4SimHits_EcalHitsE*_*',
-                                    #'keep *_*genParticle*_*_*'])
+                                            #'keep *PCaloHit*_g4SimHits_EcalHitsE*_*',
+                                             'keep *_particleFlowRecHitECAL_*_*'])
 
 process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
