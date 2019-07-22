@@ -950,7 +950,6 @@ int RecoSimDumper::nSkimmedCaloParticles(edm::Handle<std::vector<CaloParticle> >
 
 std::vector<uint32_t> RecoSimDumper::caloParticleXtals(edm::Handle<std::vector<CaloParticle> > caloParticles, std::vector<int>* genID_)
 {
-    int nSC=0;
     std::vector<uint32_t> xtals;
     for(const auto& iCalo : *(caloParticles.product()))
     {
@@ -966,8 +965,7 @@ std::vector<uint32_t> RecoSimDumper::caloParticleXtals(edm::Handle<std::vector<C
             auto hitsAndFractions = simCluster->hits_and_fractions();
             for(unsigned int iHit= 0; iHit<hitsAndFractions.size(); iHit++)
                 xtals.push_back(hitsAndFractions[iHit].first);
-       }   
-       nSC++;        
+       }           
     } 
 
     return xtals;
