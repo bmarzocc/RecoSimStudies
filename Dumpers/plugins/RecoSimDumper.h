@@ -188,7 +188,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > pfRecHit_ieta;
       std::vector<std::vector<int> > pfRecHit_iphi;
       std::vector<std::vector<int> > pfRecHit_iz;
-      std::vector<std::vector<float> > pfClusterHit_energy;
+      std::vector<std::vector< std::map<int, float> >> pfClusterHit_energy; // caloparticle, simhit, cluster:energy
       std::vector<std::vector<float> > pfClusterHit_eta;
       std::vector<std::vector<float> > pfClusterHit_phi;
       std::vector<std::vector<int> > pfClusterHit_ieta;
@@ -203,7 +203,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> pfCluster_energy;
       std::vector<float> pfCluster_eta;
       std::vector<float> pfCluster_phi;
-      std::vector<std::vector<float> > superClusterHit_energy;
+      std::vector<std::vector< std::map<int, float> >> superClusterHit_energy;
       std::vector<std::vector<float> > superClusterHit_eta;
       std::vector<std::vector<float> > superClusterHit_phi;  
       std::vector<std::vector<int> > superClusterHit_ieta;
@@ -217,15 +217,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > superClusterHit_noCaloPart_iz;  
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
-      std::vector<float> superCluster_phi;
-      std::vector<std::map<int,std::vector<int> >> map_simHit_pfCluster; 
-      std::vector<std::map<int,std::vector<int> >> map_recHit_pfCluster;
-      std::vector<std::map<int,std::vector<int> >> map_pfRecHit_pfCluster;
-      std::vector<std::map<int,std::vector<int> >> map_pfClusterHit_pfCluster;   
-      std::vector<std::map<int,std::vector<int> >> map_simHit_superCluster; 
-      std::vector<std::map<int,std::vector<int> >> map_recHit_superCluster;
-      std::vector<std::map<int,std::vector<int> >> map_pfRecHit_superCluster;
-      std::vector<std::map<int,std::vector<int> >> map_superClusterHit_superCluster;    
+      std::vector<float> superCluster_phi;    
 };
 
 #endif
