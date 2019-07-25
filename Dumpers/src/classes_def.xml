@@ -1,4 +1,5 @@
 <lcgdict>
   <class name="std::vector<std::vector<bool> >"/>
   <class name="std::vector<std::map<int,int> >"/>
+  <class name="std::vector<std::map<int,vector<int> > >"/>
 </lcgdict>

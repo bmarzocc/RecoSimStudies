@@ -15,7 +15,6 @@ options.register('outputFile',
                 "outputFile")
                 
 options.parseArguments()
-print options
 
 process = cms.Process("RecoSimAnalysis")
 
