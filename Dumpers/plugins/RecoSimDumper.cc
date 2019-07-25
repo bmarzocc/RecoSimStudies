@@ -195,7 +195,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       }  
    }
    if(savePFCluster_){
-      tree->Branch("pfClusterHit_energy","std::vector<std::vector<float> >",&pfClusterHit_energy);
+      tree->Branch("pfClusterHit_energy","std::vector<std::vector<std::map<int, float> >",&pfClusterHit_energy);
       if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){ 
          tree->Branch("pfClusterHit_eta","std::vector<std::vector<float> >",&pfClusterHit_eta);
          tree->Branch("pfClusterHit_phi","std::vector<std::vector<float> >",&pfClusterHit_phi);
@@ -211,18 +211,10 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("pfClusterHit_noCaloPart_iz","std::vector<std::vector<int> >",&pfClusterHit_noCaloPart_iz);
       tree->Branch("pfCluster_energy","std::vector<float>",&pfCluster_energy);
       tree->Branch("pfCluster_eta","std::vector<float>",&pfCluster_eta);
-      tree->Branch("pfCluster_phi","std::vector<float>",&pfCluster_phi);
-      if(saveSimhits_)
-         tree->Branch("map_simHit_pfCluster","std::vector<std::map<int,vector<int>> >",&map_simHit_pfCluster); 
-      if(!saveSimhits_ && saveRechits_)
-         tree->Branch("map_recHit_pfCluster","std::vector<std::map<int,vector<int>> >",&map_recHit_pfCluster); 
-      if(!saveSimhits_ && !saveRechits_ && savePFRechits_)
-         tree->Branch("map_pfRecHit_pfCluster","std::vector<std::map<int,vector<int>> >",&map_pfRecHit_pfCluster);    
-      if(!saveSimhits_ && !saveRechits_ && !savePFRechits_)
-         tree->Branch("map_pfClusterHit_pfCluster","std::vector<std::map<int,vector<int>> >",&map_pfClusterHit_pfCluster);        
+      tree->Branch("pfCluster_phi","std::vector<float>",&pfCluster_phi);   
    } 
    if(saveSuperCluster_){
-      tree->Branch("superClusterHit_energy","std::vector<std::vector<float> >",&superClusterHit_energy);
+      tree->Branch("superClusterHit_energy","std::vector<std::vector<std::map<int, float> >",&superClusterHit_energy);
       if(!saveSimhits_ && !saveRechits_ && !savePFRechits_ && !savePFCluster_){ 
          tree->Branch("superClusterHit_eta","std::vector<std::vector<float> >",&superClusterHit_eta);
          tree->Branch("superClusterHit_phi","std::vector<std::vector<float> >",&superClusterHit_phi);
@@ -238,15 +230,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("superClusterHit_noCaloPart_iz","std::vector<std::vector<int> >",&superClusterHit_noCaloPart_iz);
       tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
       tree->Branch("superCluster_eta","std::vector<float>",&superCluster_eta);
-      tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);
-      if(saveSimhits_)
-         tree->Branch("map_simHit_superCluster","std::vector<std::map<int,vector<int>> >",&map_simHit_superCluster); 
-      if(!saveSimhits_ && saveRechits_)
-         tree->Branch("map_recHit_superCluster","std::vector<std::map<int,vector<int>> >",&map_recHit_superCluster); 
-      if(!saveSimhits_ && !saveRechits_ && savePFRechits_)
-         tree->Branch("map_pfRecHit_superCluster","std::vector<std::map<int,vector<int>> >",&map_pfRecHit_pfCluster);    
-      if(!saveSimhits_ && !saveRechits_ && !savePFRechits_)
-         tree->Branch("map_superClusterHit_superCluster","std::vector<std::map<int,vector<int>> >",&map_superClusterHit_superCluster);       
+      tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);  
    }
 }
 
@@ -491,24 +475,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    superCluster_energy.clear(); 
    superCluster_eta.clear(); 
-   superCluster_phi.clear(); 
-   
-   map_simHit_pfCluster.clear(); 
-   map_recHit_pfCluster.clear();
-   map_pfRecHit_pfCluster.clear();
-   map_pfClusterHit_pfCluster.clear();   
-   map_simHit_superCluster.clear(); 
-   map_recHit_superCluster.clear();
-   map_pfRecHit_superCluster.clear();
-   map_superClusterHit_superCluster.clear();    
-   map_simHit_pfCluster.resize(nCaloParticles);
-   map_recHit_pfCluster.resize(nCaloParticles);
-   map_pfRecHit_pfCluster.resize(nCaloParticles);
-   map_pfClusterHit_pfCluster.resize(nCaloParticles);   
-   map_simHit_superCluster.resize(nCaloParticles); 
-   map_recHit_superCluster.resize(nCaloParticles);
-   map_pfRecHit_superCluster.resize(nCaloParticles);
-   map_superClusterHit_superCluster.resize(nCaloParticles);    
+   superCluster_phi.clear();    
   
    GlobalPoint cell;
 
@@ -559,11 +526,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    for(unsigned int iCaloCount=0; iCaloCount<caloParticleXtals_.size(); iCaloCount++) 
    {
        //Get hits from caloParticle, and associated recHits, pfRechits, PFClusterhit and superClusterhit 
+
+       // This indexes are not used but could be useful
        int simHit_index=-1; 
        int recHit_index=-1; 
        int pfRecHit_index=-1; 
-       int pfClusterHit_index=-1;
        int superClusterHit_index=-1;
+
        float calo_simEnergy=-1.;
        for(auto const& hit: caloParticleXtals_[iCaloCount])
        {
@@ -573,8 +542,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
            calo_simEnergy += hit.second; 
 
           // PfCluster and superClusters associated with this detid
-           vector<int> pfCluster_indexes;
-           vector<int> superCluster_indexes;
+           map<int, float> map_pfCluster_energy;
+           map<int, float> map_superCluster_energy;
 
            cell = geometry->getPosition(id);
            float eta = cell.eta();  
@@ -628,19 +597,19 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                   if(iRecHit.id().rawId() == id.rawId()){
                      recHit_index++;  
                      recHit_energy_ = iRecHit.energy();;
-                     if(saveRechits_){
-                        recHit_energy[iCaloCount].push_back(reduceFloat(recHit_energy_,nBits_));
-                        if(!saveSimhits_){
-                           recHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
-                           recHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_));   
-                           recHit_ieta[iCaloCount].push_back(ieta);
-                           recHit_iphi[iCaloCount].push_back(iphi);
-                           recHit_iz[iCaloCount].push_back(0); 
-                        } 
-                     }
+                     if(!saveSimhits_ && saveRechits_){
+                        recHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
+                        recHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_));   
+                        recHit_ieta[iCaloCount].push_back(ieta);
+                        recHit_iphi[iCaloCount].push_back(iphi);
+                        recHit_iz[iCaloCount].push_back(0); 
+                     } 
                      break;
-                  }       
+                  }   
               }    
+              if(saveRechits_){
+                 recHit_energy[iCaloCount].push_back(reduceFloat(recHit_energy_,nBits_));
+              }
    
               //Save SuperClusterHit energy
               float superClusterHit_energy_ = -1.;
@@ -654,7 +623,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                                 //for matched SuperClusterHit   
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
-                                superCluster_indexes.push_back(superCluster_index_tmp);
+                                map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
                                 break;
                              }                   
                          }
@@ -662,7 +631,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                      superCluster_index_tmp++;
                  }
                  superClusterHit_index++; 
-                 superClusterHit_energy[iCaloCount].push_back(reduceFloat(superClusterHit_energy_,nBits_));
+                 superClusterHit_energy[iCaloCount].push_back(map_superCluster_energy);
                  if(!saveSimhits_ && !saveRechits_ && !savePFRechits_ && !savePFCluster_){  
                     superClusterHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_)); 
                     superClusterHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_)); 
@@ -694,19 +663,19 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                   if(iRecHit.id().rawId() == id.rawId()){
                      recHit_index++;   
                      recHit_energy_ = iRecHit.energy();;
-                     if(saveRechits_){
-                        recHit_energy[iCaloCount].push_back(reduceFloat(recHit_energy_,nBits_));
-                        if(!saveSimhits_){
-                           recHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
-                           recHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_));   
-                           recHit_ieta[iCaloCount].push_back(ieta);
-                           recHit_iphi[iCaloCount].push_back(iphi);
-                           recHit_iz[iCaloCount].push_back(0); 
-                        } 
-                     }
+                     if(!saveSimhits_ && saveRechits_){
+                        recHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
+                        recHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_));   
+                        recHit_ieta[iCaloCount].push_back(ieta);
+                        recHit_iphi[iCaloCount].push_back(iphi);
+                        recHit_iz[iCaloCount].push_back(0); 
+                     } 
                      break;
-                  }       
-              }       
+                  }
+              }     
+              if(saveRechits_){
+                 recHit_energy[iCaloCount].push_back(reduceFloat(recHit_energy_,nBits_));
+              }  
                    
               //Save SuperClusterHit energy
               float superClusterHit_energy_ = -1.;
@@ -719,7 +688,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                              if(seedrechits[i].first.rawId() == id.rawId()){      
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
-                                superCluster_indexes.push_back(superCluster_index_tmp);
+                                map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
                                 break;
                              }                 
                          }
@@ -727,7 +696,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                      superCluster_index_tmp++;
                  }
                  superClusterHit_index++; 
-                 superClusterHit_energy[iCaloCount].push_back(reduceFloat(superClusterHit_energy_,nBits_));
+                 superClusterHit_energy[iCaloCount].push_back(map_superCluster_energy);
                  if(!saveSimhits_ && !saveRechits_ && !savePFRechits_ && !savePFCluster_){  
                     superClusterHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_)); 
                     superClusterHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_)); 
@@ -772,14 +741,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                       if(hitsAndFractions[i].first.rawId() == id.rawId()){       
                          if(!useEnergyRegression_) pfClusterHit_energy_ = recHit_energy_*hitsAndFractions[i].second;
                          else pfClusterHit_energy_ = (iPFCluster.correctedEnergy()/iPFCluster.energy())*recHit_energy_*hitsAndFractions[i].second;
-                         pfCluster_indexes.push_back(pfCluster_index_tmp);
+                         // Save clusterHit with the cluster id
+                         map_pfCluster_energy.insert(pair<int, float>(pfCluster_index_tmp,reduceFloat(pfClusterHit_energy_,nBits_)));
                          break; 
                       }    
                   }  
                   pfCluster_index_tmp++;
-              }  
-              pfClusterHit_index++;  
-              pfClusterHit_energy[iCaloCount].push_back(reduceFloat(pfClusterHit_energy_,nBits_));
+              }   
+              pfClusterHit_energy[iCaloCount].push_back(map_pfCluster_energy);
               if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){  
                  pfClusterHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
                  pfClusterHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_)); 
@@ -788,24 +757,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  pfClusterHit_iz[iCaloCount].push_back(iz);  
               } 
            } 
-
-           //map hits to PFCluster and to SuperCluster 
-           if(saveSimhits_){
-              if(savePFCluster_) map_simHit_pfCluster[iCaloCount].insert(pair<int,vector<int>>(simHit_index,pfCluster_indexes));
-              if(saveSuperCluster_) map_simHit_superCluster[iCaloCount].insert(pair<int,vector<int>>(simHit_index,superCluster_indexes));
-           }   
-           if(!saveSimhits_ && saveRechits_){
-              if(savePFCluster_) map_recHit_pfCluster[iCaloCount].insert(pair<int,vector<int>>(recHit_index,pfCluster_indexes));
-              if(saveSuperCluster_) map_recHit_superCluster[iCaloCount].insert(pair<int,vector<int>>(recHit_index,superCluster_indexes));
-           }    
-           if(!saveSimhits_ && !saveRechits_ && savePFRechits_){
-              if(savePFCluster_) map_pfRecHit_pfCluster[iCaloCount].insert(pair<int,vector<int>>(pfRecHit_index,pfCluster_indexes));
-              if(saveSuperCluster_) map_pfRecHit_superCluster[iCaloCount].insert(pair<int,vector<int>>(pfRecHit_index,superCluster_indexes));
-           }   
-           if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){
-              if(savePFCluster_) map_pfClusterHit_pfCluster[iCaloCount].insert(pair<int,vector<int>>(pfClusterHit_index,pfCluster_indexes));
-              if(saveSuperCluster_) map_superClusterHit_superCluster[iCaloCount].insert(pair<int,vector<int>>(superClusterHit_index,superCluster_indexes));
-           }       
+                  
        } // --> End of loop on simhits
        
        caloParticle_simEnergy.push_back(reduceFloat(calo_simEnergy,nBits_));
