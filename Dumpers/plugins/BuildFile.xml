@@ -14,6 +14,7 @@
 <use   name="FWCore/ServiceRegistry"/>
 <use   name="CommonTools/Utils"/>
 <use   name="CommonTools/UtilAlgos"/>
+<use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="rootcore"/>
 <use   name="rootrflx"/>
 <use   name="roofit"/>
