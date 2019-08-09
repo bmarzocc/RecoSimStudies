@@ -14,6 +14,12 @@ If you get an error, make sure that the remote machine on which you are working 
     * git clone git@github.com:pfclustering/RecoSimStudies.git
     * scram b -j 5
 
+In case you want to interact with the Storage Element, don't forget to set up your proxy:
+```    
+voms-proxy-init --voms cms --valid 186:00
+```
+
+
 ## Generation
 ### GEN_SIM production
 ```    
@@ -28,6 +34,8 @@ Finally, launch this bash script following the instructions written directly in 
 ```
 sbatch -p wn -o logs/step1.out -e logs/step1.err -q long.q --ntasks=8 launch_step1.sh
 ```
+
+Note that currently the wn partition doesn't allow to set the time limit above one day. Think of using the gpu partition instead.
 
 ### DIGI-RAW production
 
@@ -55,24 +63,16 @@ Finally, launch this bash script following the instructions written directly in 
 sbatch -p wn -o logs/step3.out -e logs/step3.err -q long.q --ntasks=8 launch_step3.sh
 ```
 
+### Dumper
+    
+```                         
+cd RecoSimStudies/Dumpers/python/
+```
 
-    
-6) Run the dumper on a RECO sample (produced in the previous steps):
-    
-    * cd RecoSimStudies/Dumpers/
-    * cmsRun python/RecoSimDumper_cfg.py
+Run the dumper on a RECO sample. Example of commands are given in Cfg_RecoSimDumper_cfg.py. For instance, use
 
-7) Dumper tree info, a vector of caloParticles per event is saved with:
-    
-    * genParticles information;
-    * caloParticle information;
-    * In std::vector<float> information of hits of caloParticle simClusters;
-    * In std::vector<float> energy of recHits associated with simClusters hit (-1. if the recHit is missing);
-    * In std::vector<float> energy of pfRecHits associated with simClusters hit (-1. if the pfRecHit is missing);
-    * In std::vector<float> energy of PFCluster hits associated with simClusters hit (-1. if the PFCluster hit is missing);
-    * In std::vector<float> energy of SuperCluster hits associated with simClusters hit (-1. if the SuperCluster hit is missing);
-    * PFClusters information;
-    * SuperClusters information;
-    * In std::map<int,int> mapping between std::vector<float> of simCluster hits and std::vector<float> of PFClusters
-    * In std::map<int,int> mapping between std::vector<float> of superCluster hits and std::vector<float> of SuperClusters
+```
+cmsRun Cfg_RecoSimDumper_cfg.py outputFile=../test/outputfiles/dumpedFiles/dumped_singlePhoton_5k_EB.root inputFiles=file:../test/outputfiles/singlePhoton_5k_EB/step3.root
+```
+
 
