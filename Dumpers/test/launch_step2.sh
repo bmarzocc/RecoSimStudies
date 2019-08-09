@@ -12,12 +12,15 @@
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step2_EB.out -e logs/step2_EB.err --job-name=step2_EB --ntasks=8 launch_step2.sh
-# sbatch -p wn -o logs/step2_EE.out -e logs/step2_EE.err --job-name=step2_EE --ntasks=8 launch_step2.sh
+# sbatch -p wn -o logs/step2_EB.out -e logs/step2_EB.err --job-name=step2_EB --ntasks=8 --time=1-23:59 launch_step2.sh
+# sbatch -p wn -o logs/step2_EE.out -e logs/step2_EE.err --job-name=step2_EE --ntasks=8 --time=1-23:59 launch_step2.sh
+#
+# for large jobs, you may want to adjust the time limit (which is one day by default) --time=2-23:59 (3days)
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --job-name=step2 -o logs/step2.out -e logs/step2.err launch_step2.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step2_EB -o logs/step2_EB.out -e logs/step2_EB.err launch_step2.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step2_EE -o logs/step2_EE.out -e logs/step2_EE.err launch_step2.sh 
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -28,9 +31,11 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEE=false
-#Do you want to store the output file in your work are or in the 
+doEB=false
+doEEP=false
+doEEM=true
+
+#Do you want to store the output file in your work area or in the 
 #storage element? (choose one at a time)
 saveWork=false
 saveSE=true
@@ -38,17 +43,20 @@ saveSE=true
 #Choose name of the directory
 DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
 
-
 ###############################################################
 
 
 
-if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EE"
+if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EEP" 
+fi
+
+if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EEM" 
 fi
 
 

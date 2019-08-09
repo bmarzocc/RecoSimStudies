@@ -17,7 +17,8 @@
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --job-name=step3 -o logs/step3.out -e logs/step3.err launch_step3.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step3_EB -o logs/step3_EB.out -e logs/step3_EB.err launch_step3.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step3_EE -o logs/step3_EE.out -e logs/step3_EE.err launch_step3.sh
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -28,8 +29,10 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEE=false
+doEB=false
+doEEP=false
+doEEM=true
+
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
 saveWork=false
@@ -41,15 +44,18 @@ DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
 
 ###############################################################
 
-
-
-if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EE"
+if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EEP" 
 fi
+
+if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EEM" 
+fi
+
 
 
 # Job configuration

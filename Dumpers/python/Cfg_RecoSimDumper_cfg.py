@@ -1,4 +1,6 @@
-#example of utilisation: cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/dumpedFiles/dumped_singlePhoton_5k_EB.root inputFiles=file:test/outputfiles/singlePhoton_5k_EB/step3.root 
+#example of utilisation: cmsRun Cfg_RecoSimDumper_cfg.py outputFile=../test/outputfiles/dumpedFiles/dumped_singlePhoton_5k_EB.root inputFiles=file:../test/outputfiles/singlePhoton_5k_EB/step3.root 
+
+#cmsRun Cfg_RecoSimDumper_cfg.py outputFile=../test/outputfiles/dumpedFiles/dumped_singlePhoton_150k_EB.root inputFiles=file:root://t3dcachedb.psi.ch:1094//pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/singlePhoton_closeECAL_0to100GeV_150k_EB/step3.root 
 
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils

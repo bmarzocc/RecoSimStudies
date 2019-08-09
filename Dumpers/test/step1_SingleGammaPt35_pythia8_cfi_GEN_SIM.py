@@ -7,8 +7,40 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 
 options = VarParsing.VarParsing('standard')
+options.register('emin',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Energy min")
+options.register('emax',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Energy max")
+options.register('rmin',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Radius min")
+options.register('rmax',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Radius max")
+options.register('zmin',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Z min")
+options.register('zmax',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Zmax")
 
 options.parseArguments()
+print options
+
 
 from Configuration.StandardSequences.Eras import eras
 
@@ -30,6 +62,7 @@ process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(options.maxEvents)
 )
@@ -37,13 +70,11 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("EmptySource")
 
-process.options = cms.untracked.PSet(
-
-)
+process.options = cms.untracked.PSet()
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('SingleGammaPt35_pythia8_cfi nevts:5000'),
+    annotation = cms.untracked.string('SingleGammaPt35_pythia8_cfi nevts:10'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -63,6 +94,7 @@ process.FEVTDEBUGoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 
+
 # Additional output definition
 
 # Other statements
@@ -71,56 +103,54 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-#process.generator = cms.EDFilter("Pythia8PtGun",
-#    PGunParameters = cms.PSet(
-#        AddAntiParticle = cms.bool(True),
-#        MaxEta = cms.double(2.5),
-#        MaxPhi = cms.double(3.14159265359),
-#        MaxPt = cms.double(35.01),
-#        MinEta = cms.double(-2.5),
-#        MinPhi = cms.double(-3.14159265359),
-#        MinPt = cms.double(34.99),
-#        ParticleID = cms.vint32(22)
-#    ),
-#    PythiaParameters = cms.PSet(
-#        parameterSets = cms.vstring()
-#    ),
-#    Verbosity = cms.untracked.int32(0),
-#    firstRun = cms.untracked.uint32(1),
-#    psethack = cms.string('single gamma pt 35')
-#)
-
-
-
-
-
 process.generator = cms.EDProducer("CloseByParticleGunProducer",
-      PGunParameters = cms.PSet(PartID = cms.vint32(22, 22),
-      NParticles = cms.int32(1),
-      EnMin = cms.double(1.),   # in GeV
-      EnMax = cms.double(100.),
-      RMin = cms.double(31.6),  # in cm
-      RMax = cms.double(171.1),
-      ZMin = cms.double(317.0), # in cm
-      ZMax = cms.double(317.0),
-      Delta = cms.double(300),  # in cm  -> phi1-phi2 = Delta/R # for Nparticles=1 it is irrelevant 
-      Pointing = cms.bool(True),# otherwise showers parallel/perpendicular to beam axis
-      Overlapping = cms.bool(False),
-      RandomShoot = cms.bool(False),
-      MaxPhi = cms.double(3.14159265359),
-      MinPhi = cms.double(-3.14159265359),
-      MaxEta = cms.double(0.), # dummy, it is not used
-      MinEta = cms.double(0.), # dummy, it is not used
-    ),
-    Verbosity = cms.untracked.int32(1),
-    psethack = cms.string('two particles close to EE'),
+    PGunParameters = cms.PSet(
+        PartID = cms.vint32(22, 22),
+        EnMax = cms.double(options.emax),
+        EnMin = cms.double(options.emin),
+        RMax = cms.double(options.rmax),
+        RMin = cms.double(options.rmin),
+        ZMax = cms.double(317.),
+        ZMin = cms.double(317.),
+        Delta = cms.double(350),
+        Pointing = cms.bool(True),
+        Overlapping = cms.bool(False),
+        RandomShoot = cms.bool(False),
+        NParticles = cms.int32(1),
+        MaxEta = cms.double(2.9),
+        MaxPhi = cms.double(3.14159265359),
+        MinEta = cms.double(-2.9),
+        MinPhi = cms.double(-3.14159265359),
+        ),
+    Verbosity = cms.untracked.int32(10),
+    psethack = cms.string('single particle in front of ecal'),
     AddAntiParticle = cms.bool(False),
-    firstRun = cms.untracked.uint32(1)
-)
-
-
-
-
+    firstRun = cms.untracked.uint32(1) 
+    )
+process.generator = cms.EDProducer("CloseByParticleGunProducer",
+    PGunParameters = cms.PSet(
+        PartID = cms.vint32(22, 22),
+        EnMax = cms.double(options.emax),
+        EnMin = cms.double(options.emin),
+        RMax = cms.double(options.rmax),
+        RMin = cms.double(options.rmin),
+        ZMax = cms.double(-317.),
+        ZMin = cms.double(-317.),
+        Delta = cms.double(350),
+        Pointing = cms.bool(True),
+        Overlapping = cms.bool(False),
+        RandomShoot = cms.bool(False),
+        NParticles = cms.int32(1),
+        MaxEta = cms.double(2.9),
+        MaxPhi = cms.double(3.14159265359),
+        MinEta = cms.double(-2.9),
+        MinPhi = cms.double(-3.14159265359),
+        ),
+    Verbosity = cms.untracked.int32(10),
+    psethack = cms.string('single particle in front of ecal'),
+    AddAntiParticle = cms.bool(False),
+    firstRun = cms.untracked.uint32(1) 
+    )
 
 
 
@@ -138,12 +168,6 @@ associatePatAlgosToolsTask(process)
 # filter all path with the production filter sequence
 for path in process.paths:
 	getattr(process,path).insert(0, process.generator)
-
-
-#Setup FWK for multithreaded 
-process.options.numberOfThreads=cms.untracked.uint32(8) 
-process.options.numberOfStreams=cms.untracked.uint32(0) 
-process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1) 
 
 
 # Customisation from command line

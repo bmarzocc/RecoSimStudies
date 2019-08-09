@@ -17,7 +17,8 @@
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --job-name=step1 -o logs/step1.out -e logs/step1.err launch_step1.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EB -o logs/step1_EB.out -e logs/step1_EB.err launch_step1.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EE -o logs/step1_EE.out -e logs/step1_EE.err launch_step1.sh
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -29,8 +30,10 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEE=false
+doEB=false
+doEEP=false
+doEEM=true
+
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
 saveWork=false
@@ -39,20 +42,57 @@ saveSE=true
 #Choose name of the directory
 DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
 
+
 #Choose the number of events that you want to generate
+#Please enter an EVEN number
 NEVENTS=150000
+
+#Choose the energy range of the photon gun
+EMIN=0.
+EMAX=100.
 ###############################################################
 
-JOBOPFILENAME=""
 
-if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
-   DIRNAME=$DIRNAME"_EB"
-   JOBOPFILENAME="step1_EB_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+#Geometry configuration
+if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEM" = false ] ; then
+   RMIN=123.8
+   RMAX=123.8
+   ZMIN=-304.8
+   ZMAX=304.8
+fi
+if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
+   RMIN=31.6
+   RMAX=171.1
+   ZMIN=317.0
+   ZMAX=317.0
+fi
+if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
+   RMIN=31.6
+   RMAX=171.1
+   ZMIN=-317.0
+   ZMAX=-317.0
 fi
 
+
+#in case of EE, half of the total number of events is produces in EEM, the other half in EEP
 if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EE" 
-   JOBOPFILENAME="step1_EE_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+   NEVENTS=$((NEVENTS/1))
+   echo $NEVENTS
+fi
+
+#File configuration
+JOBOPFILENAME="step1_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+
+if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
+   DIRNAME=$DIRNAME"_EB"
+fi
+
+if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EEP" 
+fi
+
+if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EEM" 
 fi
 
 
@@ -63,7 +103,7 @@ if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
    SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/"$DIRNAME 
 fi
 
-if [ "$saveWork" = true ] && [ "$saveSE" = false ]; then
+if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
    SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
 fi
 
@@ -111,7 +151,7 @@ echo ""
 echo "Going to run"
 
 DATE_START=`date +%s`
-cmsRun $JOBOPFILENAME maxEvents=$NEVENTS
+   cmsRun $JOBOPFILENAME maxEvents=$NEVENTS emin=$EMIN emax=$EMAX rmin=$RMIN rmax=$RMAX zmin=$ZMIN zmax=$ZMAX
 DATE_END=`date +%s`
 
 echo ""
