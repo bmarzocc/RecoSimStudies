@@ -147,9 +147,9 @@ if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
    cp $FILENAME $SERESULTDIR/$FILENAME
 fi
 
-#echo ""
-#echo "Cleaning up $WORKDIR"
-#rm -rf $WORKDIR
+echo ""
+echo "Cleaning up $WORKDIR"
+rm -rf $WORKDIR
 
 RUNTIME=$((DATE_END-DATE_START))
 echo "Wallclock running time: $RUNTIME s"
