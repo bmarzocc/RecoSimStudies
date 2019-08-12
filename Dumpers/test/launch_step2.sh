@@ -41,7 +41,7 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_second"
 
 ###############################################################
 

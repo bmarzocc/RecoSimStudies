@@ -40,7 +40,7 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_second"
 
 
 #Choose the number of events that you want to generate
@@ -57,8 +57,8 @@ EMAX=100.
 if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEM" = false ] ; then
    RMIN=123.8
    RMAX=123.8
-   ZMIN=-304.8
-   ZMAX=304.8
+   ZMIN=-304.5
+   ZMAX=304.5
 fi
 if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
    RMIN=31.6
