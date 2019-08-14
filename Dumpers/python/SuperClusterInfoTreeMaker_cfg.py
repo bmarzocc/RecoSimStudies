@@ -15,8 +15,9 @@ options.register('outputFile',
                 "outputFile")
                 
 options.parseArguments()
+print options
 
-process = cms.Process("RecoSimAnalysis")
+process = cms.Process("SuperClusterTreeMaker")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
@@ -37,12 +38,12 @@ process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring()
     ) 
 
-process.load('RecoSimStudies.Dumpers.RecoSimDumper_cfi')
+process.load('RecoSimStudies.Dumpers.SuperClusterInfoTreeMaker_cfi')
 
 process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outputFile)
 )
 
 process.p = cms.Path(
-    process.recosimdumper
+    process.superclustertreemaker
 )
