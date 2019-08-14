@@ -60,7 +60,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('step2 nevts:10'),
+    annotation = cms.untracked.string('step2 nevts:5000'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -99,6 +99,12 @@ process.schedule.extend(process.HLTSchedule)
 process.schedule.extend([process.endjob_step,process.FEVTDEBUGHLToutput_step])
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
+
+#Setup FWK for multithreaded 
+process.options.numberOfThreads=cms.untracked.uint32(8)
+process.options.numberOfStreams=cms.untracked.uint32(0)
+process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+
 
 # customisation of the process.
 

@@ -7,11 +7,6 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 
 options = VarParsing.VarParsing('standard')
-options.register('jobid',
-                 1,
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.int,
-                "jobid")
 options.register('emin',
                  0,
                  VarParsing.VarParsing.multiplicity.singleton,
@@ -42,26 +37,6 @@ options.register('zmax',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.float,
                 "Zmax")
-options.register('seed1',
-                 0,
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.int,
-                "Seed for generation")
-options.register('seed2',
-                 0,
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.int,
-                "Seed for generation")
-options.register('seed3',
-                 0,
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.int,
-                "Seed for generation")
-options.register('seed4',
-                 0,
-                 VarParsing.VarParsing.multiplicity.singleton,
-                 VarParsing.VarParsing.varType.int,
-                "Seed for generation")
 
 options.parseArguments()
 print options
@@ -119,30 +94,6 @@ process.FEVTDEBUGoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 
-#Other statements
-import SimGeneral.Configuration.ThrowAndSetRandomRun as ThrowAndSetRandomRun
-ThrowAndSetRandomRun.throwAndSetRandomRun(process.source,[(options.jobid,1)])
-
-process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
-
-    externalLHEProducer = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed1),
-       engineName = cms.untracked.string('HepJamesRandom')
-    ),
-    generator = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed2),
-       engineName = cms.untracked.string('HepJamesRandom')
-    ),
-    VtxSmeared = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed3),
-       engineName = cms.untracked.string('HepJamesRandom')
-    ),
-    g4SimHits = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed4),
-       engineName = cms.untracked.string('HepJamesRandom')
-    )
-
-)
 
 # Additional output definition
 
@@ -165,17 +116,18 @@ process.generator = cms.EDProducer("CloseByParticleGunProducer",
         Pointing = cms.bool(True),
         Overlapping = cms.bool(False),
         RandomShoot = cms.bool(False),
-        NParticles = cms.int32(2),
+        NParticles = cms.int32(1),
         MaxEta = cms.double(2.9),
-        MaxPhi = cms.double(3.14159265359/6.),
+        MaxPhi = cms.double(3.14159265359),
         MinEta = cms.double(-2.9),
-        MinPhi = cms.double(-3.14159265359/6.),
+        MinPhi = cms.double(-3.14159265359),
         ),
     Verbosity = cms.untracked.int32(10),
-    psethack = cms.string('two particles in front of ecal'),
+    psethack = cms.string('single particle in front of ecal'),
     AddAntiParticle = cms.bool(False),
     firstRun = cms.untracked.uint32(1) 
     )
+
 
 
 # Path and EndPath definitions

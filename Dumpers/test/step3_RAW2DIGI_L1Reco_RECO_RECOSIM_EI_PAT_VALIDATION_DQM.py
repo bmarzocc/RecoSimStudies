@@ -45,7 +45,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('step3'),
+    annotation = cms.untracked.string('step3 nevts:5000'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -62,7 +62,7 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 process.RECOSIMoutput.outputCommands.extend(['keep *_mix_MergedCaloTruth_*',
-                                    'keep *_particleFlowRecHitECAL_*_*')
+                                             'keep *_particleFlowRecHitECAL_*_*'])
                                     #'keep *PCaloHit*_g4SimHits_EcalHitsE*_*',
                                     #'keep *_*genParticle*_*_*'])
 
@@ -237,6 +237,13 @@ process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,proces
 process.schedule.associate(process.patTask)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
+
+
+#Setup FWK for multithreaded 
+process.options.numberOfThreads=cms.untracked.uint32(8)
+process.options.numberOfStreams=cms.untracked.uint32(0)
+process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+
 
 # customisation of the process.
 
