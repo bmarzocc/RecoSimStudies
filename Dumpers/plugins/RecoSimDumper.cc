@@ -533,13 +533,12 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        int pfRecHit_index=-1; 
        int superClusterHit_index=-1;
 
-       float calo_simEnergy=-1.;
+       float calo_simEnergy=0.;
        for(auto const& hit: caloParticleXtals_[iCaloCount])
        {
            DetId id(hit.first);
            if(id.subdetId()!=EcalBarrel && id.subdetId()!=EcalEndcap) continue;
-                
-           calo_simEnergy=0.;
+               
            calo_simEnergy += hit.second; 
 
           // PfCluster and superClusters associated with this detid
