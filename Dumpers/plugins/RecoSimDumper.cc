@@ -541,6 +541,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
            DetId id(hit.first);
            if(id.subdetId()!=EcalBarrel && id.subdetId()!=EcalEndcap) continue;
                 
+           calo_simEnergy=0.;
            calo_simEnergy += hit.second; 
 
           // PfCluster and superClusters associated with this detid
