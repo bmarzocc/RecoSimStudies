@@ -305,7 +305,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           int iClus=0;
           for(unsigned int iBC=0; iBC<(unsigned int)N_ECALClusters; iBC++){
               if(!iSuperCluster.clusters()[iBC].isAvailable()) { continue; } 
-              if(iSuperCluster.clusters()[iBC] != iSuperCluster.seed()) { continue; } 
+              if(iSuperCluster.clusters()[iBC] == iSuperCluster.seed()) { continue; } 
               clusterRawEnergy[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->energy(),nBits_);
               clusterCalibEnergy[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->correctedEnergy(),nBits_);
               clusterEta[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta(),nBits_);
