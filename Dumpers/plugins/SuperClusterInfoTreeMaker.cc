@@ -320,7 +320,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_) clusterDPhiToGen[iClus] = reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - simMatched_[iSuperCluster].phi()),nBits_);    
               if(doSimMatch_) clusterDEtaToGen[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - simMatched_[iSuperCluster].eta(),nBits_);    
-              if(doSimMatch_) clusterLeakageWrtSim[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndFractionsCaloPart(simMatched_[iSuperCluster])),nBits_);  
+              if(doSimMatch_) clusterLeakageWrtSim[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndFractionsCaloPart(simMatched_[iSuperCluster])),nBits_);    
               iClus++;
           }
        }
@@ -414,7 +414,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           int iClus=0;
           for(unsigned int iBC=0; iBC<(unsigned int)N_ECALClusters; iBC++){
               if(!iSuperCluster.clusters()[iBC].isAvailable()) { continue; } 
-              if(iSuperCluster.clusters()[iBC] != iSuperCluster.seed()) { continue; } 
+              if(iSuperCluster.clusters()[iBC] == iSuperCluster.seed()) { continue; } 
               clusterRawEnergy[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->energy(),nBits_);
               clusterCalibEnergy[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->correctedEnergy(),nBits_);
               clusterEta[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta(),nBits_);
@@ -516,7 +516,7 @@ float SuperClusterTreeMaker::getSharedRecHitFraction(const std::vector<std::pair
     float rechits_match_BC = 0.0;
 
     for(const std::pair<DetId, float>& hit_Seed : *hits_and_fractions_Seed) {
-        for(const std::pair<DetId, float>& hit_BC : *hits_and_fractions_BC) {
+        for(const std::pair<DetId, float>& hit_BC : *hits_and_fractions_BC) {     
             if(hit_Seed.first.rawId() == hit_BC.first.rawId()) {
                rechits_match_BC += 1.0;
             }
@@ -534,7 +534,7 @@ std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndFraction
     for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
         const std::vector<std::pair<DetId,float> > &seedrechits = ( *iBC )->hitsAndFractions();
         for(unsigned int i = 0; i < seedrechits.size(); i++)     
-            HitsAndFractions_SC->push_back(seedrechits[i]);                      
+            if(!isThere(HitsAndFractions_SC,seedrechits[i].first.rawId())) HitsAndFractions_SC->push_back(seedrechits[i]);                      
     } 
 
     return HitsAndFractions_SC;
@@ -543,16 +543,31 @@ std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndFraction
 std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndFractionsCaloPart(CaloParticle iCaloParticle)
 {
     std::vector<std::pair<DetId, float> >* HitsAndFractions_CP = new std::vector<std::pair<DetId, float> >;
+    std::vector<std::pair<DetId, float> >* HitsAndFractions_tmp = new std::vector<std::pair<DetId, float> >;
     
     const auto& simClusters = iCaloParticle.simClusters();
     for(unsigned int iSC = 0; iSC < simClusters.size() ; iSC++){
         auto simCluster = simClusters[iSC];  
         auto hits_and_fractions = simCluster->hits_and_fractions();
-        for(unsigned int i = 0; i < hits_and_fractions.size(); i++)  
-            HitsAndFractions_CP->push_back(hits_and_fractions[i]);   
+        for(unsigned int i = 0; i < hits_and_fractions.size(); i++){  
+            HitsAndFractions_tmp->push_back(make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));  
+        }  
+    }
+
+    for(unsigned int i = 0; i < HitsAndFractions_tmp->size(); i++){  
+        if(!isThere(HitsAndFractions_CP,HitsAndFractions_tmp->at(i).first.rawId())) HitsAndFractions_CP->push_back(HitsAndFractions_tmp->at(i));
     }
 
     return HitsAndFractions_CP;
+}
+
+bool SuperClusterTreeMaker::isThere(std::vector<std::pair<DetId, float> >* HitsAndFractions, uint32_t rawId)
+{
+    bool there = false;
+    for(unsigned int i = 0; i < HitsAndFractions->size(); i++)  
+        if(HitsAndFractions->at(i).first.rawId() == rawId) there = true;
+
+    return there;
 }
 
 float SuperClusterTreeMaker::reduceFloat(float val, int bits)

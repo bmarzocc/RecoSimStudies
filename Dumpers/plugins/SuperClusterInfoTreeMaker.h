@@ -124,6 +124,7 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       float getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_fractions_BC, const std::vector<std::pair<DetId, float> > *hits_and_fractions_Seed);
       std::vector<std::pair<DetId, float> >* getHitsAndFractionsSC(reco::SuperCluster iSuperCluster);  
       std::vector<std::pair<DetId, float> >* getHitsAndFractionsCaloPart(CaloParticle iCaloParticle);
+      bool isThere(std::vector<std::pair<DetId, float> >* HitsAndFractions, uint32_t rawId);
        
       // ----------collection tokens-------------------
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
