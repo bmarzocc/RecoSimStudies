@@ -439,11 +439,13 @@ GlobalPoint PFClusterDumper::calculateAndSetPositionActual(const std::vector<std
   
   for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
     if(hit_CP.first.subdetId()!=EcalBarrel && hit_CP.first.subdetId()!=EcalEndcap) continue;
+    auto cell = ecal_geom->getGeometry(hit_CP.first);
+    if(!cell.get()) continue;
     double weight = 0.0;
     const double rh_energy = hit_CP.second;
     if (rh_energy > 0.0)
       weight = std::max(0.0, (_param_W0 + log(rh_energy) + logETot_inv));
-    auto cell = ecal_geom->getGeometry(hit_CP.first);
+    
     const float depth = maxDepth + maxToFront - cell->getPosition().mag();
     const GlobalPoint pos = static_cast<const TruncatedPyramid*>(cell.get())->getPosition(depth);
     
@@ -458,12 +460,13 @@ GlobalPoint PFClusterDumper::calculateAndSetPositionActual(const std::vector<std
   if (position_norm == 0.) {
     for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
       if(hit_CP.first.subdetId()!=EcalBarrel && hit_CP.first.subdetId()!=EcalEndcap) continue; 
+      auto cell = ecal_geom->getGeometry(hit_CP.first);
+      if(!cell.get()) continue;
       double weight = 0.0;
       const double rh_energy = hit_CP.second;
       if (rh_energy > 0.0)
         weight = rh_energy / cl_energy_float;
 
-      auto cell = ecal_geom->getGeometry(hit_CP.first);
       const float depth = maxDepth + maxToFront - cell->getPosition().mag();
       const GlobalPoint pos = cell->getPosition(depth);
 

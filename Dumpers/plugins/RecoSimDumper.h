@@ -118,6 +118,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
       std::vector<std::map<uint32_t,float> > caloParticleXtals(edm::Handle<std::vector<CaloParticle> > caloParticles, std::vector<int>* genID_);
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle iCaloParticle);
+      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, const CaloGeometry *geometry, bool useES);
       
       // ----------collection tokens-------------------
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
@@ -132,6 +134,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeSuperClusterToken_; 
 
       edm::Service<TFileService> iFile;
+      const CaloSubdetectorGeometry* _ebGeom;
+      const CaloSubdetectorGeometry* _eeGeom;
+      const CaloSubdetectorGeometry* _esGeom;
+      bool _esPlus;
+      bool _esMinus;
 
       // ----------config inputs-------------------
       bool doCompression_;
@@ -161,7 +168,10 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> caloParticle_simEnergy;
       std::vector<float> caloParticle_pt;
       std::vector<float> caloParticle_eta;
-      std::vector<float> caloParticle_phi;   
+      std::vector<float> caloParticle_phi; 
+      std::vector<int> caloParticle_ieta;
+      std::vector<int> caloParticle_iphi;    
+      std::vector<int> caloParticle_iz;     
       std::vector<std::vector<float> > caloHit_energy;
       std::vector<std::vector<float> > caloHit_time;
       std::vector<std::vector<float> > caloHit_eta;
@@ -188,6 +198,12 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > pfRecHit_ieta;
       std::vector<std::vector<int> > pfRecHit_iphi;
       std::vector<std::vector<int> > pfRecHit_iz;
+      std::vector<float> pfRecHit_unMatched_energy;
+      std::vector<float> pfRecHit_unMatched_eta;
+      std::vector<float> pfRecHit_unMatched_phi;
+      std::vector<int> pfRecHit_unMatched_ieta;
+      std::vector<int> pfRecHit_unMatched_iphi;
+      std::vector<int> pfRecHit_unMatched_iz;
       std::vector<std::vector< std::map<int, float> >> pfClusterHit_energy; // caloparticle, simhit, cluster:energy
       std::vector<std::vector<float> > pfClusterHit_eta;
       std::vector<std::vector<float> > pfClusterHit_phi;
@@ -203,6 +219,9 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> pfCluster_energy;
       std::vector<float> pfCluster_eta;
       std::vector<float> pfCluster_phi;
+      std::vector<int> pfCluster_ieta;
+      std::vector<int> pfCluster_iphi;
+      std::vector<int> pfCluster_iz;
       std::vector<std::vector< std::map<int, float> >> superClusterHit_energy;
       std::vector<std::vector<float> > superClusterHit_eta;
       std::vector<std::vector<float> > superClusterHit_phi;  
@@ -217,7 +236,10 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > superClusterHit_noCaloPart_iz;  
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
-      std::vector<float> superCluster_phi;    
+      std::vector<float> superCluster_phi;   
+      std::vector<int> superCluster_ieta;
+      std::vector<int> superCluster_iphi;    
+      std::vector<int> superCluster_iz;    
 };
 
 #endif

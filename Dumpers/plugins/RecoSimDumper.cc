@@ -156,6 +156,9 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    tree->Branch("caloParticle_pt","std::vector<float>",&caloParticle_pt);
    tree->Branch("caloParticle_eta","std::vector<float>",&caloParticle_eta);
    tree->Branch("caloParticle_phi","std::vector<float>",&caloParticle_phi);
+   tree->Branch("caloParticle_ieta","std::vector<int>",&caloParticle_ieta);
+   tree->Branch("caloParticle_iphi","std::vector<int>",&caloParticle_iphi);
+   tree->Branch("caloParticle_iz","std::vector<int>",&caloParticle_iz);
    if(saveCalohits_){
       tree->Branch("caloHit_energy","std::vector<std::vector<float> >",&caloHit_energy);
       tree->Branch("caloHit_time","std::vector<std::vector<float> >",&caloHit_time);
@@ -184,6 +187,11 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       }   
    }
    if(savePFRechits_){ 
+      tree->Branch("pfRecHit_unMatched_eta","std::vector<float>",&pfRecHit_unMatched_eta); 
+      tree->Branch("pfRecHit_unMatched_phi","std::vector<float>",&pfRecHit_unMatched_phi); 
+      tree->Branch("pfRecHit_unMatched_ieta","std::vector<int>",&pfRecHit_unMatched_ieta); 
+      tree->Branch("pfRecHit_unMatched_iphi","std::vector<int>",&pfRecHit_unMatched_iphi);
+      tree->Branch("pfRecHit_unMatched_iz","std::vector<int>",&pfRecHit_unMatched_iz);  
       if(saveRechits_) tree->Branch("pfRecHit_isMatched","std::vector<std::vector<bool> >",&pfRecHit_isMatched);
       if(!saveRechits_) tree->Branch("pfRecHit_energy","std::vector<std::vector<float> >",&pfRecHit_energy);  
       if(!saveSimhits_ && !saveRechits_){
@@ -212,6 +220,9 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("pfCluster_energy","std::vector<float>",&pfCluster_energy);
       tree->Branch("pfCluster_eta","std::vector<float>",&pfCluster_eta);
       tree->Branch("pfCluster_phi","std::vector<float>",&pfCluster_phi);   
+      tree->Branch("pfCluster_ieta","std::vector<int>",&pfCluster_ieta);
+      tree->Branch("pfCluster_iphi","std::vector<int>",&pfCluster_iphi);   
+      tree->Branch("pfCluster_iz","std::vector<int>",&pfCluster_iz);   
    } 
    if(saveSuperCluster_){
       tree->Branch("superClusterHit_energy","std::vector<std::vector<std::map<int, float> >",&superClusterHit_energy);
@@ -231,6 +242,9 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
       tree->Branch("superCluster_eta","std::vector<float>",&superCluster_eta);
       tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);  
+      tree->Branch("superCluster_ieta","std::vector<int>",&superCluster_ieta);
+      tree->Branch("superCluster_iphi","std::vector<int>",&superCluster_iphi);  
+      tree->Branch("superCluster_iz","std::vector<int>",&superCluster_iz);   
    }
 }
 
@@ -253,6 +267,16 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    edm::ESHandle<CaloGeometry> caloGeometry;
    iSetup.get<CaloGeometryRecord>().get(caloGeometry);
    const CaloGeometry *geometry = caloGeometry.product();
+   _ebGeom = caloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+   _eeGeom = caloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalEndcap);
+   _esGeom = caloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalPreshower);
+   if (_esGeom) {
+    for (uint32_t ic = 0; ic < _esGeom->getValidDetIds().size() && (!_esPlus || !_esMinus); ++ic) {
+      const double z = _esGeom->getGeometry(_esGeom->getValidDetIds()[ic])->getPosition().z();
+      _esPlus = _esPlus || (0 < z);
+      _esMinus = _esMinus || (0 > z);
+    }
+   }
    
    edm::Handle<std::vector<reco::GenParticle> > genParticles;
    ev.getByToken(genToken_,genParticles);
@@ -358,6 +382,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_pt.clear();
    caloParticle_eta.clear();
    caloParticle_phi.clear();
+   caloParticle_ieta.clear();
+   caloParticle_iphi.clear();
+   caloParticle_iz.clear();
  
    caloHit_energy.clear();
    caloHit_time.clear();
@@ -414,6 +441,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfRecHit_ieta.resize(nCaloParticles);
    pfRecHit_iphi.resize(nCaloParticles);
    pfRecHit_iz.resize(nCaloParticles);
+
+   pfRecHit_unMatched_energy.clear();
+   pfRecHit_unMatched_eta.clear();
+   pfRecHit_unMatched_phi.clear();
+   pfRecHit_unMatched_ieta.clear();
+   pfRecHit_unMatched_iphi.clear();
+   pfRecHit_unMatched_iz.clear();
    
    pfClusterHit_energy.clear();
    pfClusterHit_eta.clear();
@@ -445,6 +479,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_energy.clear();
    pfCluster_eta.clear();
    pfCluster_phi.clear();
+   pfCluster_ieta.clear();
+   pfCluster_iphi.clear();
+   pfCluster_iz.clear();
    
    superClusterHit_energy.clear();
    superClusterHit_eta.clear();
@@ -475,8 +512,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    superCluster_energy.clear(); 
    superCluster_eta.clear(); 
-   superCluster_phi.clear();    
-  
+   superCluster_phi.clear();  
+   superCluster_ieta.clear(); 
+   superCluster_iphi.clear();    
+   superCluster_iz.clear();   
+    
    GlobalPoint cell;
 
    std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
@@ -519,8 +559,25 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
  
        caloParticle_energy.push_back(reduceFloat(iCalo.energy(),nBits_));
        caloParticle_pt.push_back(reduceFloat(iCalo.pt(),nBits_));
-       caloParticle_eta.push_back(reduceFloat(iCalo.eta(),nBits_));
-       caloParticle_phi.push_back(reduceFloat(iCalo.phi(),nBits_));
+      
+       std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(iCalo);
+       GlobalPoint caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0., geometry, false);
+       caloParticle_eta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
+       caloParticle_phi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
+       if(std::abs(caloParticle_position.eta()) < 1.479){  
+          EBDetId eb_id(_ebGeom->getClosestCell(caloParticle_position));  
+          caloParticle_ieta.push_back(eb_id.ieta());
+          caloParticle_iphi.push_back(eb_id.iphi());
+          caloParticle_iz.push_back(0); 
+       }else{            
+          int iz=-99;
+          EEDetId ee_id(_eeGeom->getClosestCell(caloParticle_position));   
+          caloParticle_ieta.push_back(ee_id.ix());
+          caloParticle_iphi.push_back(ee_id.iy());
+          if(ee_id.zside()<0) iz=-1;
+          if(ee_id.zside()>0) iz=1;  
+          caloParticle_iz.push_back(iz); 
+       }   
    }
 
    for(unsigned int iCaloCount=0; iCaloCount<caloParticleXtals_.size(); iCaloCount++) 
@@ -771,8 +828,24 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           pfCluster_energy.push_back(reduceFloat(iPFCluster.energy(),nBits_));
           pfCluster_eta.push_back(reduceFloat(iPFCluster.eta(),nBits_));
           pfCluster_phi.push_back(reduceFloat(iPFCluster.phi(),nBits_));
-          //for unmatched PFClusterHit 
           reco::CaloCluster caloBC(iPFCluster);
+          math::XYZPoint caloPos = caloBC.position();
+          if(std::abs(iPFCluster.eta()) < 1.479){  
+             EBDetId eb_id(_ebGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));  
+             pfCluster_ieta.push_back(eb_id.ieta());
+             pfCluster_iphi.push_back(eb_id.iphi());
+             pfCluster_iz.push_back(0); 
+          }else{  
+             int iz=-99;
+             EEDetId ee_id(_eeGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));  
+             if(ee_id.zside()<0) iz=-1;
+             if(ee_id.zside()>0) iz=1;     
+             pfCluster_ieta.push_back(ee_id.ix());
+             pfCluster_iphi.push_back(ee_id.iy());
+             pfCluster_iz.push_back(iz); 
+          }   
+          
+          //for unmatched PFClusterHit      
           const std::vector<std::pair<DetId,float> > &hitsAndFractions = caloBC.hitsAndFractions();
           for(unsigned int i = 0; i < hitsAndFractions.size(); i++){
 
@@ -802,10 +875,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  pfClusterHit_noCaloPart_iphi[iPFCl].push_back(eb_id.iphi());
                  pfClusterHit_noCaloPart_iz[iPFCl].push_back(0); 
               }else if(hitsAndFractions[i].first.subdetId()==EcalEndcap){  
+                 int iz=-99;
                  EEDetId ee_id(hitsAndFractions[i].first);  
                  pfClusterHit_noCaloPart_ieta[iPFCl].push_back(ee_id.ix());
                  pfClusterHit_noCaloPart_iphi[iPFCl].push_back(ee_id.iy());
-                 pfClusterHit_noCaloPart_iz[iPFCl].push_back(ee_id.zside()); 
+                 if(ee_id.zside()<0) iz=-1;
+                 if(ee_id.zside()>0) iz=1;   
+                 pfClusterHit_noCaloPart_iz[iPFCl].push_back(iz); 
               } 
           }
           iPFCl++;        
@@ -820,6 +896,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
+          math::XYZPoint caloPos = iSuperCluster.seed()->position();
+          EBDetId eb_id(_ebGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));  
+          superCluster_ieta.push_back(eb_id.ieta());
+          superCluster_iphi.push_back(eb_id.iphi());
+          superCluster_iz.push_back(0);   
           //for unmatched SuperClusterHit 
           for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
               const std::vector<std::pair<DetId,float> > &seedrechits = ( *iBC )->hitsAndFractions();
@@ -857,6 +938,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
+          math::XYZPoint caloPos = iSuperCluster.seed()->position(); 
+          EEDetId ee_id(_eeGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));   
+          superCluster_ieta.push_back(ee_id.ix());
+          superCluster_iphi.push_back(ee_id.iy());
+          superCluster_iz.push_back(ee_id.zside());       
           //for unmatched SuperClusterHit 
           for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
               const std::vector<std::pair<DetId,float> > &seedrechits = ( *iBC )->hitsAndFractions();
@@ -874,7 +960,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                    float energy_tmp_ = (*(recHitsEE.product())->find(seedrechits[i].first)).energy();
                    if(useEnergyRegression_) superClusterHit_noCaloPart_energy_ = energy_tmp_*seedrechits[i].second;
                    else superClusterHit_noCaloPart_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*energy_tmp_*seedrechits[i].second;
-
+                      
+                   int iz=-99;
                    cell = geometry->getPosition(seedrechits[i].first);
                    EEDetId ee_id(seedrechits[i].first);  
                    superClusterHit_noCaloPart_energy[iSC].push_back(reduceFloat(superClusterHit_noCaloPart_energy_,nBits_));
@@ -882,13 +969,86 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                    superClusterHit_noCaloPart_phi[iSC].push_back(reduceFloat(cell.phi(),nBits_));
                    superClusterHit_noCaloPart_ieta[iSC].push_back(ee_id.ix());
                    superClusterHit_noCaloPart_iphi[iSC].push_back(ee_id.iy());
-                   superClusterHit_noCaloPart_iz[iSC].push_back(ee_id.zside()); 
+                   if(ee_id.zside()<0) iz=-1;
+                   if(ee_id.zside()>0) iz=1; 
+                   superClusterHit_noCaloPart_iz[iSC].push_back(iz); 
                                      
               } 
           }      
           iSC++;     
       } 
    }
+
+   //Save unMatched pfRechits 
+   if(savePFRechits_){
+      for(const auto& iPFRechit : *(pfRecHits.product())){
+
+          DetId pf_id(iPFRechit.detId());
+          bool pfRecHit_isMatched_ = false;
+
+          for(unsigned int iCaloCount=0; iCaloCount<caloParticleXtals_.size(); iCaloCount++) 
+          {
+              for(auto const& hit: caloParticleXtals_[iCaloCount])
+              {
+                  DetId id(hit.first);
+                  if(iPFRechit.detId() == id.rawId()) pfRecHit_isMatched_ = true;
+                  break;
+              }
+          }
+
+          for(const auto& iPFCluster : *(pfClusters.product())){ 
+              reco::CaloCluster caloBC(iPFCluster);     
+              const std::vector<std::pair<DetId,float> > &hitsAndFractions = caloBC.hitsAndFractions();
+              for(unsigned int i = 0; i < hitsAndFractions.size(); i++){
+                  if(iPFRechit.detId() == hitsAndFractions[i].first.rawId()) pfRecHit_isMatched_ = true;
+                  break;   
+              }
+          }
+
+          if(pf_id.subdetId()==EcalBarrel){
+             for(const auto& iSuperCluster : *(superClusterEB.product())){ 
+                 for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
+                     const std::vector<std::pair<DetId,float> > &seedrechits = ( *iBC )->hitsAndFractions();
+                     for(unsigned int i = 0; i < seedrechits.size(); i++){  
+                         if(iPFRechit.detId() == seedrechits[i].first.rawId()) pfRecHit_isMatched_ = true;
+                         break;  
+                     }
+                 }
+             }       
+          }else if(pf_id.subdetId()==EcalEndcap){
+             for(const auto& iSuperCluster : *(superClusterEE.product())){ 
+                 for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
+                     const std::vector<std::pair<DetId,float> > &seedrechits = ( *iBC )->hitsAndFractions();
+                     for(unsigned int i = 0; i < seedrechits.size(); i++){  
+                         if(iPFRechit.detId() == seedrechits[i].first.rawId()) pfRecHit_isMatched_ = true;
+                         break;  
+                     }
+                 }
+             }     
+          }
+
+          if(pfRecHit_isMatched_) continue;
+
+          cell = geometry->getPosition(pf_id); 
+          pfRecHit_unMatched_energy.push_back(iPFRechit.energy());    
+          pfRecHit_unMatched_eta.push_back(cell.eta());  
+          pfRecHit_unMatched_phi.push_back(cell.phi()); 
+          if(pf_id.subdetId()==EcalBarrel){ 
+             EBDetId eb_id(pf_id);  
+             pfRecHit_unMatched_ieta.push_back(eb_id.ieta());  
+             pfRecHit_unMatched_iphi.push_back(eb_id.iphi());  
+             pfRecHit_unMatched_iz.push_back(0);     
+          }else if(pf_id.subdetId()==EcalEndcap){
+             int iz=-99;
+             EEDetId ee_id(pf_id);  
+             if(ee_id.zside()<0) iz=-1;
+             if(ee_id.zside()>0) iz=1; 
+             pfRecHit_unMatched_ieta.push_back(ee_id.ix());  
+             pfRecHit_unMatched_iphi.push_back(ee_id.iy());  
+             pfRecHit_unMatched_iz.push_back(iz);    
+          } 
+      }   
+   }  
 
    //fill tree for each event
    tree->Fill();
@@ -930,6 +1090,138 @@ std::vector<std::map<uint32_t,float> > RecoSimDumper::caloParticleXtals(edm::Han
     } 
 
     return xtals;
+}
+
+std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesCaloPart(CaloParticle iCaloParticle)
+{
+    std::vector<std::pair<DetId, float> >* HitsAndEnergies_CP = new std::vector<std::pair<DetId, float> >;
+    std::vector<std::pair<DetId, float> >* HitsAndEnergies_tmp = new std::vector<std::pair<DetId, float> >;
+    std::map<DetId, float> HitsAndEnergies_map;
+    
+    const auto& simClusters = iCaloParticle.simClusters();
+    for(unsigned int iSC = 0; iSC < simClusters.size() ; iSC++){
+        auto simCluster = simClusters[iSC];  
+        auto hits_and_energies = simCluster->hits_and_energies();
+        for(unsigned int i = 0; i < hits_and_energies.size(); i++){  
+            HitsAndEnergies_tmp->push_back(make_pair(DetId(hits_and_energies[i].first),hits_and_energies[i].second));  
+        }  
+    }
+
+    for(unsigned int i = 0; i < HitsAndEnergies_tmp->size(); i++){  
+        if (HitsAndEnergies_map.find(HitsAndEnergies_tmp->at(i).first) == HitsAndEnergies_map.end()) {
+            HitsAndEnergies_map[HitsAndEnergies_tmp->at(i).first]=HitsAndEnergies_tmp->at(i).second;      
+        }else{
+            HitsAndEnergies_map[HitsAndEnergies_tmp->at(i).first]=HitsAndEnergies_map[HitsAndEnergies_tmp->at(i).first]+HitsAndEnergies_tmp->at(i).second; 
+        }
+    }
+
+    for(auto const& hit : HitsAndEnergies_map) 
+         HitsAndEnergies_CP->push_back(make_pair(hit.first,hit.second));
+
+    return HitsAndEnergies_CP;
+}
+
+GlobalPoint RecoSimDumper::calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, const CaloGeometry *geometry, bool useES)
+{
+  double preshowerStartEta = 1.653;
+  double preshowerEndEta = 2.6;
+  double cl_energy_float = 0;
+  double max_e = 0.0;
+  double clusterT0 = 0.0;
+  DetId id_max; 
+ 
+  // find the seed and max layer
+  for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP){
+    const double rh_energyf = hit_CP.second;
+    cl_energy_float += rh_energyf;
+    if (rh_energyf > max_e) {
+      max_e = rh_energyf;
+      id_max = hit_CP.first;
+    }
+  }
+
+  const CaloSubdetectorGeometry* ecal_geom = nullptr;
+  // get seed geometry information
+  if(id_max.subdetId()==EcalBarrel){
+      ecal_geom = _ebGeom;
+      clusterT0 = _param_T0_EB;
+  }else if(id_max.subdetId()==EcalEndcap){  
+      ecal_geom = _eeGeom;
+      clusterT0 = _param_T0_EE;
+  }else{
+      throw cms::Exception("InvalidLayer") << "ECAL Position Calc only accepts ECAL_BARREL or ECAL_ENDCAP";
+  }
+
+  auto center_cell = ecal_geom->getGeometry(id_max);
+  const double ctreta = center_cell->etaPos();
+  const double actreta = std::abs(ctreta);
+  // need to change T0 if in ES
+  if (actreta > preshowerStartEta && actreta < preshowerEndEta && useES) {
+    if (ctreta > 0 && _esPlus)
+      clusterT0 = _param_T0_ES;
+    if (ctreta < 0 && _esMinus)
+      clusterT0 = _param_T0_ES;
+  }
+
+  // floats to reproduce exactly the EGM code
+  const float maxDepth = _param_X0 * (clusterT0 + log(cl_energy_float));
+  const float maxToFront = center_cell->getPosition().mag();
+  // calculate the position
+  const double logETot_inv = -log(cl_energy_float);
+  double position_norm = 0.0;
+  double x(0.0), y(0.0), z(0.0);
+ 
+  for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
+    if(hit_CP.first.subdetId()!=EcalBarrel && hit_CP.first.subdetId()!=EcalEndcap) continue;
+    auto cell = ecal_geom->getGeometry(hit_CP.first);
+    if(!cell.get()) continue;
+    double weight = 0.0;
+    const double rh_energy = hit_CP.second;
+    if (rh_energy > 0.0)
+      weight = std::max(0.0, (_param_W0 + log(rh_energy) + logETot_inv));
+    const float depth = maxDepth + maxToFront - cell->getPosition().mag();
+    const GlobalPoint pos = static_cast<const TruncatedPyramid*>(cell.get())->getPosition(depth);
+    
+    x += weight * pos.x();
+    y += weight * pos.y();
+    z += weight * pos.z();
+
+    position_norm += weight;
+  }
+
+  // FALL BACK to LINEAR WEIGHTS
+  if (position_norm == 0.) {
+    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
+      if(hit_CP.first.subdetId()!=EcalBarrel && hit_CP.first.subdetId()!=EcalEndcap) continue; 
+      auto cell = ecal_geom->getGeometry(hit_CP.first);
+      if(!cell.get()) continue;
+      double weight = 0.0;
+      const double rh_energy = hit_CP.second;
+      if (rh_energy > 0.0)
+        weight = rh_energy / cl_energy_float;
+
+      const float depth = maxDepth + maxToFront - cell->getPosition().mag();
+      const GlobalPoint pos = cell->getPosition(depth);
+
+      x += weight * pos.x();
+      y += weight * pos.y();
+      z += weight * pos.z();
+
+      position_norm += weight;
+    }
+  }
+
+  if (position_norm < _minAllowedNorm) {
+    edm::LogError("WeirdClusterNormalization") << "Cluster too far from seeding cell: set position to (0,0,0).";
+    return GlobalPoint(0., 0., 0.);
+  } else {
+    const double norm_inverse = 1.0 / position_norm;
+    x *= norm_inverse;
+    y *= norm_inverse;
+    z *= norm_inverse;
+  }
+
+  return GlobalPoint(x, y, z); 
 }
 
 float RecoSimDumper::reduceFloat(float val, int bits)
