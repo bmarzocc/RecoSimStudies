@@ -39,7 +39,8 @@ saveWork=true
 saveSE=false
 
 #Choose name of the directory
-DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_2k"
+#DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_2k"
+DIRNAME="test_pt_1000"
 
 
 ###############################################################

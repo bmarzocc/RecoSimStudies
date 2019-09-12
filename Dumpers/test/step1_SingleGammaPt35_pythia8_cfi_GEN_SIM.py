@@ -98,53 +98,37 @@ process.FEVTDEBUGoutput = cms.OutputModule("PoolOutputModule",
 # Additional output definition
 
 # Other statements
-#process.XMLFromDBSource.label = cms.string("Extended") #this means normal geometry (with tracker, if not generated directly in front of ECAL
-process.XMLFromDBSource.label = cms.string("ExtendedZeroMaterial") #this means without tracker
+process.XMLFromDBSource.label = cms.string("Extended")
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-#process.generator = cms.EDProducer("CloseByParticleGunProducer",
-#    PGunParameters = cms.PSet(
-#        PartID = cms.vint32(22, 22),
-#        EnMax = cms.double(options.emax),
-#        EnMin = cms.double(options.emin),
-#        RMax = cms.double(options.rmax),
-#        RMin = cms.double(options.rmin),
-#        ZMax = cms.double(options.zmax),
-#        ZMin = cms.double(options.zmin),
-#        Delta = cms.double(350),
-#        Pointing = cms.bool(True),
-#        Overlapping = cms.bool(False),
-#        RandomShoot = cms.bool(False),
-#        NParticles = cms.int32(1),
-#        MaxEta = cms.double(2.9),
-#        MaxPhi = cms.double(3.14159265359),
-#        MinEta = cms.double(-2.9),
-#        MinPhi = cms.double(-3.14159265359),
-#        ),
-#    Verbosity = cms.untracked.int32(10),
-#    psethack = cms.string('single particle in front of ecal'),
-#    AddAntiParticle = cms.bool(False),
-#    firstRun = cms.untracked.uint32(1) 
-#    )
-
-#Flat generator needed for the study with tracker
-process.generator = cms.EDProducer("FlatRandomPtGunProducer",
-    AddAntiParticle = cms.bool(False), #setting this parameter to True means production of double particles
+process.generator = cms.EDProducer("CloseByParticleGunProducer",
     PGunParameters = cms.PSet(
-        MaxEta = cms.double(3.1),
+        PartID = cms.vint32(22, 22),
+        #EnMax = cms.double(options.emax),
+        #EnMin = cms.double(options.emin),
+        MaxPt = cms.double(options.emax),
+        MinPt = cms.double(options.emin),
+        RMax = cms.double(options.rmax),
+        RMin = cms.double(options.rmin),
+        ZMax = cms.double(options.zmax),
+        ZMin = cms.double(options.zmin),
+        Delta = cms.double(350),
+        Pointing = cms.bool(True),
+        Overlapping = cms.bool(False),
+        RandomShoot = cms.bool(False),
+        NParticles = cms.int32(1),
+        MaxEta = cms.double(2.9),
         MaxPhi = cms.double(3.14159265359),
-        MaxPt = cms.double(100.0),
-        MinEta = cms.double(-3.1),
+        MinEta = cms.double(-2.9),
         MinPhi = cms.double(-3.14159265359),
-        MinPt = cms.double(1),
-        PartID = cms.vint32(22)
-    ),
-    Verbosity = cms.untracked.int32(0),
-    firstRun = cms.untracked.uint32(1),
-    psethack = cms.string('single photon pt 1 to 10o')
-)
+        ),
+    Verbosity = cms.untracked.int32(10),
+    psethack = cms.string('single particle in front of ecal'),
+    AddAntiParticle = cms.bool(False),
+    firstRun = cms.untracked.uint32(1) 
+    )
 
 
 

@@ -36,18 +36,18 @@ doEEM=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
-saveWork=false
-saveSE=true
+saveWork=true
+saveSE=false
 
 #Choose name of the directory
-DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_10k"
+DIRNAME="test_pt_1000"
 
 
 #Choose the number of events that you want to generate
 #Please enter an EVEN number
-NEVENTS=10000
+NEVENTS=1000
 
-#Choose the energy range of the photon gun
+#Choose the energy/pt range of the photon gun
 EMIN=0.
 EMAX=100.
 ###############################################################
