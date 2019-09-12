@@ -98,7 +98,8 @@ process.FEVTDEBUGoutput = cms.OutputModule("PoolOutputModule",
 # Additional output definition
 
 # Other statements
-process.XMLFromDBSource.label = cms.string("Extended") #this means normal geometry (with tracker, if not generated directly in front of ECAL
+#process.XMLFromDBSource.label = cms.string("Extended") #this means normal geometry (with tracker, if not generated directly in front of ECAL
+process.XMLFromDBSource.label = cms.string("ExtendedZeroMaterial") #this means without tracker
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')

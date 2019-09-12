@@ -30,9 +30,9 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=false
+doEB=true
 doEEP=false
-doEEM=true
+doEEM=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
@@ -40,12 +40,12 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_second"
+DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_10k"
 
 
 #Choose the number of events that you want to generate
 #Please enter an EVEN number
-NEVENTS=150000
+NEVENTS=10000
 
 #Choose the energy range of the photon gun
 EMIN=0.

@@ -29,17 +29,17 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=false
+doEB=true
 doEEP=false
-doEEM=true
+doEEM=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
-saveWork=false
-saveSE=true
+saveWork=true
+saveSE=false
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to20GeV_150k"
+DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_2k"
 
 
 ###############################################################
