@@ -2,7 +2,10 @@
 
 In this repository, you find all the necessary codes for the production of samples, from the generation to the dumping.
 
+
 ## Installation
+
+First installation:
 
     * cmsrel CMSSW_10_6_0
 If you get an error, make sure that the remote machine on which you are working on is new enough to be compatible with the CMSSW_10_6_0 release. At the moment of writing, this release only works for machines with SL7 architecture at least, and one has typically to ask for a t3ui07 account to the PSI-T3 administrators.
@@ -14,10 +17,31 @@ If you get an error, make sure that the remote machine on which you are working 
     * git clone git@github.com:pfclustering/RecoSimStudies.git
     * scram b -j 5
 
+
 In case you want to interact with the Storage Element, don't forget to set up your proxy:
 ```    
 voms-proxy-init --voms cms --valid 186:00
 ```
+
+## Workflow
+
+Development of ```cmssw``` by members of pfclustering team are done via fork
+One creates his/her own branch locally, pushes it to his/her own fork and then opens pull request for https://github.com/bmarzocc/cmssw/tree/RecoSimStudies
+
+More information and tricks on how to work with cmssw and github here: http://cms-sw.github.io/faq.html
+
+    * cd CMSSW_X_Y_Z/src
+    * git cms-merge-topic bmarzocc:RecoSimStudies
+    * git remote add my-cmssw git@github.com:mgratti/cmssw.git # only first time
+    * git checkout -b RecoSimStudies-reco-mg # this is an example
+    * git cms-addpkg CalibCalorimetry/EcalTrivialCondModules # this is an exmaple
+    * developments (git add bla.cpp, git commit -m "bla") 
+    * git push my-cmssw RecoSimStudies-reco-mg
+    * open pull request to bmarzocc:RecoSimStudies
+
+Development of ```RecoSimStudies``` by members of pfclustering/RecoSimStudies team happen in the pfclustering fork; each member has his/her own branch where to develop, opens a pull request (ideally another member checks) and merges with master branch.
+
+After master is in sync, developments of bmarzocc/RecoSimStudies are fetched in the pfclustering fork via pull request
 
 
 ## Generation
