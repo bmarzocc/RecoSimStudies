@@ -30,9 +30,9 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=false
+doEB=true
 doEEP=false
-doEEM=true
+doEEM=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
@@ -40,12 +40,12 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_second"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_oldtest"
 
 
 #Choose the number of events that you want to generate
 #Please enter an EVEN number
-NEVENTS=150000
+NEVENTS=10
 
 #Choose the energy range of the photon gun
 EMIN=0.
@@ -100,15 +100,15 @@ fi
 FILENAME="step1.root"
 
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/"$DIRNAME 
+   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/"$USER"/EcalProd/"$DIRNAME 
 fi
 
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
-   SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
+   SERESULTDIR="/t3home/"$USER"/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
 fi
 
 STARTDIR=`pwd`
-TOPWORKDIR="/scratch/anlyon"
+TOPWORKDIR="/scratch/"$USER/
 JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
