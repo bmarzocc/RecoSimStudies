@@ -1,5 +1,5 @@
-#ifndef RecoSimStudies_Dumpers_RecoSimDumper_H
-#define RecoSimStudies_Dumpers_RecoSimDumper_H
+#ifndef RecoSimStudies_Dumpers_PFClusterDumper_H
+#define RecoSimStudies_Dumpers_PFClusterDumper_H
 
 // system include files
 #include "FWCore/ServiceRegistry/interface/Service.h"
@@ -43,8 +43,6 @@
 
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
@@ -63,13 +61,13 @@
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
-#include "RecoEcal/EgammaCoreTools/interface/Mustache.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
+//#include "PhysicsTools/Utilities/macros/setTDRStyle.C"
 
 #include "TSystem.h"
 #include "TFile.h"
@@ -105,11 +103,11 @@
 #include <Math/VectorUtil.h>
 //#include <boost/tokenizer.hpp>
 
-class SuperClusterTreeMaker : public edm::EDAnalyzer
+class PFClusterDumper : public edm::EDAnalyzer
 {
       public:
-         explicit SuperClusterTreeMaker(const edm::ParameterSet&);
-	 ~SuperClusterTreeMaker();
+         explicit PFClusterDumper(const edm::ParameterSet&);
+	 ~PFClusterDumper();
   
   
       private:
@@ -118,69 +116,53 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
          virtual void endJob() ;
         
       // ----------additional functions-------------------
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
+      float getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy);
+      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES); 
       float reduceFloat(float val, int bits);
-      float caloPartEnergy(CaloParticle* caloPart);
-      void findBestSimMatches(edm::Handle<std::vector<CaloParticle> > caloParticles, edm::Handle<std::vector<reco::SuperCluster> > superCluster, std::vector<int>* genID_);
-      float getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_fractions_BC, const std::vector<std::pair<DetId, float> > *hits_and_fractions_Seed);
-      std::vector<std::pair<DetId, float> >* getHitsAndFractionsSC(reco::SuperCluster iSuperCluster);  
-      std::vector<std::pair<DetId, float> >* getHitsAndFractionsCaloPart(CaloParticle iCaloParticle);
-      bool isThere(std::vector<std::pair<DetId, float> >* HitsAndFractions, uint32_t rawId);
-       
+      
       // ----------collection tokens-------------------
-      edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_;
-      edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebSuperClusterToken_;
-      edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeSuperClusterToken_; 
-
+      edm::EDGetTokenT<EcalRecHitCollection> ebRechitToken_; 
+      edm::EDGetTokenT<EcalRecHitCollection> eeRechitToken_; 
+      edm::EDGetTokenT<std::vector<reco::PFCluster> > pfClusterToken_; 
+      
       edm::Service<TFileService> iFile;
+      const CaloSubdetectorGeometry* _ebGeom;
+      const CaloSubdetectorGeometry* _eeGeom;
+      const CaloSubdetectorGeometry* _esGeom;
+      bool _esPlus;
+      bool _esMinus;
 
       // ----------config inputs-------------------
       bool doCompression_;
       int nBits_;
+      bool simMatch_energyFraction; 
+      bool saveHitsPosition_;
+      bool useES_;
       std::vector<int> genID_;
-      bool doSimMatch_;
-      std::map<reco::SuperCluster, CaloParticle> simMatched_;
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;
-      int nVtx;
-      float scRawEnergy;
-      float scCalibratedEnergy;
-      float scPreshowerEnergy;
-      float scEta;
-      float scPhi;
-      float scR;
-      float scPhiWidth;
-      float scEtaWidth;
-      float scSeedRawEnergy;
-      float scSeedCalibratedEnergy;
-      float scSeedEta;
-      float scSeedPhi;
-      float genEnergy;
-      float genEta;
-      float genPhi;
-      float genDRToCentroid;
-      float genDRToSeed;
-      int N_ECALClusters;
-      std::vector<float> clusterRawEnergy;
-      std::vector<float> clusterCalibEnergy;
-      std::vector<float> clusterEta;
-      std::vector<float> clusterPhi;
-      std::vector<float> clusterDPhiToSeed;
-      std::vector<float> clusterDEtaToSeed;
-      std::vector<float> clusterDPhiToCentroid;
-      std::vector<float> clusterDEtaToCentroid;
-      std::vector<float> clusterDPhiToGen;
-      std::vector<float> clusterDEtaToGen;
-      std::vector<float> clusterHitFractionSharedWithSeed;
-      std::vector<float> clusterLeakage;
-      std::vector<float> clusterLeakageWrtSim;
-      std::vector<int> clusterInMustache;
-      std::vector<int> clusterInDynDPhi;
-      int N_PSClusters;
-      std::vector<float> psClusterRawEnergy;
-      std::vector<float> psClusterEta;
-      std::vector<float> psClusterPhi;
+      
+      float pfCluster_energy;
+      float pfCluster_eta;
+      float pfCluster_phi;
+      int pfCluster_ieta;
+      int pfCluster_iphi;
+      int pfCluster_iz;
+
+      float caloParticle_energy;
+      float caloParticle_simEnergy;
+      float caloParticle_genPt;
+      float caloParticle_genEta;
+      float caloParticle_genPhi;
+      float caloParticle_eta;
+      float caloParticle_phi;
+      int caloParticle_ieta;
+      int caloParticle_iphi;
+      int caloParticle_iz;
 };
 
 #endif
