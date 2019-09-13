@@ -25,6 +25,7 @@ voms-proxy-init --voms cms --valid 186:00
 
 ## Workflow
 
+### Development of ```cmssw```
 Development of ```cmssw``` by members of pfclustering team are done via fork
 One creates his/her own branch locally, pushes it to his/her own fork and then opens pull request for https://github.com/bmarzocc/cmssw/tree/RecoSimStudies
 
@@ -39,10 +40,12 @@ More information and tricks on how to work with cmssw and github here: http://cm
     * git push my-cmssw RecoSimStudies-reco-mg
     * open pull request to bmarzocc:RecoSimStudies
 
-Development of ```RecoSimStudies``` by members of pfclustering/RecoSimStudies team happen in the pfclustering fork; each member has his/her own branch where to develop, opens a pull request (ideally another member checks) and merges with master branch.
+### Development of ```RecoSimStudies```
+Development of ```RecoSimStudies``` by members of pfclustering team happens within the pfclustering fork; 
+each member has his/her own branch where to develop the new features. When development is over, he/she opens a pull request,
+(ideally another member checks) and merges with master branch.
 
-After master is in sync, developments of bmarzocc/RecoSimStudies are fetched in the pfclustering fork via pull request
-
+After master is in sync, developments of bmarzocc/RecoSimStudies are fetched via a pull request (from web page) with a brief comment about the changes.
 
 ## Generation
 ### GEN_SIM production
