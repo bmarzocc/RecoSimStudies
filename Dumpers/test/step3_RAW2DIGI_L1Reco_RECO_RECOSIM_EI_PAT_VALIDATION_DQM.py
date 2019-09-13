@@ -9,10 +9,10 @@ options = VarParsing ('analysis')
 # define the defaults here, changed from command line
 options.maxEvents = -1 # -1 means all events, maxEvents considers the total over files considered
 # add costum parameters
-options.register ('seedMult',
-                  1.0, # default value
+options.register ("seedMult",
+                  3.0, # default value
                   VarParsing.multiplicity.singleton, # singleton or list
-                  VarParsing.varType.double,          # string, int, or float
+                  VarParsing.varType.float,          # string, int, or float
                   "multiplier of noise used for seeding threshold"
                  )
 
@@ -45,8 +45,7 @@ process.load('Configuration.StandardSequences.Validation_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    #input = cms.untracked.int32(-1)
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(-1)
 )
 
 
@@ -69,6 +68,9 @@ process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring()
 )
 
+process.options = cms.untracked.PSet(
+
+)
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
@@ -158,6 +160,16 @@ process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 
+# process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
+#     dataset = cms.untracked.PSet(
+#         dataTier = cms.untracked.string('DQMIO'),
+#         filterName = cms.untracked.string('')
+#     ),
+#     fileName = cms.untracked.string('file:step3_inDQM.root'),
+#     outputCommands = process.DQMEventContent.outputCommands,
+#     splitLevel = cms.untracked.int32(0)
+# )
+
 # Additional output definition
 
 # Other statements
@@ -168,7 +180,7 @@ process.RandomNumberGeneratorService.restoreStateLabel=cms.untracked.string("ran
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-# override a global tag with the trivial conditions
+# override a global tag with the conditions from external module
 from CalibCalorimetry.EcalTrivialCondModules.EcalTrivialCondRetriever_cfi import *
 process.myCond = EcalTrivialConditionRetriever.clone()
 # prefer these conditions over the globalTag's ones
@@ -178,14 +190,14 @@ process.es_prefer = cms.ESPrefer("EcalTrivialConditionRetriever","myCond")
 process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(True)
 process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(1.0)
 process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(1.0)
-process.myCond.PFRecHitFile = cms.untracked.string("DBfiles/PFRecHitThresholds_EB.txt")
-process.myCond.PFRecHitFileEE = cms.untracked.string("DBfiles/PFRecHitThresholds_EE.txt")
+process.myCond.PFRecHitFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFRecHitFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
 
 process.myCond.producedEcalPFSeedingThresholds = cms.untracked.bool(True)
-process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seedMult/2.0) # PFRHs are at 2sigma of the noise for |eta|<2.5
-process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #          3sigma of the noise for |eta|>2.5
-process.myCond.PFSeedingFile = cms.untracked.string("DBfiles/PFRecHitThresholds_EB.txt")
-process.myCond.PFSeedingFileEE = cms.untracked.string("DBfiles/PFRecHitThresholds_EE.txt")
+process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seedMult/2.0) # PFRHs files are at 2sigma of the noise for |eta|<2.5
+process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #                3sigma of the noise for |eta|>2.5
+process.myCond.PFSeedingFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFSeedingFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
 
 process.myCond.producedEcalPedestals = cms.untracked.bool(False)
 process.myCond.producedEcalWeights = cms.untracked.bool(False)
@@ -212,7 +224,7 @@ process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
 process.myCond.producedEcalSampleMask = cms.untracked.bool(False)
 ########## end override
 
-# Path and EndPath definitions # CLEAN!!!
+# Path and EndPath definitions 
 process.raw2digi_step = cms.Path(process.RawToDigi)
 process.L1Reco_step = cms.Path(process.L1Reco)
 process.reconstruction_step = cms.Path(process.reconstruction)
@@ -259,8 +271,29 @@ process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 process.MINIAODSIMoutput_step = cms.EndPath(process.MINIAODSIMoutput)
 # process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 
+# process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.eventinterpretaion_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.prevalidation_step,process.prevalidation_step1,process.validation_step,process.validation_step1,\
+#     process.dqmoffline_step,process.dqmoffline_1_step,process.dqmoffline_2_step,process.dqmofflineOnPAT_step,process.dqmofflineOnPAT_1_step,process.dqmofflineOnPAT_2_step,\
+#         process.RECOSIMoutput_step,process.MINIAODSIMoutput_step,\
+#             process.DQMoutput_step)
+# process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,
+#                             process.eventinterpretaion_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,  
+#                             process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,
+#                             process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,
+#                             process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,
+#                             process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,
+#                             process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,
+#                             process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,
+#                             process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,
+#                             process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,
+#                             process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,
+#                             process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,
+#                             process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,
+#                             process.Flag_METFilters,process.prevalidation_step,process.prevalidation_step1,
+#                             process.validation_step,process.validation_step1,process.RECOSIMoutput_step,
+#                             process.MINIAODSIMoutput_step)
 
-
+# Remove because of errors in condor
+#process.pfTausBaseSequence.remove(pfTausProducerSansRefs)
 
 process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,
                             process.eventinterpretaion_step,  
