@@ -29,9 +29,8 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEEP=false
-doEEM=false
+doEB=false
+doEE=true
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
@@ -40,21 +39,17 @@ saveSE=false
 
 #Choose name of the directory
 #DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_2k"
-DIRNAME="test_pt_1000"
+DIRNAME="test_random"
 
 
 ###############################################################
 
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEP" 
-fi
-
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEM" 
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE" 
 fi
 
 

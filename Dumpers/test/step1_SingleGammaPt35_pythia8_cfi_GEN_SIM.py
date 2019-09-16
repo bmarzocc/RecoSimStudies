@@ -103,7 +103,7 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-process.generator = cms.EDProducer("CloseByParticleGunProducer",
+process.generator = cms.EDProducer("CloseByParticleFlatEtGunProducer",
     PGunParameters = cms.PSet(
         PartID = cms.vint32(22, 22),
         #EnMax = cms.double(options.emax),
