@@ -3,6 +3,21 @@
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: step3 --conditions auto:phase1_2017_realistic -n 10 --era Run2_2017 --eventcontent RECOSIM,MINIAODSIM,DQM --runUnscheduled -s RAW2DIGI,L1Reco,RECO,RECOSIM,EI,PAT,VALIDATION:@standardValidation+@miniAODValidation,DQM:@standardDQM+@ExtraHLT+@miniAODDQM --datatier GEN-SIM-RECO,MINIAODSIM,DQMIO --geometry DB:Extended --filein file:step2.root --fileout file:step3.root
+from FWCore.ParameterSet.VarParsing import VarParsing
+
+options = VarParsing ('analysis')
+# define the defaults here, changed from command line
+options.maxEvents = -1 # -1 means all events, maxEvents considers the total over files considered
+# add costum parameters
+options.register ("seedMult",
+                  3.0, # default value
+                  VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.varType.float,          # string, int, or float
+                  "multiplier of noise used for seeding threshold"
+                 )
+
+options.parseArguments()
+
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.StandardSequences.Eras import eras
@@ -30,8 +45,22 @@ process.load('Configuration.StandardSequences.Validation_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(10)
 )
+
+
+# Message Logger settings
+#process.MessageLogger = cms.Service("MessageLogger",
+#         destinations = cms.untracked.vstring(
+#              'detailedInfo',
+#              'critical',
+#              #'cerr'
+#         ),
+#         critical = cms.untracked.PSet(threshold = cms.untracked.string('ERROR')),
+#         detailedInfo = cms.untracked.PSet(threshold = cms.untracked.string('INFO')),
+#        #cerr = cms.untracked.PSet(threshold  = cms.untracked.string('WARNING')),
+#)
+
 
 # Input source
 process.source = cms.Source("PoolSource",
@@ -45,7 +74,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('step3'),
+    annotation = cms.untracked.string('step3 nevts:5000'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -151,7 +180,51 @@ process.RandomNumberGeneratorService.restoreStateLabel=cms.untracked.string("ran
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-# Path and EndPath definitions
+# override a global tag with the conditions from external module
+from CalibCalorimetry.EcalTrivialCondModules.EcalTrivialCondRetriever_cfi import *
+process.myCond = EcalTrivialConditionRetriever.clone()
+# prefer these conditions over the globalTag's ones
+process.es_prefer = cms.ESPrefer("EcalTrivialConditionRetriever","myCond")
+
+### set all conditions producers to false except those I am interested in
+process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(True)
+process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(1.0)
+process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(1.0)
+process.myCond.PFRecHitFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFRecHitFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
+
+process.myCond.producedEcalPFSeedingThresholds = cms.untracked.bool(True)
+process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seedMult/2.0) # PFRHs files are at 2sigma of the noise for |eta|<2.5
+process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #                3sigma of the noise for |eta|>2.5
+process.myCond.PFSeedingFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFSeedingFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
+
+process.myCond.producedEcalPedestals = cms.untracked.bool(False)
+process.myCond.producedEcalWeights = cms.untracked.bool(False)
+process.myCond.producedEcalGainRatios = cms.untracked.bool(False)
+process.myCond.producedEcalADCToGeVConstant = cms.untracked.bool(False)
+process.myCond.producedEcalMappingElectronics = cms.untracked.bool(False)
+process.myCond.producedEcalTimeOffsetConstant = cms.untracked.bool(False)
+process.myCond.producedEcalLinearCorrections = cms.untracked.bool(False)
+process.myCond.producedEcalIntercalibConstants = cms.untracked.bool(False)
+process.myCond.producedEcalIntercalibConstantsMC = cms.untracked.bool(False)
+process.myCond.producedEcalIntercalibErrors = cms.untracked.bool(False)
+process.myCond.producedEcalTimeCalibConstants = cms.untracked.bool(False)
+process.myCond.producedEcalTimeCalibErrors = cms.untracked.bool(False)
+process.myCond.producedEcalSimPulseShape = cms.untracked.bool(False)
+process.myCond.producedEcalChannelStatus = cms.untracked.bool(False)
+process.myCond.producedEcalDQMChannelStatus = cms.untracked.bool(False)
+process.myCond.producedEcalDCSTowerStatus = cms.untracked.bool(False)
+process.myCond.producedEcalDAQTowerStatus = cms.untracked.bool(False)
+process.myCond.producedEcalDQMTowerStatus = cms.untracked.bool(False)
+process.myCond.producedEcalTrgChannelStatus = cms.untracked.bool(False)
+process.myCond.producedEcalAlignmentEB = cms.untracked.bool(False)
+process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
+process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
+process.myCond.producedEcalSampleMask = cms.untracked.bool(False)
+########## end override
+
+# Path and EndPath definitions 
 process.raw2digi_step = cms.Path(process.RawToDigi)
 process.L1Reco_step = cms.Path(process.L1Reco)
 process.reconstruction_step = cms.Path(process.reconstruction)
@@ -198,7 +271,6 @@ process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 process.MINIAODSIMoutput_step = cms.EndPath(process.MINIAODSIMoutput)
 # process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 
-# Schedule definition
 # process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,process.eventinterpretaion_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.prevalidation_step,process.prevalidation_step1,process.validation_step,process.validation_step1,\
 #     process.dqmoffline_step,process.dqmoffline_1_step,process.dqmoffline_2_step,process.dqmofflineOnPAT_step,process.dqmofflineOnPAT_1_step,process.dqmofflineOnPAT_2_step,\
 #         process.RECOSIMoutput_step,process.MINIAODSIMoutput_step,\
@@ -223,7 +295,6 @@ process.MINIAODSIMoutput_step = cms.EndPath(process.MINIAODSIMoutput)
 # Remove because of errors in condor
 #process.pfTausBaseSequence.remove(pfTausProducerSansRefs)
 
-
 process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.recosim_step,
                             process.eventinterpretaion_step,  
                             process.Flag_EcalDeadCellTriggerPrimitiveFilter,
@@ -236,6 +307,13 @@ process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,proces
 process.schedule.associate(process.patTask)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
+
+
+#Setup FWK for multithreaded 
+#process.options.numberOfThreads=cms.untracked.uint32(8)
+#process.options.numberOfStreams=cms.untracked.uint32(0)
+process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+
 
 # customisation of the process.
 
