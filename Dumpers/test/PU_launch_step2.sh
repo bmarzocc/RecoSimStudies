@@ -6,21 +6,21 @@
 #How to launch this script:
 #if you want to run it locally: 
 #
-# source launch_step2.sh
+# source PU_launch_step2.sh
 #
 #if you want it to run it with slurm, two possibilities:
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step2_EB.out -e logs/step2_EB.err --job-name=step2_EB --ntasks=8 --time=1-23:59 launch_step2.sh
-# sbatch -p wn -o logs/step2_EE.out -e logs/step2_EE.err --job-name=step2_EE --ntasks=8 --time=1-23:59 launch_step2.sh
+# sbatch -p wn -o logs/step2_EB.out -e logs/step2_EB.err --job-name=step2_EB --ntasks=8 --time=1-23:59 PU_launch_step2.sh
+# sbatch -p wn -o logs/step2_EE.out -e logs/step2_EE.err --job-name=step2_EE --ntasks=8 --time=1-23:59 PU_launch_step2.sh
 #
 # for large jobs, you may want to adjust the time limit (which is one day by default) --time=2-23:59 (3days)
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step2_EB -o logs/step2_EB.out -e logs/step2_EB.err launch_step2.sh 
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step2_EE -o logs/step2_EE.out -e logs/step2_EE.err launch_step2.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step2_EB -o logs/step2_EB.out -e logs/step2_EB.err PU_launch_step2.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step2_EE -o logs/step2_EE.out -e logs/step2_EE.err PU_launch_step2.sh 
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -41,7 +41,7 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_test2"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_1K_PU"
 
 ###############################################################
 
@@ -62,7 +62,7 @@ fi
 
 
 # Job configuration
-JOBOPFILENAME="step2_DIGI_L1_DIGI2RAW_HLT.py"
+JOBOPFILENAME="PU_step2_DIGI_L1_DIGI2RAW_HLT.py"
 FILENAME="step2.root"
 INFILENAME="step1.root"
 

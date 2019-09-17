@@ -3,22 +3,22 @@
 #NOTE: files with same path and name in the Storage Element are now overwritten by default
 
 ###############################################################
-#How to launch this script:
+#How to PU_launch this script:
 #if you want to run it locally: 
 #
-# source launch_step1.sh
+# source PU_launch_step1.sh
 #
 #if you want it to run it with slurm, two possibilities:
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step1_EB.out -e logs/step1_EB.err --job-name=step1_EB --ntasks=8 launch_step1.sh
-# sbatch -p wn -o logs/step1_EE.out -e logs/step1_EE.err --job-name=step1_EE --ntasks=8 launch_step1.sh
+# sbatch -p wn -o logs/step1_EB.out -e logs/step1_EB.err --job-name=step1_EB --ntasks=8 PU_launch_step1.sh
+# sbatch -p wn -o logs/step1_EE.out -e logs/step1_EE.err --job-name=step1_EE --ntasks=8 PU_launch_step1.sh
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EB -o logs/step1_EB.out -e logs/step1_EB.err launch_step1.sh 
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EE -o logs/step1_EE.out -e logs/step1_EE.err launch_step1.sh
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EB -o logs/step1_EB.out -e logs/step1_EB.err PU_launch_step1.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EE -o logs/step1_EE.out -e logs/step1_EE.err PU_launch_step1.sh
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -28,7 +28,7 @@
 ###############################################################
 #                  User's decision board                      #
 
-#Do you want to launch the production for EE or EB
+#Do you want to PU_launch the production for EE or EB
 #(choose one at a time)
 doEB=true
 doEEP=false
@@ -40,13 +40,13 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_test2"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_1K_PU"
 
 
 #Choose the number of events that you want to generate
 #Please enter an EVEN number
 #NEVENTS=150000
-NEVENTS=50
+NEVENTS=1000
 
 #Choose the energy range of the photon gun
 ETMIN=0.
@@ -82,7 +82,7 @@ if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
 fi
 
 #File configuration
-JOBOPFILENAME="step1_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+JOBOPFILENAME="PU_step1_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
 
 if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
