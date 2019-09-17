@@ -79,7 +79,7 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     outputCommands = process.RAWSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
-process.FEVTDEBUGHLTEventContent.outputCommands.extend(['keep *_mix_MergedCaloTruth_*'])
+process.RAWSIMEventContent.outputCommands.extend(['keep *_mix_MergedCaloTruth_*'])
 #process.FEVTDEBUGHLTEventContent.outputCommands.extend(['keep *PCaloHit*_g4SimHits_EcalHitsE*_*'])
 
 # Additional output definition

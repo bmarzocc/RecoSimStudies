@@ -100,7 +100,6 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 
-
 # Additional output definition
 
 # Other statements
@@ -125,6 +124,8 @@ process.generator = cms.EDProducer("CloseByParticleFlatEtGunProducer",
         NParticles = cms.int32(options.np),
         MaxPhi = cms.double(3.14159265359),
         MinPhi = cms.double(-3.14159265359),
+        MinEta = cms.double(-3.), # not used
+        MaxEta = cms.double(3.) # not used
         ),
     Verbosity = cms.untracked.int32(0),
     psethack = cms.string('single particle in front of ecal'),
@@ -149,6 +150,10 @@ associatePatAlgosToolsTask(process)
 for path in process.paths:
 	getattr(process,path).insert(0, process.generator)
 
+#Setup FWK for multithreaded
+process.options.numberOfThreads=cms.untracked.uint32(8)
+process.options.numberOfStreams=cms.untracked.uint32(0)
+process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
 
 # Customisation from command line
 

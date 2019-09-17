@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#NOTE: files in the Storage Element cannot be overwritten
+#NOTE: files with same path and name in the Storage Element are now overwritten by default
 
 ###############################################################
 #How to launch this script:
@@ -39,7 +39,7 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_oldtest"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_test0"
 
 
 ###############################################################
@@ -59,7 +59,7 @@ fi
 
 
 # Job configuration
-JOBOPFILENAME="step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py"
+JOBOPFILENAME="step3.py"
 FILENAME="step3.root"
 INFILENAME="step2.root"
 
@@ -73,9 +73,9 @@ fi
 
 
 STARTDIR=`pwd`
-TOPWORKDIR="/scratch/"$USER
+TOPWORKDIR="/scratch/"$USER/
 JOBDIR="gen_"$SERESULTDIR
-WORKDIR=$TOPWORKDIR/$JOBDIR
+WORKDIR=$TOPWORKDIR/test/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
 
 
@@ -107,15 +107,16 @@ fi
 
 
 echo ""
-echo "Going to copy cms driver"
+echo "Going to copy cms driver and files with noise information per crystal"
 cp $JOBOPFILENAME $WORKDIR/$JOBOPFILENAME
+cp -r ../data/ $WORKDIR/../data
 
 #in case we decide to clean the scratch area
 echo ""
 echo "Going to copy input file"
 echo "May give an error if the file still exists in the scratch , but can be safely ignored"
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   xrdcp  $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME  
+   xrdcp $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME  
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
    cp $SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
@@ -141,7 +142,7 @@ echo ""
 echo "Going to copy the output to the output directory"
 
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
+   xrdcp -f $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
    cp $FILENAME $SERESULTDIR/$FILENAME
