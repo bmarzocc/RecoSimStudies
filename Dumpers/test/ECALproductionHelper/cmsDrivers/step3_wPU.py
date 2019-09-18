@@ -197,8 +197,8 @@ process.myCond.PFRecHitFileEE = cms.untracked.string("./data/noise/PFRecHitThres
 process.myCond.producedEcalPFSeedingThresholds = cms.untracked.bool(True)
 process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seedMult/2.0) # PFRHs files are at 2sigma of the noise for |eta|<2.5
 process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #                3sigma of the noise for |eta|>2.5
-process.myCond.PFSeedingFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
-process.myCond.PFSeedingFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
+process.myCond.PFSeedingFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFSeedingFileEE = cms.untracked.string("./data/noise/PFRecHitThresholds_EE.txt")
 
 process.myCond.producedEcalPedestals = cms.untracked.bool(False)
 process.myCond.producedEcalWeights = cms.untracked.bool(False)

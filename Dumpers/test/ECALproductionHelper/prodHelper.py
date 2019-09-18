@@ -8,26 +8,29 @@ import subprocess
 def getOptions():
   from argparse import ArgumentParser
 
-  parser = ArgumentParser(description='Production  options', add_help=True)
+  parser = ArgumentParser(description='Production helper for Clustering studies', add_help=True)
 
-  parser.add_argument('-v','--ver', type=str, dest='ver', help='version of production', default='V000')
+  parser.add_argument('-v','--ver', type=str, dest='ver', help='version of production, e.g. V00_v00', default='V00_v00')
   #parser.add_argument('-r','--rel', type=str, dest='rel', help='cmssw release', default='10_6_1_patch1')
   #parser.add_argument(     '--gt',      type=str, dest='gt', help='global tag', default='')
 
   parser.add_argument('-n','--nevts', type=int, dest='nevts', help='number of events to be generated', default=10)
-  parser.add_argument('-c','--ch', type=str, dest='ch', help='e.g. photon', default='photon', choices=['photon'])
+  parser.add_argument('-c','--ch', type=str, dest='ch', help='channel, e.g. photon', default='photon', choices=['photon'])
   parser.add_argument('--etmax', type=int, dest='etmax', help='max Et (GeV)', default=100)
   parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
-  parser.add_argument('-g','--geo',type=str, dest='geo', help='wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
-  parser.add_argument('-d','--det', type=str, dest='det', help='EB or EE', default='EB', choices=['EB', 'EE', 'all'])
+  parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
+  parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
 
-  parser.add_argument('--pu', type=str, dest='pu', help='which PU configuration?', default='noPU', choices=['noPU', 'wPU'])
+  parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
   parser.add_argument('--pfrhmult', type=int, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1)
-  parser.add_argument('--seedmult', type=int, dest='seedmult', help='how manny sigma of the noise to use for seeding thresholds', default=3)
+  parser.add_argument('--seedmult', type=int, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3)
 
   parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
-  parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, if false save to SE', action='store_true', default=False)
+  parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
+  parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
+  parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
+
 
   return parser.parse_args()
 
@@ -37,9 +40,11 @@ if __name__ == "__main__":
   opt = getOptions()
 
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
-  prodLabel='{v}_n{n}_{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}'.format(v=opt.ver,n=opt.nevts,c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult)
+  prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
 
+  ##############################
   # create production directory and logs directory within
+  #############################
   prodDir = './{}'.format(prodLabel)
   command = 'mkdir -p {}'.format(prodDir)
   if not os.path.isdir(prodDir):
@@ -48,8 +53,10 @@ if __name__ == "__main__":
 
   command = 'mkdir {}/logs'.format(prodDir)
   os.system(command)
-  
+
+  ############################
   # copy the relevant cmsDriver to prod directory
+  ############################
   ## find the names first
   step1_driverName = 'step1_{c}_{g}.py'.format(c=opt.ch,g=opt.geo)
   step2_driverName = 'step2_{pu}.py'.format(pu=opt.pu)
@@ -72,7 +79,9 @@ if __name__ == "__main__":
     command = 'cp cmsDrivers/{idr} {d}/{td}'.format(idr=idriver,d=prodDir,td=target_drivers[i])
     os.system(command) 
 
+############################
   # write the cmsRun commands for all steps
+  ############################
   ## step1
   if opt.geo == 'closeEcal':
     if opt.det == 'EB':
@@ -99,14 +108,16 @@ if __name__ == "__main__":
   if opt.dostep3only:
     cmsRuns = [step3_cmsRun]
 
-  # write the launching scripts 
+  ############################
+  # write the launching scripts
+  ############################
   for i,idriver in enumerate(drivers):
   
     ## define a template script  
 
     ### configurations for the template script
     outputDir = '"/pnfs/psi.ch/cms/trivcat/store/user/"$USER"/EcalProd/"' 
-    if opt.dosavehome: outputDir = '`pwd`' 
+    if opt.dosavehome: outputDir = '`pwd`/../' 
 
     mkdiroutput_command = 'xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR'
     if opt.dosavehome: mkdiroutput_command = 'mkdir -p $SERESULTDIR'
@@ -124,14 +135,17 @@ if __name__ == "__main__":
       cpaux_command = 'cp -r $CMSSW_BASE/src/RecoSimStudies/Dumpers/data $WORKDIR'
 
     template = [
+    '#!/bin/bash',
+    '',
+
     #### variables
     'DIRNAME="{ind}"',
     'STARTDIR=`pwd`',
     'TOPWORKDIR="/scratch/"$USER/',
-    'JOBDIR="gen_"$SERESULTDIR',
+    'JOBDIR="gen_"$SLURM_JOB_ID',
     'WORKDIR=$TOPWORKDIR/$JOBDIR',
     'SEPREFIX="root://t3dcachedb.psi.ch:1094/"',
-    'SERESULTDIR={od}$DIRNAME',
+    'SERESULTDIR={od}/$DIRNAME',
     'JOBOPFILENAME="{jo}"',
     '',
 
@@ -163,7 +177,7 @@ if __name__ == "__main__":
     #### copy driver and other aux files 
     'echo "Going to copy cms driver"',
     'cp $JOBOPFILENAME $WORKDIR/$JOBOPFILENAME',
-    '{cpaux}'
+    '{cpaux}',
     'echo ""',
     '',
 
@@ -211,5 +225,42 @@ if __name__ == "__main__":
       f.write(template)
 
 
+  #############################
+  # finally write the submitter
+  #############################
+  time = ''
+  if opt.domedium:
+    time = '--time=1-23:59'
+  elif opt.dolong:
+    time = '--time=2-23:59'
+
+  sbatch_command_step1 = 'jid1=$(sbatch -p wn -o logs/step1.out -e logs/step1.err --job-name=step1_{pl} {t} --ntasks=8 launch_step1.sh)'.format(pl=prodLabel,t=time)
+
+  sbatch_command_step2 = 'jid2=$(sbatch -p wn -o logs/step2.out -e logs/step2.err --job-name=step2_{pl} {t} --ntasks=8 --dependency=afterany:$jid1 launch_step2.sh)'.format(pl=prodLabel,t=time)
+
+  sbatch_command_step3 = 'jid3=$(sbatch -p wn -o logs/step3.out -e logs/step3.err --job-name=step2_{pl} {t} --ntasks=8 --dependency=afterany:$jid2 launch_step3.sh)'.format(pl=prodLabel,t=time)
+
+  submitter_template = [
+    sbatch_command_step1,
+    'echo "$jid1"',
+    'jid1=${jid1#"Submitted batch job "}',
+    sbatch_command_step2,
+    'echo "$jid2"',
+    'jid2=${jid2#"Submitted batch job "}',
+    sbatch_command_step3,
+    'echo "$jid3"',
+  ]
+
+  if opt.dostep3only: 
+    submitter_template = [
+     sbatch_command_step3,
+     'echo "$jid3"',
+  ]  
+
+  submitter_template = '\n\n'.join(submitter_template)
+
+  submitterFile = '{}/submit.sh'.format(prodDir)
+  with open(submitterFile, 'w') as f:
+    f.write(submitter_template)
 
 
