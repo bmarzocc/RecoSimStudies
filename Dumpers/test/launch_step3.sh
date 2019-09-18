@@ -41,7 +41,6 @@ saveSE=false
 #DIRNAME="singlePhoton_withoutTracker_pT0to100GeV_2k"
 DIRNAME="test_random"
 
-
 ###############################################################
 
 if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
@@ -60,16 +59,16 @@ FILENAME="step3.root"
 INFILENAME="step2.root"
 
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/anlyon/EcalProd/"$DIRNAME
+   SERESULTDIR="/pnfs/psi.ch/cms/trivcat/store/user/"$USER"/EcalProd/"$DIRNAME
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
-   SERESULTDIR="/t3home/anlyon/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
+   SERESULTDIR="/t3home/"$USER"/CMSSW_10_6_0/src/RecoSimStudies/Dumpers/test/outputfiles/"$DIRNAME
 fi
 
 
 
 STARTDIR=`pwd`
-TOPWORKDIR="/scratch/anlyon/"
+TOPWORKDIR="/scratch/"$USER
 JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
