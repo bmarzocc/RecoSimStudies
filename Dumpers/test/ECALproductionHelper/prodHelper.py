@@ -1,4 +1,4 @@
-
+# https://docs.google.com/spreadsheets/d/1rJ4FppHxdD6TQpCHnnnX0QD0Y0d4aTEN6ibgTVn7Vyg/edit#gid=0
 
 import sys
 import os
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     command = 'cp cmsDrivers/{idr} {d}/{td}'.format(idr=idriver,d=prodDir,td=target_drivers[i])
     os.system(command) 
 
-############################
+  ############################
   # write the cmsRun commands for all steps
   ############################
   ## step1
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     if opt.det == 'EB':
       rmin = 123.8
       rmax = 123.8
-      zmin = 304.5
+      zmin = -304.5
       zmax = 304.5
       npart = 10
     else:
