@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
   sbatch_command_step2 = 'jid2=$(sbatch -p wn -o logs/step2.out -e logs/step2.err --job-name=step2_{pl} {t} --ntasks=8 --dependency=afterany:$jid1 launch_step2.sh)'.format(pl=prodLabel,t=time)
 
-  sbatch_command_step3 = 'jid3=$(sbatch -p wn -o logs/step3.out -e logs/step3.err --job-name=step2_{pl} {t} --ntasks=8 --dependency=afterany:$jid2 launch_step3.sh)'.format(pl=prodLabel,t=time)
+  sbatch_command_step3 = 'jid3=$(sbatch -p wn -o logs/step3.out -e logs/step3.err --job-name=step3_{pl} {t} --ntasks=8 --dependency=afterany:$jid2 launch_step3.sh)'.format(pl=prodLabel,t=time)
 
   submitter_template = [
     sbatch_command_step1,
