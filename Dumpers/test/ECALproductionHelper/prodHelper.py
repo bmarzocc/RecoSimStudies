@@ -30,6 +30,7 @@ def getOptions():
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
+  parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
 
 
   return parser.parse_args()
@@ -41,6 +42,7 @@ if __name__ == "__main__":
 
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
   prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
+  nthr = 8 if opt.domultithread else 1
 
   ##############################
   # create production directory and logs directory within
@@ -97,13 +99,13 @@ if __name__ == "__main__":
       zmax = 317.0
       npart = 5
   
-    step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np}'.format(
-                    jo=target_drivers[0], n=opt.nevts, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart )
+    step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt}'.format(
+                    jo=target_drivers[0], n=opt.nevts, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
   else:
     raise RuntimeError('this option is not currently supported')
   ## other steps  
-  step2_cmsRun = 'cmsRun {jo}'.format(jo=target_drivers[1])
-  step3_cmsRun = 'cmsRun {jo} seedMult={sm}'.format(jo=target_drivers[2], sm=opt.seedmult)
+  step2_cmsRun = 'cmsRun {jo} nThr={nt}'.format(jo=target_drivers[1], nt=nthr)
+  step3_cmsRun = 'cmsRun {jo} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], sm=opt.seedmult, nt=nthr)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
   if opt.dostep3only:
     cmsRuns = [step3_cmsRun]
@@ -234,11 +236,11 @@ if __name__ == "__main__":
   elif opt.dolong:
     time = '--time=2-23:59'
 
-  sbatch_command_step1 = 'jid1=$(sbatch -p wn -o logs/step1.out -e logs/step1.err --job-name=step1_{pl} {t} --ntasks=8 launch_step1.sh)'.format(pl=prodLabel,t=time)
+  sbatch_command_step1 = 'jid1=$(sbatch -p wn -o logs/step1.out -e logs/step1.err --job-name=step1_{pl} {t} --ntasks={nt} launch_step1.sh)'.format(pl=prodLabel,t=time,nt=nthr)
 
-  sbatch_command_step2 = 'jid2=$(sbatch -p wn -o logs/step2.out -e logs/step2.err --job-name=step2_{pl} {t} --ntasks=8 --dependency=afterany:$jid1 launch_step2.sh)'.format(pl=prodLabel,t=time)
+  sbatch_command_step2 = 'jid2=$(sbatch -p wn -o logs/step2.out -e logs/step2.err --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1 launch_step2.sh)'.format(pl=prodLabel,t=time,nt=nthr)
 
-  sbatch_command_step3 = 'jid3=$(sbatch -p wn -o logs/step3.out -e logs/step3.err --job-name=step3_{pl} {t} --ntasks=8 --dependency=afterany:$jid2 launch_step3.sh)'.format(pl=prodLabel,t=time)
+  sbatch_command_step3 = 'jid3=$(sbatch -p wn -o logs/step3.out -e logs/step3.err --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2 launch_step3.sh)'.format(pl=prodLabel,t=time,nt=nthr)
 
   submitter_template = [
     sbatch_command_step1,

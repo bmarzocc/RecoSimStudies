@@ -13,8 +13,12 @@ options.register ("seedMult",
                   3.0, # default value
                   VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.varType.float,          # string, int, or float
-                  "multiplier of noise used for seeding threshold"
-                 )
+                  "multiplier of noise used for seeding threshold")
+options.register('nThr',
+                 1,
+                 VarParsing.multiplicity.singleton,
+                 VarParsing.varType.int,
+                "Number of threads")
 
 options.parseArguments()
 
@@ -309,7 +313,7 @@ from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
 #Setup FWK for multithreaded 
-process.options.numberOfThreads=cms.untracked.uint32(8)
+process.options.numberOfThreads=cms.untracked.uint32(options.nThr)
 process.options.numberOfStreams=cms.untracked.uint32(0)
 process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
 
