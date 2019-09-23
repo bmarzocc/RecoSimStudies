@@ -120,6 +120,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    pfClusterToken_          = consumes<std::vector<reco::PFCluster> >(iConfig.getParameter<edm::InputTag>("pfClusterCollection")); 
    ebSuperClusterToken_     = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebSuperClusterCollection"));
    eeSuperClusterToken_     = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeSuperClusterCollection"));
+   puInfoToken_             = consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("puInfoTag"));
    rhoToken_                = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoTag"));
 
    doCompression_           = iConfig.getParameter<bool>("doCompression");
@@ -147,6 +148,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    tree->Branch("eventId", &eventId, "eventId/L");
    tree->Branch("lumiId", &lumiId, "lumiId/I");
    tree->Branch("runId", &runId, "runId/I");
+   tree->Branch("pu_nTrueInt", &pu_nTrueInt, "pu_nTrueInt/F");
+   tree->Branch("pu_nPU", &pu_nPU, "pu_nPU/I");
    tree->Branch("rho", &rho, "rho/D");
    tree->Branch("genParticle_id","std::vector<int>",&genParticle_id);
    tree->Branch("genParticle_energy","std::vector<float>",&genParticle_energy);
@@ -366,6 +369,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    } 
 
+   edm::Handle<std::vector<PileupSummaryInfo> > puInfos;
+   ev.getByToken(puInfoToken_, puInfos);
+   if (! puInfos.isValid()) {
+      std::cerr << "Analyze --> puInfos not found" << std::endl; 
+      return;
+   }
+
    edm::Handle<double> rhoHandle;
    ev.getByToken(rhoToken_, rhoHandle);
    if (! rhoHandle.isValid()) {
@@ -377,6 +387,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    lumiId = ev.luminosityBlock();
    eventId = ev.id().event();
    rho = *(rhoHandle.product());
+
+   for(unsigned int ibx=0; ibx<(puInfos.product())->size(); ibx++) {
+     if((puInfos.product())->at(ibx).getBunchCrossing()==0) {
+       pu_nTrueInt = (puInfos.product())->at(ibx).getTrueNumInteractions();
+       pu_nPU = (puInfos.product())->at(ibx).getPU_NumInteractions();
+     }
+   }
 
    caloParticleXtals_.clear();
    caloParticleXtals_ = caloParticleXtals(caloParticles,&genID_);

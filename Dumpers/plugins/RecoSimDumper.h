@@ -46,6 +46,7 @@
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecHit.h"
@@ -132,6 +133,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       edm::EDGetTokenT<std::vector<reco::PFCluster> > pfClusterToken_; 
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebSuperClusterToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeSuperClusterToken_; 
+      edm::EDGetTokenT<std::vector<PileupSummaryInfo> > puInfoToken_; 
       edm::EDGetTokenT<double> rhoToken_; 
 
       edm::Service<TFileService> iFile;
@@ -161,6 +163,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       int lumiId;
       int runId; 
       double rho;
+      float pu_nTrueInt;
+      int pu_nPU;
       std::vector<int> genParticle_id;
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;
