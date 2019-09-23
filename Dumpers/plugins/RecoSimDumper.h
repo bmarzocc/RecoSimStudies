@@ -113,7 +113,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       private:
 	 virtual void beginJob() ;
 	 virtual void analyze(const edm::Event&, const edm::EventSetup&);
-         virtual void endJob() ;
+    virtual void endJob() ;
         
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
@@ -235,6 +235,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > superClusterHit_noCaloPart_iphi;
       std::vector<std::vector<int> > superClusterHit_noCaloPart_iz;  
       std::vector<float> superCluster_energy;
+      std::vector<float> superCluster_e3x3;
+      std::vector<float> superCluster_R9;
       std::vector<float> superCluster_eta;
       std::vector<float> superCluster_phi;   
       std::vector<int> superCluster_ieta;
