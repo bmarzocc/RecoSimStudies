@@ -132,6 +132,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       edm::EDGetTokenT<std::vector<reco::PFCluster> > pfClusterToken_; 
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebSuperClusterToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeSuperClusterToken_; 
+      edm::EDGetTokenT<double> rhoToken_; 
 
       edm::Service<TFileService> iFile;
       const CaloSubdetectorGeometry* _ebGeom;
@@ -159,6 +160,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       long int eventId;
       int lumiId;
       int runId; 
+      double rho;
       std::vector<int> genParticle_id;
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;

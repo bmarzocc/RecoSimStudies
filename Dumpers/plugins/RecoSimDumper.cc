@@ -120,7 +120,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    pfClusterToken_          = consumes<std::vector<reco::PFCluster> >(iConfig.getParameter<edm::InputTag>("pfClusterCollection")); 
    ebSuperClusterToken_     = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebSuperClusterCollection"));
    eeSuperClusterToken_     = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeSuperClusterCollection"));
-   
+   rhoToken_                = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoTag"));
+
    doCompression_           = iConfig.getParameter<bool>("doCompression");
    nBits_                   = iConfig.getParameter<int>("nBits");
    saveCalohits_            = iConfig.getParameter<bool>("saveCalohits");
@@ -146,6 +147,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    tree->Branch("eventId", &eventId, "eventId/L");
    tree->Branch("lumiId", &lumiId, "lumiId/I");
    tree->Branch("runId", &runId, "runId/I");
+   tree->Branch("rho", &rho, "rho/D");
    tree->Branch("genParticle_id","std::vector<int>",&genParticle_id);
    tree->Branch("genParticle_energy","std::vector<float>",&genParticle_energy);
    tree->Branch("genParticle_pt","std::vector<float>",&genParticle_pt);
@@ -364,9 +366,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    } 
 
+   edm::Handle<double> rhoHandle;
+   ev.getByToken(rhoToken_, rhoHandle);
+   if (! rhoHandle.isValid()) {
+      std::cerr << "Analyze --> rho handle not found" << std::endl; 
+      return;
+   }
+
    runId = ev.id().run();
    lumiId = ev.luminosityBlock();
    eventId = ev.id().event();
+   rho = *(rhoHandle.product());
 
    caloParticleXtals_.clear();
    caloParticleXtals_ = caloParticleXtals(caloParticles,&genID_);
