@@ -546,7 +546,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     
    GlobalPoint cell;
 
-   std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
+   //std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
    for(const auto& iCalo : *(caloParticles.product()))
    {
        bool isGoodParticle = false; 
@@ -852,7 +852,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    //Save PFClusters
    if(savePFCluster_){
       int iPFCl=0;
-      std::cout << "PFClusters size     : " << (pfClusters.product())->size() << std::endl;
+      //std::cout << "PFClusters size     : " << (pfClusters.product())->size() << std::endl;
       for(const auto& iPFCluster : *(pfClusters.product())){      
           pfCluster_energy.push_back(reduceFloat(iPFCluster.energy(),nBits_));
           pfCluster_eta.push_back(reduceFloat(iPFCluster.eta(),nBits_));
@@ -920,7 +920,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    //Save SuperClusters 
    if(saveSuperCluster_){
       int iSC=0;
-      std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
+      //std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEB.product())){    
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
@@ -962,7 +962,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           iSC++;  
       } 
       iSC=0;
-      std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;
+      //std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEE.product())){    
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
