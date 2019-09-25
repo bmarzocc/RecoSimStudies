@@ -12,6 +12,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     pfClusterCollection               = cms.InputTag("particleFlowClusterECAL","","RECO"),
     ebSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALBarrel","RECO"), 
     eeSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
+    puInfoTag                         = cms.InputTag("slimmedAddPileupInfo","","RECO"), 
+    rhoTag                            = cms.InputTag("fixedGridRhoFastjetAll","","RECO"), 
     
     doCompression                     = cms.bool(True),  #do the compression of floats
     nBits                             = cms.int32(12),   #nbits for float compression (<=23)
@@ -21,7 +23,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveRechits                       = cms.bool(False),  #save recHits information
     savePFRechits                     = cms.bool(False),  #save pfRecHits information
     savePFCluster                     = cms.bool(True),  #save pfClusters information
-    saveSuperCluster                  = cms.bool(False),  #save superClusters information
+    saveSuperCluster                  = cms.bool(True),  #save superClusters information
     useEnergyRegression               = cms.bool(False), #save corrected energy
     genID                             = cms.vint32(22,11)  #save only caloParticles with this pdgId cms.vint32(22, 11)
     #genID                            = cms.vdouble(0),  #save only caloParticles with this pdgId 
