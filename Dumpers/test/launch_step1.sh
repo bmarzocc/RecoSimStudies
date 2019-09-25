@@ -31,13 +31,12 @@
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
 doEB=true
-doEEP=false
-doEEM=false
+doEE=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
-saveWork=false
-saveSE=true
+saveWork=true
+saveSE=false
 
 #Choose name of the directory
 DIRNAME="singlePhoton_closeECAL_0to100GeV_test0"
@@ -56,45 +55,35 @@ ETMAX=100.
 
 
 #Geometry configuration
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEM" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    RMIN=123.8
    RMAX=123.8
    ZMIN=-304.5
    ZMAX=304.5
 fi
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
    RMIN=31.6
    RMAX=171.1
    ZMIN=317.0
    ZMAX=317.0
 fi
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   RMIN=31.6
-   RMAX=171.1
-   ZMIN=-317.0
-   ZMAX=-317.0
-fi
 
 
 #in case of EE, half of the total number of events is produces in EEM, the other half in EEP
-if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
-   NEVENTS=$((NEVENTS/1))
-   echo $NEVENTS
-fi
+#if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+#   NEVENTS=$((NEVENTS/1))
+#   echo $NEVENTS
+#fi
 
 #File configuration
 JOBOPFILENAME="step1.py"
 
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEP" 
-fi
-
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEM" 
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE" 
 fi
 
 

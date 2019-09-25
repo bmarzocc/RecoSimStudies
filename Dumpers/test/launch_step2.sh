@@ -31,14 +31,13 @@
 
 #Do you want to launch the production for EE or EB
 #(choose one at a time)
-doEB=true
-doEEP=false
-doEEM=false
+doEB=false
+doEE=true
 
 #Do you want to store the output file in your work area or in the 
 #storage element? (choose one at a time)
-saveWork=false
-saveSE=true
+saveWork=true
+saveSE=false
 
 #Choose name of the directory
 DIRNAME="singlePhoton_closeECAL_0to100GeV_test0"
@@ -47,18 +46,13 @@ DIRNAME="singlePhoton_closeECAL_0to100GeV_test0"
 
 
 
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEP" 
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE" 
 fi
-
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEM" 
-fi
-
 
 
 # Job configuration
