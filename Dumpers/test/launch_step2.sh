@@ -1,12 +1,12 @@
 #!/bin/bash
 
-#NOTE: files in the Storage Element cannot be overwritten
+#NOTE: files with same path and name in the Storage Element are now overwritten by default
 
 ###############################################################
 #How to launch this script:
 #if you want to run it locally: 
 #
-# source launch_step2.sh
+# source PU_launch_step2.sh
 #
 #if you want it to run it with slurm, two possibilities:
 #
@@ -40,9 +40,7 @@ saveWork=true
 saveSE=false
 
 #Choose name of the directory
-#DIRNAME="singlePhoton_withTracker_pT0to100GeV_10k"
-DIRNAME="test_random"
-
+DIRNAME="singlePhoton_closeECAL_0to100GeV_test0"
 
 ###############################################################
 
@@ -58,7 +56,7 @@ fi
 
 
 # Job configuration
-JOBOPFILENAME="step2_DIGI_L1_DIGI2RAW_HLT.py"
+JOBOPFILENAME="step2.py"
 FILENAME="step2.root"
 INFILENAME="step1.root"
 
@@ -71,7 +69,7 @@ fi
 
 
 STARTDIR=`pwd`
-TOPWORKDIR="/scratch/"$USER
+TOPWORKDIR="/scratch/"$USER/
 JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
@@ -113,7 +111,7 @@ echo ""
 echo "Going to copy input file"
 echo "May give an error if the file still exists in the scratch , but can be safely ignored"
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then 
-   xrdcp  $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME 
+   xrdcp $SEPREFIX/$SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME 
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then 
    cp $SERESULTDIR/$INFILENAME $WORKDIR/$INFILENAME
@@ -139,7 +137,7 @@ ls -al
 echo ""
 echo "Going to copy the output to the output directory"
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then 
-   xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
+   xrdcp -f $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
 fi
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then 
    cp $FILENAME $SERESULTDIR/$FILENAME

@@ -3,22 +3,22 @@
 #NOTE: files with same path and name in the Storage Element are now overwritten by default
 
 ###############################################################
-#How to launch this script:
+#How to PU_launch this script:
 #if you want to run it locally: 
 #
-# source launch_step3.sh
+# source PU_launch_step3.sh
 #
 #if you want it to run it with slurm, two possibilities:
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step3_EB.out -e logs/step3_EB.err --job-name=step3_EB --ntasks=8 launch_step3.sh
-# sbatch -p wn -o logs/step3_EE.out -e logs/step3_EE.err --job-name=step3_EE --ntasks=8 launch_step3.sh
+# sbatch -p wn -o logs/PU_step3_EB.out -e logs/PU_step3_EB.err --job-name=step3_EB --ntasks=8 PU_launch_step3.sh
+# sbatch -p wn -o logs/PU_step3_EE.out -e logs/PU_step3_EE.err --job-name=step3_EE --ntasks=8 PU_launch_step3.sh
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step3_EB -o logs/step3_EB.out -e logs/step3_EB.err launch_step3.sh 
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step3_EE -o logs/step3_EE.out -e logs/step3_EE.err launch_step3.sh
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step3_EB -o logs/PU_step3_EB.out -e logs/PU_step3_EB.err PU_launch_step3.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step3_EE -o logs/PU_step3_EE.out -e logs/PU_step3_EE.err PU_launch_step3.sh
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -27,11 +27,10 @@
 ###############################################################
 #                  User's decision board                      #
 
-#Do you want to launch the production for EE or EB
+#Do you want to PU_launch the production for EE or EB
 #(choose one at a time)
 doEB=true
-doEEP=false
-doEEM=false
+doEE=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
@@ -39,27 +38,22 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_test2"
+DIRNAME="singlePhoton_closeECAL_0to100GeV_15K_PU"
 
 
 ###############################################################
 
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEP" 
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE" 
 fi
-
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEM" 
-fi
-
 
 
 # Job configuration
-JOBOPFILENAME="step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py"
+JOBOPFILENAME="PU_step3.py"
 FILENAME="step3.root"
 INFILENAME="step2.root"
 

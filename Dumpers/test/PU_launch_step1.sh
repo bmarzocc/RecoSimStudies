@@ -3,22 +3,22 @@
 #NOTE: files with same path and name in the Storage Element are now overwritten by default
 
 ###############################################################
-#How to launch this script:
+#How to PU_launch this script:
 #if you want to run it locally: 
 #
-# source launch_step1.sh
+# source PU_launch_step1.sh
 #
 #if you want it to run it with slurm, two possibilities:
 #
 #1. either run it with the wn partition (will use by default the processor t3wn38, 2.6GHz, 16cores) 
 #
-# sbatch -p wn -o logs/step1_EB.out -e logs/step1_EB.err --job-name=step1_EB --ntasks=8 launch_step1.sh
-# sbatch -p wn -o logs/step1_EE.out -e logs/step1_EE.err --job-name=step1_EE --ntasks=8 launch_step1.sh
+# sbatch -p wn -o logs/PU_step1_EB.out -e logs/PU_step1_EB.err --job-name=step1_EB --ntasks=8 PU_launch_step1.sh
+# sbatch -p wn -o logs/PU_step1_EE.out -e logs/PU_step1_EE.err --job-name=step1_EE --ntasks=8 PU_launch_step1.sh
 #
 #2. or use the gpu ressources
 #
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EB -o logs/step1_EB.out -e logs/step1_EB.err launch_step1.sh 
-# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EE -o logs/step1_EE.out -e logs/step1_EE.err launch_step1.sh
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EB -o logs/PU_step1_EB.out -e logs/PU_step1_EB.err PU_launch_step1.sh 
+# sbatch --account=gpu_gres --partition=gpu --gres=gpu:2 --time=2-23:59 --job-name=step1_EE -o logs/PU_step1_EE.out -e logs/PU_step1_EE.err PU_launch_step1.sh
 #
 # Add nodes: --nodes=4 (max for wn) --nodes=2 (max for gpu)
 ###############################################################
@@ -28,11 +28,10 @@
 ###############################################################
 #                  User's decision board                      #
 
-#Do you want to launch the production for EE or EB
+#Do you want to PU_launch the production for EE or EB
 #(choose one at a time)
 doEB=true
-doEEP=false
-doEEM=false
+doEE=false
 
 #Do you want to store the output file in your work are or in the 
 #storage element? (choose one at a time)
@@ -40,13 +39,14 @@ saveWork=false
 saveSE=true
 
 #Choose name of the directory
-DIRNAME="singlePhoton_closeECAL_0to100GeV_150k_test2"
-
+DIRNAME="singlePhoton_closeECAL_0to100GeV_15K_PU"
 
 #Choose the number of events that you want to generate
 #Please enter an EVEN number
-#NEVENTS=150000
-NEVENTS=50
+NEVENTS=15000
+
+#Choose the number of particles that you want to generate in the same event
+NPART=10 # 10 for EB, 5 for EE
 
 #Choose the energy range of the photon gun
 ETMIN=0.
@@ -55,46 +55,31 @@ ETMAX=100.
 
 
 #Geometry configuration
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEM" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    RMIN=123.8
    RMAX=123.8
    ZMIN=-304.5
    ZMAX=304.5
 fi
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
    RMIN=31.6
    RMAX=171.1
    ZMIN=317.0
    ZMAX=317.0
 fi
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   RMIN=31.6
-   RMAX=171.1
-   ZMIN=-317.0
-   ZMAX=-317.0
-fi
 
-
-#in case of EE, half of the total number of events is produces in EEM, the other half in EEP
-if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
-   NEVENTS=$((NEVENTS/1))
-   echo $NEVENTS
-fi
 
 #File configuration
-JOBOPFILENAME="step1_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+JOBOPFILENAME="PU_step1.py"
 
-if [ "$doEB" = true ] && [ "$doEEP" = false ] && [ "$doEEP" = false ] ; then
+if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
 fi
 
-if [ "$doEEP" = true ] && [ "$doEEM" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEP" 
+if [ "$doEE" = true ] && [ "$doEB" = false ] ; then
+   DIRNAME=$DIRNAME"_EE" 
 fi
 
-if [ "$doEEM" = true ] && [ "$doEEP" = false ] && [ "$doEB" = false ] ; then
-   DIRNAME=$DIRNAME"_EEM" 
-fi
 
 
 # Job configuration
@@ -109,7 +94,7 @@ if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then
 fi
 
 STARTDIR=`pwd`
-TOPWORKDIR="/scratch/"$USER
+TOPWORKDIR="/scratch/"$USER/
 JOBDIR="gen_"$SERESULTDIR
 WORKDIR=$TOPWORKDIR/$JOBDIR
 SEPREFIX="root://t3dcachedb.psi.ch:1094/"
@@ -152,7 +137,7 @@ echo ""
 echo "Going to run"
 
 DATE_START=`date +%s`
-   cmsRun $JOBOPFILENAME maxEvents=$NEVENTS etmin=$ETMIN etmax=$ETMAX rmin=$RMIN rmax=$RMAX zmin=$ZMIN zmax=$ZMAX
+   cmsRun $JOBOPFILENAME maxEvents=$NEVENTS etmin=$ETMIN etmax=$ETMAX rmin=$RMIN rmax=$RMAX zmin=$ZMIN zmax=$ZMAX np=$NPART
 DATE_END=`date +%s`
 
 echo ""

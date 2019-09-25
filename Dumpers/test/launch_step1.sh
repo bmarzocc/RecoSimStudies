@@ -39,16 +39,18 @@ saveWork=true
 saveSE=false
 
 #Choose name of the directory
-DIRNAME="test_random"
-
+DIRNAME="singlePhoton_closeECAL_0to100GeV_test0"
 
 #Choose the number of events that you want to generate
 #Please enter an EVEN number
 NEVENTS=10
 
-#Choose the energy/pt range of the photon gun
-EMIN=0.
-EMAX=100.
+#Choose the number of particles that you want to generate in the same event
+NPART=10 # 10 for EB, 5 for EEP, 5 for EEM
+
+#Choose the energy range of the photon gun
+ETMIN=0.
+ETMAX=100.
 ###############################################################
 
 
@@ -74,7 +76,7 @@ fi
 #fi
 
 #File configuration
-JOBOPFILENAME="step1_SingleGammaPt35_pythia8_cfi_GEN_SIM.py"
+JOBOPFILENAME="step1.py"
 
 if [ "$doEB" = true ] && [ "$doEE" = false ] ; then
    DIRNAME=$DIRNAME"_EB"
@@ -140,7 +142,7 @@ echo ""
 echo "Going to run"
 
 DATE_START=`date +%s`
-   cmsRun $JOBOPFILENAME maxEvents=$NEVENTS emin=$EMIN emax=$EMAX rmin=$RMIN rmax=$RMAX zmin=$ZMIN zmax=$ZMAX
+   cmsRun $JOBOPFILENAME maxEvents=$NEVENTS etmin=$ETMIN etmax=$ETMAX rmin=$RMIN rmax=$RMAX zmin=$ZMIN zmax=$ZMAX np=$NPART
 DATE_END=`date +%s`
 
 echo ""
@@ -155,7 +157,7 @@ echo ""
 echo "Going to copy the output to the output directory"
 
 if [ "$saveSE" = true ] && [ "$saveWork" = false ] ; then
-   xrdcp $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
+   xrdcp -f $FILENAME $SEPREFIX/$SERESULTDIR/$FILENAME
 fi
 
 if [ "$saveWork" = true ] && [ "$saveSE" = false ] ; then

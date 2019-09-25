@@ -12,6 +12,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     pfClusterCollection               = cms.InputTag("particleFlowClusterECAL","","RECO"),
     ebSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALBarrel","RECO"), 
     eeSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
+    puInfoTag                         = cms.InputTag("slimmedAddPileupInfo","","RECO"), 
+    rhoTag                            = cms.InputTag("fixedGridRhoFastjetAll","","RECO"), 
     
     doCompression                     = cms.bool(True),  #do the compression of floats
     nBits                             = cms.int32(12),   #nbits for float compression (<=23)
