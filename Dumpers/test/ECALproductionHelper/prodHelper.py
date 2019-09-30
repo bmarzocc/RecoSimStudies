@@ -26,12 +26,14 @@ def getOptions():
   parser.add_argument('--pfrhmult', type=int, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1)
   parser.add_argument('--seedmult', type=int, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3)
 
-  parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
+  #parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
-
+  parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
+  parser.add_argument('--njobs', type=int, dest='njobs', help='number of parallel jobs to submit', default=10)
+  
 
   return parser.parse_args()
 
@@ -43,6 +45,7 @@ if __name__ == "__main__":
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
   prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
   nthr = 8 if opt.domultithread else 1
+  if opt.domultijob and opt.njobs <= 0: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 0')
 
   ##############################
   # create production directory and logs directory within
@@ -67,12 +70,6 @@ if __name__ == "__main__":
   target_drivers = ['step1.py', 'step2.py', 'step3.py']
   infiles = ['', 'step1.root', 'step2.root']
   outfiles = ['step1.root', 'step2.root', 'step3.root']
-
-  if opt.dostep3only:
-    drivers = [step3_driverName]
-    target_drivers = ['step3.py']
-    infiles = ['step2.root']
-    outfiles = ['step3.root']
 
   ## copy them to dir
   for i,idriver in enumerate(drivers):
@@ -107,8 +104,6 @@ if __name__ == "__main__":
   step2_cmsRun = 'cmsRun {jo} nThr={nt}'.format(jo=target_drivers[1], nt=nthr)
   step3_cmsRun = 'cmsRun {jo} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], sm=opt.seedmult, nt=nthr)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
-  if opt.dostep3only:
-    cmsRuns = [step3_cmsRun]
 
   ############################
   # write the launching scripts
@@ -252,12 +247,6 @@ if __name__ == "__main__":
     sbatch_command_step3,
     'echo "$jid3"',
   ]
-
-  if opt.dostep3only: 
-    submitter_template = [
-     sbatch_command_step3,
-     'echo "$jid3"',
-  ]  
 
   submitter_template = '\n\n'.join(submitter_template)
 
