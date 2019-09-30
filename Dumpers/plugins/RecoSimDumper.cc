@@ -248,8 +248,6 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("superClusterHit_noCaloPart_iphi","std::vector<std::vector<int> >",&superClusterHit_noCaloPart_iphi);
       tree->Branch("superClusterHit_noCaloPart_iz","std::vector<std::vector<int> >",&superClusterHit_noCaloPart_iz);
       tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
-      tree->Branch("superCluster_e3x3","std::vector<float> ",&superCluster_e3x3);
-      tree->Branch("superCluster_R9","std::vector<float> ",&superCluster_R9);
       tree->Branch("superCluster_eta","std::vector<float>",&superCluster_eta);
       tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);  
       tree->Branch("superCluster_ieta","std::vector<int>",&superCluster_ieta);
@@ -295,11 +293,6 @@ RecoSimDumper::~RecoSimDumper()
 // ------------ method called to for each event  ------------
 void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 {
-
-   //calo topology
-   edm::ESHandle<CaloTopology> caloTopology;
-   iSetup.get<CaloTopologyRecord>().get(caloTopology);
-   const CaloTopology* topology = caloTopology.product();
 
    //calo geometry
    edm::ESHandle<CaloGeometry> caloGeometry;
@@ -354,8 +347,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    edm::Handle<EcalRecHitCollection> recHitsEB;
    ev.getByToken(ebRechitToken_, recHitsEB);
-   //needed for the computation of R9:
-   const EcalRecHitCollection* ebRecHits = recHitsEB.product();
    if(saveRechits_) {
       if (!recHitsEB.isValid()) {
           std::cerr << "Analyze --> recHitsEB not found" << std::endl; 
@@ -366,8 +357,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    edm::Handle<EcalRecHitCollection> recHitsEE;
    ev.getByToken(eeRechitToken_, recHitsEE);
-   //needed for the computation of R9:
-   const EcalRecHitCollection* eeRecHits = recHitsEE.product();
    if(saveRechits_) {
       if (!recHitsEE.isValid()) {
           std::cerr << "Analyze --> recHitsEE not found" << std::endl; 
@@ -986,8 +975,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           superCluster_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(locCov[2]) ? 0. : sqrt(locCov[2])),nBits_));
           superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(full5x5_locCov[2]) ? 0. : sqrt(full5x5_locCov[2])),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
-          superCluster_e3x3.push_back(reduceFloat(ClusterTools::e3x3(iSuperCluster, ebRecHits, topology),nBits_));
-          superCluster_R9.push_back(reduceFloat(ClusterTools::e3x3(iSuperCluster, ebRecHits, topology)/iSuperCluster.energy(), nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
           math::XYZPoint caloPos = iSuperCluster.seed()->position();
@@ -1041,8 +1028,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           superCluster_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(locCov[2]) ? 0. : sqrt(locCov[2])),nBits_));
           superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(full5x5_locCov[2]) ? 0. : sqrt(full5x5_locCov[2])),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
-          superCluster_e3x3.push_back(reduceFloat(ClusterTools::e3x3(iSuperCluster, eeRecHits, topology),nBits_));
-          superCluster_R9.push_back(reduceFloat(ClusterTools::e3x3(iSuperCluster, eeRecHits, topology)/iSuperCluster.energy(), nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
           math::XYZPoint caloPos = iSuperCluster.seed()->position(); 
