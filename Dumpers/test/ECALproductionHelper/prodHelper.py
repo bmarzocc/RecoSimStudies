@@ -14,7 +14,7 @@ def getOptions():
   #parser.add_argument('-r','--rel', type=str, dest='rel', help='cmssw release', default='10_6_1_patch1')
   #parser.add_argument(     '--gt',      type=str, dest='gt', help='global tag', default='')
 
-  parser.add_argument('-n','--nevts', type=int, dest='nevts', help='number of events to be generated', default=10)
+  parser.add_argument('-n','--nevts', type=int, dest='nevts', help='total number of events to be generated', default=10)
   parser.add_argument('-c','--ch', type=str, dest='ch', help='channel, e.g. photon', default='photon', choices=['photon'])
   parser.add_argument('--etmax', type=int, dest='etmax', help='max Et (GeV)', default=100)
   parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
@@ -45,7 +45,10 @@ if __name__ == "__main__":
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
   prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
   nthr = 8 if opt.domultithread else 1
-  if opt.domultijob and opt.njobs <= 0: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 0')
+  njobs = opt.njobs if opt.domultijob else 1
+  if opt.domultijob and opt.njobs <= 1: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 1')
+  if opt.domultijob and opt.nevts % opt.njobs != 0: raise RuntimeError('cannot split events in njobs evenly, please change njobs / nevts')
+  nevtsjob = opt.nevts if not opt.domultijob else opt.nevts/opt.njobs
 
   ##############################
   # create production directory and logs directory within
@@ -68,8 +71,8 @@ if __name__ == "__main__":
   step3_driverName = 'step3_{pu}.py'.format(pu=opt.pu)
   drivers = [step1_driverName, step2_driverName, step3_driverName]
   target_drivers = ['step1.py', 'step2.py', 'step3.py']
-  infiles = ['', 'step1.root', 'step2.root']
-  outfiles = ['step1.root', 'step2.root', 'step3.root']
+  infiles = ['', 'step1_nj{nj}.root', 'step2_nj{nj}.root']
+  outfiles = ['step1_nj{nj}.root', 'step2_nj{nj}.root', 'step3_nj{nj}.root']
 
   ## copy them to dir
   for i,idriver in enumerate(drivers):
@@ -97,129 +100,132 @@ if __name__ == "__main__":
       npart = 5
   
     step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt}'.format(
-                    jo=target_drivers[0], n=opt.nevts, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
+                    jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
+    step1_cmsRun_add = 'seedOffset={nj}' # format at a later stage
   else:
     raise RuntimeError('this option is not currently supported')
   ## other steps  
   step2_cmsRun = 'cmsRun {jo} nThr={nt}'.format(jo=target_drivers[1], nt=nthr)
+  step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
   step3_cmsRun = 'cmsRun {jo} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], sm=opt.seedmult, nt=nthr)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
-
+  cmsRuns_add = [step1_cmsRun_add, step2_cmsRun_add, '']
   ############################
   # write the launching scripts
   ############################
   for i,idriver in enumerate(drivers):
+
+    for nj in range(0,njobs):
   
-    ## define a template script  
+      ### configurations for the template script
+      outputDir = '"/pnfs/psi.ch/cms/trivcat/store/user/"$USER"/EcalProd/"' 
+      if opt.dosavehome: outputDir = '`pwd`/../' 
 
-    ### configurations for the template script
-    outputDir = '"/pnfs/psi.ch/cms/trivcat/store/user/"$USER"/EcalProd/"' 
-    if opt.dosavehome: outputDir = '`pwd`/../' 
+      mkdiroutput_command = 'xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR'
+      if opt.dosavehome: mkdiroutput_command = 'mkdir -p $SERESULTDIR'
 
-    mkdiroutput_command = 'xrdfs t3dcachedb03.psi.ch mkdir $SERESULTDIR'
-    if opt.dosavehome: mkdiroutput_command = 'mkdir -p $SERESULTDIR'
+      cpinput_command = ''
+      if infiles[i]!='':
+        cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile}'.format(infile=infiles[i].format(nj=nj))
+        if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile}'.format(infile=infiles[i].format(nj=nj))
 
-    cpinput_command = ''
-    if infiles[i]!='':
-      cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile}'.format(infile=infiles[i])
-      if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile}'.format(infile=infiles[i])
+      cpoutput_command = 'xrdcp -f {outfile} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile=outfiles[i].format(nj=nj))
+      if opt.dosavehome: cpoutput_command = 'cp {outfile} $SERESULTDIR/{outfile}'.format(outfile=outfiles[i].format(nj=nj))
+       
+      cpaux_command = ''
+      if 'step3' in idriver:
+        cpaux_command = 'cp -r $CMSSW_BASE/src/RecoSimStudies/Dumpers/data $WORKDIR'
 
-    cpoutput_command = 'xrdcp -f {outfile} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile=outfiles[i])
-    if opt.dosavehome: cpoutput_command = 'cp {outfile} $SERESULTDIR/{outfile}'.format(outfile=outfiles[i])
-     
-    cpaux_command = ''
-    if 'step3' in idriver:
-      cpaux_command = 'cp -r $CMSSW_BASE/src/RecoSimStudies/Dumpers/data $WORKDIR'
+      ### define a template script  
+      template = [
+      '#!/bin/bash',
+      '',
 
-    template = [
-    '#!/bin/bash',
-    '',
+      #### variables
+      'DIRNAME="{ind}"',
+      'STARTDIR=`pwd`',
+      'TOPWORKDIR="/scratch/"$USER/',
+      'JOBDIR="gen_"$SLURM_JOB_ID',
+      'WORKDIR=$TOPWORKDIR/$JOBDIR',
+      'SEPREFIX="root://t3dcachedb.psi.ch:1094/"',
+      'SERESULTDIR={od}/$DIRNAME',
+      'JOBOPFILENAME="{jo}"',
+      '',
 
-    #### variables
-    'DIRNAME="{ind}"',
-    'STARTDIR=`pwd`',
-    'TOPWORKDIR="/scratch/"$USER/',
-    'JOBDIR="gen_"$SLURM_JOB_ID',
-    'WORKDIR=$TOPWORKDIR/$JOBDIR',
-    'SEPREFIX="root://t3dcachedb.psi.ch:1094/"',
-    'SERESULTDIR={od}/$DIRNAME',
-    'JOBOPFILENAME="{jo}"',
-    '',
+      #### environment
+      'source $VO_CMS_SW_DIR/cmsset_default.sh',
+      'shopt -s expand_aliases',
+      'echo ""',
+      'echo "Going to set up cms environment"',
+      'cd $STARTDIR',
+      'cmsenv',
+      'echo ""',
+      '',
 
-    #### environment
-    'source $VO_CMS_SW_DIR/cmsset_default.sh',
-    'shopt -s expand_aliases',
-    'echo ""',
-    'echo "Going to set up cms environment"',
-    'cd $STARTDIR',
-    'cmsenv',
-    'echo ""',
-    '',
+      #### workdir
+      'echo "Going to create work dir"',
+      'mkdir -p $WORKDIR',
+      'echo "workdir: "',
+      'echo $WORKDIR',
+      'echo ""',
+      '',
 
-    #### workdir
-    'echo "Going to create work dir"',
-    'mkdir -p $WORKDIR',
-    'echo "workdir: "',
-    'echo $WORKDIR',
-    'echo ""',
-    '',
+      #### outputdir
+      'echo "Going to create the output dir"',
+      'echo "May give an error if the directory already exists, which can be safely ignored"',
+      '{mkdir}',
+      'echo ""',
+      '',
 
-    #### outputdir
-    'echo "Going to create the output dir"',
-    'echo "May give an error if the directory already exists, which can be safely ignored"',
-    '{mkdir}',
-    'echo ""',
-    '',
+      #### copy driver and other aux files 
+      'echo "Going to copy cms driver"',
+      'cp $JOBOPFILENAME $WORKDIR/$JOBOPFILENAME',
+      '{cpaux}',
+      'echo ""',
+      '',
 
-    #### copy driver and other aux files 
-    'echo "Going to copy cms driver"',
-    'cp $JOBOPFILENAME $WORKDIR/$JOBOPFILENAME',
-    '{cpaux}',
-    'echo ""',
-    '',
+      #### copy input file 
+      'echo "Going to copy input file if needed"',
+      'echo "May give an error if the file still exists in the scratch , but can be safely ignored"',
+      '{cpin}',
+      'echo ""',
+      '',
 
-    #### copy input file 
-    'echo "Going to copy input file if needed"',
-    'echo "May give an error if the file still exists in the scratch , but can be safely ignored"',
-    '{cpin}',
-    'echo ""',
-    '',
+      #### run
+      'cd $WORKDIR',
+      'echo ""',
+      '',
+      'echo "Going to run"',
+      'DATE_START=`date +%s`',
+      '{cmsRun}',
+      'DATE_END=`date +%s`',
+      'echo ""',
+      '',
+      'echo "Finished running"',
+      'echo "Content of current directory"',
+      'ls -al',
 
-    #### run
-    'cd $WORKDIR',
-    'echo ""',
-    '',
-    'echo "Going to run"',
-    'DATE_START=`date +%s`',
-    '{cmsRun}',
-    'DATE_END=`date +%s`',
-    'echo ""',
-    '',
-    'echo "Finished running"',
-    'echo "Content of current directory"',
-    'ls -al',
+      #### copy back output
+      'echo "Going to copy the output to the output directory"',
+      '{cpout}',
+      '',
+      'echo ""',
 
-    #### copy back output
-    'echo "Going to copy the output to the output directory"',
-    '{cpout}',
-    '',
-    'echo ""',
+      #### clean and go 
+      'echo "Cleaning up $WORKDIR"',
+      'rm -rf $WORKDIR',
+      'RUNTIME=$((DATE_END-DATE_START))',
+      'echo "Wallclock running time: $RUNTIME s"',
+      'cd $STARTDIR',
 
-    #### clean and go 
-    'echo "Cleaning up $WORKDIR"',
-    'rm -rf $WORKDIR',
-    'RUNTIME=$((DATE_END-DATE_START))',
-    'echo "Wallclock running time: $RUNTIME s"',
-    'cd $STARTDIR',
+      ] 
+      template = '\n'.join(template)
+      template = template.format(ind=prodLabel,od=outputDir,jo=target_drivers[i],mkdir=mkdiroutput_command,
+                                 cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i]+' '+cmsRuns_add[i].format(nj=nj),cpaux=cpaux_command)
 
-    ] 
-    template = '\n'.join(template)
-    template = template.format(ind=prodLabel,od=outputDir,jo=target_drivers[i],mkdir=mkdiroutput_command,
-                               cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i],cpaux=cpaux_command)
-
-    launcherFile = '{}/launch_{}.sh'.format(prodDir,outfiles[i].split('.root')[0])
-    with open(launcherFile, 'w') as f:
-      f.write(template)
+      launcherFile = '{}/launch_{}.sh'.format(prodDir,outfiles[i].format(nj=nj).split('.root')[0])
+      with open(launcherFile, 'w') as f:
+        f.write(template)
 
 
   #############################
@@ -231,22 +237,36 @@ if __name__ == "__main__":
   elif opt.dolong:
     time = '--time=2-23:59'
 
-  sbatch_command_step1 = 'jid1=$(sbatch -p wn -o logs/step1.out -e logs/step1.err --job-name=step1_{pl} {t} --ntasks={nt} launch_step1.sh)'.format(pl=prodLabel,t=time,nt=nthr)
+  submitter_template = []
 
-  sbatch_command_step2 = 'jid2=$(sbatch -p wn -o logs/step2.out -e logs/step2.err --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1 launch_step2.sh)'.format(pl=prodLabel,t=time,nt=nthr)
+  for nj in range(0,njobs):
 
-  sbatch_command_step3 = 'jid3=$(sbatch -p wn -o logs/step3.out -e logs/step3.err --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2 launch_step3.sh)'.format(pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn -o logs/step1_nj{nj}.out -e logs/step1_nj{nj}.err --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
 
-  submitter_template = [
-    sbatch_command_step1,
-    'echo "$jid1"',
-    'jid1=${jid1#"Submitted batch job "}',
-    sbatch_command_step2,
-    'echo "$jid2"',
-    'jid2=${jid2#"Submitted batch job "}',
-    sbatch_command_step3,
-    'echo "$jid3"',
-  ]
+    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.out -e logs/step2_nj{nj}.err --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+
+    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.out -e logs/step3_nj{nj}.err --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+
+    submitter_template.append(sbatch_command_step1)
+    submitter_template.append('echo "$jid1_nj%i"' % nj)
+    submitter_template.append('jid1_nj%i=${jid1_nj%i#"Submitted batch job "}' % (nj,nj))
+    submitter_template.append(sbatch_command_step2)
+    submitter_template.append('echo "$jid2_nj%i"' % nj)
+    submitter_template.append('jid2_nj%i=${jid2_nj%i#"Submitted batch job "}' % (nj,nj))
+    submitter_template.append(sbatch_command_step3)
+    submitter_template.append('echo "$jid3_nj%i"' % nj)
+    submitter_template.append('jid3_nj%i=${jid3_nj%i#"Submitted batch job "}' % (nj,nj))
+  
+    #submitter_template = [
+    #sbatch_command_step1,
+    #'echo "$jid1"',
+    #'jid1=${jid1#"Submitted batch job "}',
+    #sbatch_command_step2,
+    #'echo "$jid2"',
+    #'jid2=${jid2#"Submitted batch job "}',
+    #sbatch_command_step3,
+    #'echo "$jid3"',
+    #]
 
   submitter_template = '\n\n'.join(submitter_template)
 
