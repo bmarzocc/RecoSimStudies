@@ -61,6 +61,7 @@
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "RecoSimStudies/Dumpers/plugins/RecoSimDumper.h"
@@ -129,6 +130,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    savePFRechits_           = iConfig.getParameter<bool>("savePFRechits"); 
    savePFCluster_           = iConfig.getParameter<bool>("savePFCluster");
    saveSuperCluster_        = iConfig.getParameter<bool>("saveSuperCluster");
+   saveShowerShapes_        = iConfig.getParameter<bool>("saveShowerShapes");
    useEnergyRegression_     = iConfig.getParameter<bool>("useEnergyRegression"); 
    genID_                   = iConfig.getParameter<std::vector<int>>("genID");
 
@@ -224,7 +226,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("pfCluster_iphi","std::vector<int>",&pfCluster_iphi);   
       tree->Branch("pfCluster_iz","std::vector<int>",&pfCluster_iz);   
    } 
-   if(saveSuperCluster_){
+   if(saveSuperCluster_ && !saveShowerShapes_){
       tree->Branch("superClusterHit_energy","std::vector<std::vector<std::map<int, float> >",&superClusterHit_energy);
       if(!saveSimhits_ && !saveRechits_ && !savePFRechits_ && !savePFCluster_){ 
          tree->Branch("superClusterHit_eta","std::vector<std::vector<float> >",&superClusterHit_eta);
@@ -245,6 +247,29 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       tree->Branch("superCluster_ieta","std::vector<int>",&superCluster_ieta);
       tree->Branch("superCluster_iphi","std::vector<int>",&superCluster_iphi);  
       tree->Branch("superCluster_iz","std::vector<int>",&superCluster_iz);   
+      tree->Branch("superCluster_r9","std::vector<float> ",&superCluster_r9);
+      tree->Branch("superCluster_sigmaIetaIeta","std::vector<float> ",&superCluster_sigmaIetaIeta);
+      tree->Branch("superCluster_sigmaIetaIphi","std::vector<float> ",&superCluster_sigmaIetaIphi);
+      tree->Branch("superCluster_sigmaIphiIphi","std::vector<float> ",&superCluster_sigmaIphiIphi);
+      tree->Branch("superCluster_full5x5_r9","std::vector<float> ",&superCluster_full5x5_r9);
+      tree->Branch("superCluster_full5x5_sigmaIetaIeta","std::vector<float> ",&superCluster_full5x5_sigmaIetaIeta);
+      tree->Branch("superCluster_full5x5_sigmaIetaIphi","std::vector<float> ",&superCluster_full5x5_sigmaIetaIphi);
+      tree->Branch("superCluster_full5x5_sigmaIphiIphi","std::vector<float> ",&superCluster_full5x5_sigmaIphiIphi);
+   }else if(saveShowerShapes_){ 
+      tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
+      tree->Branch("superCluster_eta","std::vector<float>",&superCluster_eta);
+      tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);  
+      tree->Branch("superCluster_ieta","std::vector<int>",&superCluster_ieta);
+      tree->Branch("superCluster_iphi","std::vector<int>",&superCluster_iphi);  
+      tree->Branch("superCluster_iz","std::vector<int>",&superCluster_iz);   
+      tree->Branch("superCluster_r9","std::vector<float> ",&superCluster_r9);
+      tree->Branch("superCluster_sigmaIetaIeta","std::vector<float> ",&superCluster_sigmaIetaIeta);
+      tree->Branch("superCluster_sigmaIetaIphi","std::vector<float> ",&superCluster_sigmaIetaIphi);
+      tree->Branch("superCluster_sigmaIphiIphi","std::vector<float> ",&superCluster_sigmaIphiIphi);
+      tree->Branch("superCluster_full5x5_r9","std::vector<float> ",&superCluster_full5x5_r9);
+      tree->Branch("superCluster_full5x5_sigmaIetaIeta","std::vector<float> ",&superCluster_full5x5_sigmaIetaIeta);
+      tree->Branch("superCluster_full5x5_sigmaIetaIphi","std::vector<float> ",&superCluster_full5x5_sigmaIetaIphi);
+      tree->Branch("superCluster_full5x5_sigmaIphiIphi","std::vector<float> ",&superCluster_full5x5_sigmaIphiIphi);
    }
 }
 
@@ -277,6 +302,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       _esMinus = _esMinus || (0 > z);
     }
    }
+
+   edm::ESHandle<CaloTopology> caloTopology;
+   iSetup.get<CaloTopologyRecord>().get(caloTopology);
+   const CaloTopology* topology = caloTopology.product();
    
    edm::Handle<std::vector<reco::GenParticle> > genParticles;
    ev.getByToken(genToken_,genParticles);
@@ -511,6 +540,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    superClusterHit_noCaloPart_iz.resize(nSuperClusters);
 
    superCluster_energy.clear(); 
+   superCluster_r9.clear(); 
+   superCluster_sigmaIetaIeta.clear(); 
+   superCluster_sigmaIetaIphi.clear(); 
+   superCluster_sigmaIphiIphi.clear(); 
+   superCluster_full5x5_r9.clear(); 
+   superCluster_full5x5_sigmaIetaIeta.clear();
+   superCluster_full5x5_sigmaIetaIphi.clear();
+   superCluster_full5x5_sigmaIphiIphi.clear(); 
    superCluster_eta.clear(); 
    superCluster_phi.clear();  
    superCluster_ieta.clear(); 
@@ -888,11 +925,24 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       } 
    }
 
+   locCov.clear();
+   full5x5_locCov.clear();
    //Save SuperClusters 
-   if(saveSuperCluster_){
+   if(saveSuperCluster_ || saveShowerShapes_){
       int iSC=0;
       std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
-      for(const auto& iSuperCluster : *(superClusterEB.product())){    
+      for(const auto& iSuperCluster : *(superClusterEB.product())){  
+          reco::CaloCluster caloBC(*iSuperCluster.seed());  
+          locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
+          full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
+          superCluster_r9.push_back(reduceFloat(EcalClusterTools::e3x3(caloBC, &(*(recHitsEB.product())), &(*topology))/iSuperCluster.energy(),nBits_));
+          superCluster_full5x5_r9.push_back(reduceFloat(noZS::EcalClusterTools::e3x3(caloBC, &(*(recHitsEB.product())), &(*topology))/iSuperCluster.energy(),nBits_));
+          superCluster_sigmaIetaIeta.push_back(reduceFloat(sqrt(locCov[0]),nBits_));
+          superCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(sqrt(full5x5_locCov[0]),nBits_));
+          superCluster_sigmaIetaIphi.push_back(reduceFloat(locCov[1],nBits_));
+          superCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(full5x5_locCov[1],nBits_));
+          superCluster_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(locCov[2]) ? 0. : sqrt(locCov[2])),nBits_));
+          superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(full5x5_locCov[2]) ? 0. : sqrt(full5x5_locCov[2])),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
@@ -935,6 +985,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       iSC=0;
       std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEE.product())){    
+          reco::CaloCluster caloBC(*iSuperCluster.seed());  
+          locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEE.product())), &(*topology));
+          full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEE.product())), &(*topology));
+          superCluster_r9.push_back(reduceFloat(EcalClusterTools::e3x3(caloBC, &(*(recHitsEE.product())), &(*topology))/iSuperCluster.energy(),nBits_));
+          superCluster_full5x5_r9.push_back(reduceFloat(noZS::EcalClusterTools::e3x3(caloBC, &(*(recHitsEE.product())), &(*topology))/iSuperCluster.energy(),nBits_));
+          superCluster_sigmaIetaIeta.push_back(reduceFloat(sqrt(locCov[0]),nBits_));
+          superCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(sqrt(full5x5_locCov[0]),nBits_));
+          superCluster_sigmaIetaIphi.push_back(reduceFloat(locCov[1],nBits_));
+          superCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(full5x5_locCov[1],nBits_));
+          superCluster_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(locCov[2]) ? 0. : sqrt(locCov[2])),nBits_));
+          superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat((!edm::isFinite(full5x5_locCov[2]) ? 0. : sqrt(full5x5_locCov[2])),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
@@ -942,7 +1003,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           EEDetId ee_id(_eeGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));   
           superCluster_ieta.push_back(ee_id.ix());
           superCluster_iphi.push_back(ee_id.iy());
-          superCluster_iz.push_back(ee_id.zside());       
+          superCluster_iz.push_back(ee_id.zside());      
           //for unmatched SuperClusterHit 
           for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
               const std::vector<std::pair<DetId,float> > &seedrechits = ( *iBC )->hitsAndFractions();
