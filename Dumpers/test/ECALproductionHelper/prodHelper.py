@@ -71,8 +71,10 @@ if __name__ == "__main__":
   step3_driverName = 'step3_{pu}.py'.format(pu=opt.pu)
   drivers = [step1_driverName, step2_driverName, step3_driverName]
   target_drivers = ['step1.py', 'step2.py', 'step3.py']
-  infiles = ['', 'step1_nj{nj}.root', 'step2_nj{nj}.root']
+  infiles  = ['', 'step1_nj{nj}.root', 'step2_nj{nj}.root']
+  infiles_loc = ['', 'step1.root', 'step2.root']
   outfiles = ['step1_nj{nj}.root', 'step2_nj{nj}.root', 'step3_nj{nj}.root']
+  outfiles_loc = ['step1.root', 'step2.root', 'step3.root']
 
   ## copy them to dir
   for i,idriver in enumerate(drivers):
@@ -126,11 +128,11 @@ if __name__ == "__main__":
 
       cpinput_command = ''
       if infiles[i]!='':
-        cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile}'.format(infile=infiles[i].format(nj=nj))
-        if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile}'.format(infile=infiles[i].format(nj=nj))
+        cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
+        if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
 
-      cpoutput_command = 'xrdcp -f {outfile} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile=outfiles[i].format(nj=nj))
-      if opt.dosavehome: cpoutput_command = 'cp {outfile} $SERESULTDIR/{outfile}'.format(outfile=outfiles[i].format(nj=nj))
+      cpoutput_command = 'xrdcp -f {outfile_loc} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
+      if opt.dosavehome: cpoutput_command = 'cp {outfile_loc} $SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
        
       cpaux_command = ''
       if 'step3' in idriver:
@@ -257,17 +259,6 @@ if __name__ == "__main__":
     submitter_template.append('echo "$jid3_nj%i"' % nj)
     submitter_template.append('jid3_nj%i=${jid3_nj%i#"Submitted batch job "}' % (nj,nj))
   
-    #submitter_template = [
-    #sbatch_command_step1,
-    #'echo "$jid1"',
-    #'jid1=${jid1#"Submitted batch job "}',
-    #sbatch_command_step2,
-    #'echo "$jid2"',
-    #'jid2=${jid2#"Submitted batch job "}',
-    #sbatch_command_step3,
-    #'echo "$jid3"',
-    #]
-
   submitter_template = '\n\n'.join(submitter_template)
 
   submitterFile = '{}/submit.sh'.format(prodDir)
