@@ -42,6 +42,9 @@ if __name__ == "__main__":
 
   opt = getOptions()
 
+  ##############################
+  # job configurations
+  #############################
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
   prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
   nthr = 8 if opt.domultithread else 1
@@ -49,6 +52,8 @@ if __name__ == "__main__":
   if opt.domultijob and opt.njobs <= 1: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 1')
   if opt.domultijob and opt.nevts % opt.njobs != 0: raise RuntimeError('cannot split events in njobs evenly, please change njobs / nevts')
   nevtsjob = opt.nevts if not opt.domultijob else opt.nevts/opt.njobs
+  nevtspremixfile = 600 # current number of events in each premixed file
+  npremixfiles = nevtsjob / nevtspremixfile + 1
 
   ##############################
   # create production directory and logs directory within
@@ -107,7 +112,7 @@ if __name__ == "__main__":
   else:
     raise RuntimeError('this option is not currently supported')
   ## other steps  
-  step2_cmsRun = 'cmsRun {jo} nThr={nt}'.format(jo=target_drivers[1], nt=nthr)
+  step2_cmsRun = 'cmsRun {jo} nThr={nt} nPremixFiles={npf}'.format(jo=target_drivers[1], nt=nthr, npf=npremixfiles)
   step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
   step3_cmsRun = 'cmsRun {jo} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], sm=opt.seedmult, nt=nthr)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
@@ -223,7 +228,7 @@ if __name__ == "__main__":
       ] 
       template = '\n'.join(template)
       template = template.format(ind=prodLabel,od=outputDir,jo=target_drivers[i],mkdir=mkdiroutput_command,
-                                 cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i]+' '+cmsRuns_add[i].format(nj=nj),cpaux=cpaux_command)
+                                 cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i]+' '+cmsRuns_add[i].format(nj=nj+nthr+1),cpaux=cpaux_command) 
 
       launcherFile = '{}/launch_{}.sh'.format(prodDir,outfiles[i].format(nj=nj).split('.root')[0])
       with open(launcherFile, 'w') as f:
