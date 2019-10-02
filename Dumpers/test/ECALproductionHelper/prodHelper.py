@@ -23,13 +23,15 @@ def getOptions():
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
-  parser.add_argument('--pfrhmult', type=int, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1)
-  parser.add_argument('--seedmult', type=int, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3)
+  parser.add_argument('--pfrhmult', type=float, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1.)
+  parser.add_argument('--seedmult', type=float, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3.)
 
   #parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
+  parser.add_argument('--dorereco', dest='dorereco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
+  parser.add_argument('--custominput', type=str, dest='custominput', help='SE path of the input that you want to use for the reconstruction', default=None)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
   parser.add_argument('--njobs', type=int, dest='njobs', help='number of parallel jobs to submit', default=10)
@@ -54,6 +56,10 @@ if __name__ == "__main__":
   nevtsjob = opt.nevts if not opt.domultijob else opt.nevts/opt.njobs
   nevtspremixfile = 600 # current number of events in each premixed file
   npremixfiles = nevtsjob / nevtspremixfile + 1
+  if opt.dorereco and opt.custominput == None: raise RuntimeError('you must supply the custom input, when running with dorereco activated')
+  if opt.dorereco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
+  if opt.dorereco and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.dorereco and opt.dosavehome: raise RuntimeError('combination not supported, currently cannot re-reco from files saved on home')
 
   ##############################
   # create production directory and logs directory within
@@ -83,6 +89,7 @@ if __name__ == "__main__":
 
   ## copy them to dir
   for i,idriver in enumerate(drivers):
+    if opt.dorereco and i!=2: continue # skip everything that is not related to step3
     if not os.path.isfile('cmsDrivers/{idr}'.format(idr=idriver)):
       raise RuntimeError('cmsDriver {idr} not found, please check naming'.format(idr=idriver))
     command = 'cp cmsDrivers/{idr} {d}/{td}'.format(idr=idriver,d=prodDir,td=target_drivers[i])
@@ -114,13 +121,15 @@ if __name__ == "__main__":
   ## other steps  
   step2_cmsRun = 'cmsRun {jo} nThr={nt} nPremixFiles={npf}'.format(jo=target_drivers[1], nt=nthr, npf=npremixfiles)
   step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
-  step3_cmsRun = 'cmsRun {jo} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], sm=opt.seedmult, nt=nthr)
+  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
   cmsRuns_add = [step1_cmsRun_add, step2_cmsRun_add, '']
   ############################
   # write the launching scripts
   ############################
   for i,idriver in enumerate(drivers):
+
+    if opt.dorereco and i!=2: continue # skip everything that is not related to step3
 
     for nj in range(0,njobs):
   
@@ -135,6 +144,7 @@ if __name__ == "__main__":
       if infiles[i]!='':
         cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
         if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
+        if opt.dorereco: cpinput_command = 'xrdcp $SEPREFIX/{custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
 
       cpoutput_command = 'xrdcp -f {outfile_loc} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
       if opt.dosavehome: cpoutput_command = 'cp {outfile_loc} $SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
@@ -193,7 +203,6 @@ if __name__ == "__main__":
 
       #### copy input file 
       'echo "Going to copy input file if needed"',
-      'echo "May give an error if the file still exists in the scratch , but can be safely ignored"',
       '{cpin}',
       'echo ""',
       '',
@@ -248,18 +257,22 @@ if __name__ == "__main__":
 
   for nj in range(0,njobs):
 
-    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn -o logs/step1_nj{nj}.out -e logs/step1_nj{nj}.err --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn -o logs/step1_nj{nj}.log -e logs/step1_nj{nj}.log --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
 
-    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.out -e logs/step2_nj{nj}.err --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.log -e logs/step2_nj{nj}.log --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
 
-    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.out -e logs/step3_nj{nj}.err --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    if opt.dorereco: # strip the dependency away
+      sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
 
-    submitter_template.append(sbatch_command_step1)
-    submitter_template.append('echo "$jid1_nj%i"' % nj)
-    submitter_template.append('jid1_nj%i=${jid1_nj%i#"Submitted batch job "}' % (nj,nj))
-    submitter_template.append(sbatch_command_step2)
-    submitter_template.append('echo "$jid2_nj%i"' % nj)
-    submitter_template.append('jid2_nj%i=${jid2_nj%i#"Submitted batch job "}' % (nj,nj))
+    if not opt.dorereco:
+      submitter_template.append(sbatch_command_step1)
+      submitter_template.append('echo "$jid1_nj%i"' % nj)
+      submitter_template.append('jid1_nj%i=${jid1_nj%i#"Submitted batch job "}' % (nj,nj))
+      submitter_template.append(sbatch_command_step2)
+      submitter_template.append('echo "$jid2_nj%i"' % nj)
+      submitter_template.append('jid2_nj%i=${jid2_nj%i#"Submitted batch job "}' % (nj,nj))
+
     submitter_template.append(sbatch_command_step3)
     submitter_template.append('echo "$jid3_nj%i"' % nj)
     submitter_template.append('jid3_nj%i=${jid3_nj%i#"Submitted batch job "}' % (nj,nj))
