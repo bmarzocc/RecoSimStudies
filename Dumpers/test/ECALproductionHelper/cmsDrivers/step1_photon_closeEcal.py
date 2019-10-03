@@ -47,6 +47,11 @@ options.register('nThr',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.int,
                 "Number of threads")
+options.register('seedOffset',
+                 1,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Seed offset")
 
 options.parseArguments()
 print options
@@ -159,6 +164,9 @@ for path in process.paths:
 process.options.numberOfThreads=cms.untracked.uint32(options.nThr)
 process.options.numberOfStreams=cms.untracked.uint32(0)
 process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+
+# set a different offset seed, if you run multiple jobs 
+process.RandomNumberGeneratorService.eventSeedOffset=cms.untracked.uint32(options.seedOffset)
 
 # Customisation from command line
 

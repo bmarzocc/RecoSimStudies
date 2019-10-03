@@ -9,6 +9,11 @@ options = VarParsing ('analysis')
 # define the defaults here, changed from command line
 options.maxEvents = -1 # -1 means all events, maxEvents considers the total over files considered
 # add costum parameters
+options.register ("pfrhMult",
+                  1.0, # default value
+                  VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.varType.float,          # string, int, or float
+                  "multiplier of noise used for PFRH thresholds")
 options.register ("seedMult",
                   3.0, # default value
                   VarParsing.multiplicity.singleton, # singleton or list
@@ -194,8 +199,8 @@ process.es_prefer = cms.ESPrefer("EcalTrivialConditionRetriever","myCond")
 
 ### set all conditions producers to false except those I am interested in
 process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(True)
-process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(1.0)
-process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(1.0)
+process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(options.pfrhMult/2.0)
+process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(options.pfrhMult/3.0)
 process.myCond.PFRecHitFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
 process.myCond.PFRecHitFileEE = cms.untracked.string("./data/noise/PFRecHitThresholds_EE.txt")
 
