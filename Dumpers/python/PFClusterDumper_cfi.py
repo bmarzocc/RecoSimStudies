@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 pfclusterdumper = cms.EDAnalyzer("PFClusterDumper",
 
+    genParticleCollection             = cms.InputTag("genParticles","","HLT"),
     caloParticleCollection            = cms.InputTag("mix","MergedCaloTruth","HLT"),
     ebRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     eeRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
