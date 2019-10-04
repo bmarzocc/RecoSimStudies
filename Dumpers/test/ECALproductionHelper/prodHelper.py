@@ -20,6 +20,7 @@ def getOptions():
   parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
   parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
+  parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
@@ -115,6 +116,9 @@ if __name__ == "__main__":
       zmax = 317.0
       npart = 5
   
+    if opt.npart!=None:
+      npart = opt.npart
+
     step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt}'.format(
                     jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
     step1_cmsRun_add = 'seedOffset={nj}' # format at a later stage
