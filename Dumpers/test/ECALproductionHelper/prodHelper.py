@@ -28,6 +28,7 @@ def getOptions():
 
   #parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
+  parser.add_argument('--doold', dest='doold', help='use old_ version of the scripts', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dorereco', dest='dorereco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
@@ -81,6 +82,7 @@ if __name__ == "__main__":
   step2_driverName = 'step2_{pu}.py'.format(pu=opt.pu)
   step3_driverName = 'step3_{pu}.py'.format(pu=opt.pu)
   drivers = [step1_driverName, step2_driverName, step3_driverName]
+  if opt.doold: drivers=map(lambda x : 'old_' + x, drivers)
   target_drivers = ['step1.py', 'step2.py', 'step3.py']
   infiles  = ['', 'step1_nj{nj}.root', 'step2_nj{nj}.root']
   infiles_loc = ['', 'step1.root', 'step2.root']
