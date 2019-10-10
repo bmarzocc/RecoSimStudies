@@ -227,6 +227,16 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        if(!isGoodParticle) continue; 
        caloParts.push_back(iCalo); 
    }
+   std::vector<GenParticle> genParts;
+   for(const auto& iGen : *(genParticles.product()))
+   {
+       bool isGoodParticle = false; 
+       for(unsigned int id=0; id<genID_.size(); id++)
+           if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
+      
+       if(!isGoodParticle) continue; 
+       genParts.push_back(iGen); 
+   } 
 
    std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
    std::vector<std::pair<DetId, float> >* hitsAndEnergies_BC;
@@ -255,6 +265,7 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        simFractionBCtoCP.clear();
        simFractionCPtoBC.clear();
        simFractionCPtoCP.clear();
+       hitsAndEnergies_BC->clear();   
 
        pfCluster_energy=reduceFloat(iPFCluster.energy(),nBits_);
        pfCluster_eta=reduceFloat(iPFCluster.eta(),nBits_);
@@ -276,20 +287,15 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
           pfCluster_iz=ee_id.zside(); 
        }          
 
-       for(const auto& iGen : *(genParticles.product()))
+       for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
        {
-           bool isGoodParticle = false; 
-           for(unsigned int id=0; id<genID_.size(); id++)
-               if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
-      
-           if(!isGoodParticle) continue; 
-           genEnergy.push_back(reduceFloat(iGen.energy(),nBits_));
-           genEta.push_back(reduceFloat(iGen.eta(),nBits_));
-           genPhi.push_back(reduceFloat(iGen.phi(),nBits_));
-       } 
-       
+           genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
+           genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
+           genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
+       }
        for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
            float simEnergy_tmp=0.;  
+           hitsAndEnergies_CP->clear();   
            hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
            for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 

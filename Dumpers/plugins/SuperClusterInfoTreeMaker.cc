@@ -276,6 +276,16 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        if(!isGoodParticle) continue; 
        caloParts.push_back(iCalo); 
    } 
+   std::vector<GenParticle> genParts;
+   for(const auto& iGen : *(genParticles.product()))
+   {
+       bool isGoodParticle = false; 
+       for(unsigned int id=0; id<genID_.size(); id++)
+           if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
+      
+       if(!isGoodParticle) continue; 
+       genParts.push_back(iGen); 
+   } 
 
    std::vector<std::pair<DetId, float> >* hitsAndEnergies_SC;
    std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
@@ -327,6 +337,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        psClusterRawEnergy.clear();
        psClusterEta.clear();
        psClusterPhi.clear();
+       hitsAndEnergies_SC->clear();
        
        hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
@@ -340,19 +351,15 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        scEtaWidth = reduceFloat(iSuperCluster.etaWidth(),nBits_);
        GlobalPoint caloParticle_position;  
        if(doSimMatch_){
-          for(const auto& iGen : *(genParticles.product()))
+          for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
           {
-              bool isGoodParticle = false; 
-              for(unsigned int id=0; id<genID_.size(); id++)
-                  if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
-      
-              if(!isGoodParticle) continue; 
-              genEnergy.push_back(reduceFloat(iGen.energy(),nBits_));
-              genEta.push_back(reduceFloat(iGen.eta(),nBits_));
-              genPhi.push_back(reduceFloat(iGen.phi(),nBits_));
+              genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
+              genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
+              genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
           } 
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
+              hitsAndEnergies_CP->clear(); 
               hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
               for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
@@ -477,6 +484,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        psClusterRawEnergy.clear();
        psClusterEta.clear();
        psClusterPhi.clear();
+       hitsAndEnergies_SC->clear();
 
        hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
@@ -503,6 +511,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           }    
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
+              hitsAndEnergies_CP->clear();  
               hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
               for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
@@ -628,7 +637,7 @@ std::vector<float> SuperClusterTreeMaker::getSharedRecHitFraction(const std::vec
     float rechits_match_BC = 0.;
     float rechits_match_CP = 0.;
     for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) 
-        for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC)      
+        for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC){      
             if(hit_CP.first.rawId() == hit_BC.first.rawId()){
                if(useEnergy){  
                   rechits_match_BC += hit_BC.second;
@@ -638,7 +647,8 @@ std::vector<float> SuperClusterTreeMaker::getSharedRecHitFraction(const std::vec
                   rechits_match_BC += 1.0;
                   rechits_match_CP += 1.0;
                }
-            }  
+            } 
+        } 
     
     if(rechits_tot_BC!=0.) fraction[0] = rechits_match_BC/rechits_tot_BC;
     else fraction[0]=-1.;
