@@ -231,6 +231,16 @@ process.myCond.producedEcalAlignmentEB = cms.untracked.bool(False)
 process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
 process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
 process.myCond.producedEcalSampleMask = cms.untracked.bool(False)
+# additional booleans to excplicitly set to False
+process.myCond.producedEcalTimeBiasCorrections = cms.untracked.bool(False)
+process.myCond.producedEcalSamplesCorrelation = cms.untracked.bool(False)
+process.myCond.producedEcalLaserCorrection = cms.untracked.bool(False)
+process.myCond.producedEcalClusterLocalContCorrParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterCrackCorrParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterEnergyCorrectionParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterEnergyUncertaintyParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterEnergyCorrectionObjectSpecificParameters = cms.untracked.bool(False)
+
 ########## end override
 
 # Path and EndPath definitions 

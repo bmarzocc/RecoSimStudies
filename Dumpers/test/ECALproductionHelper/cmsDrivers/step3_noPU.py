@@ -207,6 +207,10 @@ process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seed
 process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #                3sigma of the noise for |eta|>2.5
 process.myCond.PFSeedingFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
 process.myCond.PFSeedingFileEE = cms.untracked.string("./data/noise/PFRecHitThresholds_EE.txt")
+#process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(1.0) 
+#process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(1.0) 
+#process.myCond.PFSeedingFile = cms.untracked.string("./data/noise/fixed_SeedingThresholds_EB.txt")
+#process.myCond.PFSeedingFileEE = cms.untracked.string("./data/noise/fixed_SeedingThresholds_EE.txt")
 
 process.myCond.producedEcalPedestals = cms.untracked.bool(False)
 process.myCond.producedEcalWeights = cms.untracked.bool(False)
@@ -231,6 +235,16 @@ process.myCond.producedEcalAlignmentEB = cms.untracked.bool(False)
 process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
 process.myCond.producedEcalAlignmentEE = cms.untracked.bool(False)
 process.myCond.producedEcalSampleMask = cms.untracked.bool(False)
+# additional booleans to excplicitly set to False
+process.myCond.producedEcalTimeBiasCorrections = cms.untracked.bool(False)
+process.myCond.producedEcalSamplesCorrelation = cms.untracked.bool(False)
+process.myCond.producedEcalLaserCorrection = cms.untracked.bool(False)
+process.myCond.producedEcalClusterLocalContCorrParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterCrackCorrParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterEnergyCorrectionParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterEnergyUncertaintyParameters = cms.untracked.bool(False)
+process.myCond.producedEcalClusterEnergyCorrectionObjectSpecificParameters = cms.untracked.bool(False)
+
 ########## end override
 
 # Path and EndPath definitions 
