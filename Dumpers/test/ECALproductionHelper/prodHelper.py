@@ -20,6 +20,7 @@ def getOptions():
   parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
   parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
+  parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
@@ -29,6 +30,7 @@ def getOptions():
   #parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
   parser.add_argument('--doshort', dest='doshort', help='set 2 hours as wall clock time instead of 1 day', action='store_true', default=False)
+  parser.add_argument('--doold', dest='doold', help='use old_ version of the scripts', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dorereco', dest='dorereco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
@@ -81,6 +83,7 @@ if __name__ == "__main__":
   step2_driverName = 'step2_{pu}.py'.format(pu=opt.pu)
   step3_driverName = 'step3_{pu}.py'.format(pu=opt.pu)
   drivers = [step1_driverName, step2_driverName, step3_driverName]
+  if opt.doold: drivers=map(lambda x : 'old_' + x, drivers)
   target_drivers = ['step1.py', 'step2.py', 'step3.py']
   infiles  = ['', 'step1_nj{nj}.root', 'step2_nj{nj}.root']
   infiles_loc = ['', 'step1.root', 'step2.root']
@@ -113,6 +116,9 @@ if __name__ == "__main__":
       zmax = 317.0
       npart = 5
   
+    if opt.npart!=None:
+      npart = opt.npart
+
     step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt}'.format(
                     jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
     step1_cmsRun_add = 'seedOffset={nj}' # format at a later stage

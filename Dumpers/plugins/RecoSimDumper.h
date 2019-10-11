@@ -66,6 +66,7 @@
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "PhysicsTools/Utilities/macros/setTDRStyle.C"
@@ -152,12 +153,15 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool savePFRechits_; 
       bool savePFCluster_;
       bool saveSuperCluster_;
+      bool saveShowerShapes_;
       bool useEnergyRegression_;
       std::vector<int> genID_;
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;
       std::vector<std::map<uint32_t,float> > caloParticleXtals_;
+      std::vector<float> locCov;
+      std::vector<float> full5x5_locCov;
       
       long int eventId;
       int lumiId;
@@ -241,8 +245,14 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > superClusterHit_noCaloPart_iphi;
       std::vector<std::vector<int> > superClusterHit_noCaloPart_iz;  
       std::vector<float> superCluster_energy;
-      std::vector<float> superCluster_e3x3;
-      std::vector<float> superCluster_R9;
+      std::vector<float> superCluster_r9;
+      std::vector<float> superCluster_sigmaIetaIeta; 
+      std::vector<float> superCluster_sigmaIetaIphi; 
+      std::vector<float> superCluster_sigmaIphiIphi; 
+      std::vector<float> superCluster_full5x5_r9; 
+      std::vector<float> superCluster_full5x5_sigmaIetaIeta;
+      std::vector<float> superCluster_full5x5_sigmaIetaIphi;
+      std::vector<float> superCluster_full5x5_sigmaIphiIphi; 
       std::vector<float> superCluster_eta;
       std::vector<float> superCluster_phi;   
       std::vector<int> superCluster_ieta;

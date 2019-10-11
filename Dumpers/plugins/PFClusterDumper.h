@@ -116,13 +116,14 @@ class PFClusterDumper : public edm::EDAnalyzer
          virtual void endJob() ;
         
       // ----------additional functions-------------------
+      std::vector<float> getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
-      float getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy);
-      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES); 
+      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
       float reduceFloat(float val, int bits);
       
       // ----------collection tokens-------------------
+      edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_;
       edm::EDGetTokenT<EcalRecHitCollection> ebRechitToken_; 
       edm::EDGetTokenT<EcalRecHitCollection> eeRechitToken_; 
@@ -152,17 +153,19 @@ class PFClusterDumper : public edm::EDAnalyzer
       int pfCluster_ieta;
       int pfCluster_iphi;
       int pfCluster_iz;
-
-      float caloParticle_energy;
-      float caloParticle_simEnergy;
-      float caloParticle_genPt;
-      float caloParticle_genEta;
-      float caloParticle_genPhi;
-      float caloParticle_eta;
-      float caloParticle_phi;
-      int caloParticle_ieta;
-      int caloParticle_iphi;
-      int caloParticle_iz;
+      std::vector<float> genEnergy;
+      std::vector<float> genEta;
+      std::vector<float> genPhi;
+      std::vector<float> simEnergy;
+      std::vector<float> simEta;
+      std::vector<float> simPhi;
+      std::vector<float> simIeta;
+      std::vector<float> simIphi;
+      std::vector<float> simIz;
+      std::vector<float> simFractionBCtoBC;
+      std::vector<float> simFractionBCtoCP;
+      std::vector<float> simFractionCPtoBC;
+      std::vector<float> simFractionCPtoCP;
 };
 
 #endif

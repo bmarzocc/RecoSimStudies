@@ -111,6 +111,7 @@ PFClusterDumper::PFClusterDumper(const edm::ParameterSet& iConfig)
 {
 
    caloPartToken_           = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticleCollection"));
+   genToken_                = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
    ebRechitToken_           = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ebRechitCollection"));
    eeRechitToken_           = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("eeRechitCollection"));
    pfClusterToken_          = consumes<std::vector<reco::PFCluster> >(iConfig.getParameter<edm::InputTag>("pfClusterCollection")); 
@@ -128,16 +129,19 @@ PFClusterDumper::PFClusterDumper(const edm::ParameterSet& iConfig)
 
    //output file, historgrams and trees
    tree = iFile->make<TTree>("caloTree","caloTree"); 
-   tree->Branch("caloParticle_energy",&caloParticle_energy,"caloParticle_energy/F");
-   tree->Branch("caloParticle_simEnergy",&caloParticle_simEnergy,"caloParticle_simEnergy/F"); 
-   tree->Branch("caloParticle_genPt",&caloParticle_genPt,"caloParticle_genPt/F");
-   tree->Branch("caloParticle_genEta",&caloParticle_genEta,"caloParticle_genEta/F");
-   tree->Branch("caloParticle_genPhi",&caloParticle_genPhi,"caloParticle_genPhi/F");
-   tree->Branch("caloParticle_eta",&caloParticle_eta,"caloParticle_eta/F");
-   tree->Branch("caloParticle_phi",&caloParticle_phi,"caloParticle_phi/F");
-   tree->Branch("caloParticle_ieta",&caloParticle_ieta,"caloParticle_ieta/I");
-   tree->Branch("caloParticle_iphi",&caloParticle_iphi,"caloParticle_iphi/I");  
-   tree->Branch("caloParticle_iz",&caloParticle_iz,"caloParticle_iz/I"); 
+   tree->Branch("genEta", "std::vector<float>", &genEta);
+   tree->Branch("genPhi", "std::vector<float>", &genPhi);
+   tree->Branch("genEnergy", "std::vector<float>", &genEnergy);
+   tree->Branch("simEta", "std::vector<float>", &simEta);
+   tree->Branch("simPhi", "std::vector<float>", &simPhi);
+   tree->Branch("simIeta", "std::vector<float>", &simIeta);
+   tree->Branch("simIphi", "std::vector<float>", &simIphi);
+   tree->Branch("simIz", "std::vector<float>", &simIz);
+   tree->Branch("simEnergy", "std::vector<float>", &simEnergy);
+   tree->Branch("simFractionBCtoBC", "std::vector<float>", &simFractionBCtoBC);
+   tree->Branch("simFractionBCtoCP", "std::vector<float>", &simFractionBCtoCP);
+   tree->Branch("simFractionCPtoBC", "std::vector<float>", &simFractionCPtoBC);
+   tree->Branch("simFractionCPtoCP", "std::vector<float>", &simFractionCPtoCP);   
    tree->Branch("pfCluster_energy",&pfCluster_energy,"pfCluster_energy/F");
    tree->Branch("pfCluster_eta",&pfCluster_eta,"pfCluster_eta/F");
    tree->Branch("pfCluster_phi",&pfCluster_phi,"pfCluster_phi/F"); 
@@ -175,6 +179,13 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
       _esMinus = _esMinus || (0 > z);
     }
    }
+
+   edm::Handle<std::vector<reco::GenParticle> > genParticles;
+   ev.getByToken(genToken_,genParticles);
+   if (!genParticles.isValid()) {
+       std::cerr << "Analyze --> genParticles not found" << std::endl; 
+       return;
+   } 
    
    edm::Handle<std::vector<CaloParticle> > caloParticles;
    ev.getByToken(caloPartToken_,caloParticles);
@@ -217,6 +228,10 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        caloParts.push_back(iCalo); 
    }
 
+   std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
+   std::vector<std::pair<DetId, float> >* hitsAndEnergies_BC;
+   GlobalPoint caloParticle_position;
+
    //Save PFClusters
    std::cout << "PFClusters size: " << (pfClusters.product())->size() << std::endl;
    for(const auto& iPFCluster : *(pfClusters.product())){   
@@ -227,24 +242,26 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        pfCluster_ieta=-99.;
        pfCluster_iphi=-99.;
        pfCluster_iz=-99.;
-    
-       caloParticle_energy=-1.;
-       caloParticle_simEnergy=-1.;
-       caloParticle_genPt=-1.;
-       caloParticle_genEta=-99.;
-       caloParticle_genPhi=-99.;
-       caloParticle_eta=-99.;
-       caloParticle_phi=-99.;
-       caloParticle_ieta=-99;
-       caloParticle_iphi=-99;
-       caloParticle_iz=-99;
-       
+       genEnergy.clear();
+       genEta.clear();
+       genPhi.clear();
+       simEnergy.clear();
+       simEta.clear();
+       simPhi.clear();
+       simIeta.clear();
+       simIphi.clear();
+       simIz.clear();
+       simFractionBCtoBC.clear();
+       simFractionBCtoCP.clear();
+       simFractionCPtoBC.clear();
+       simFractionCPtoCP.clear();
+
        pfCluster_energy=reduceFloat(iPFCluster.energy(),nBits_);
        pfCluster_eta=reduceFloat(iPFCluster.eta(),nBits_);
        pfCluster_phi=reduceFloat(iPFCluster.phi(),nBits_);
 
        reco::CaloCluster caloBC(iPFCluster);
-       std::vector<std::pair<DetId, float> >* hitsAndEnergies_BC = getHitsAndEnergiesBC(&caloBC,recHitsEB,recHitsEE);
+       hitsAndEnergies_BC = getHitsAndEnergiesBC(&caloBC,recHitsEB,recHitsEE);
 
        math::XYZPoint caloPos = caloBC.position();
        if(std::abs(iPFCluster.eta()) < 1.479){  
@@ -259,50 +276,47 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
           pfCluster_iz=ee_id.zside(); 
        }          
 
-       float delta=999.;
-       float simEnergy=-1.; 
-       int matched_index=-1;
+       for(const auto& iGen : *(genParticles.product()))
+       {
+           bool isGoodParticle = false; 
+           for(unsigned int id=0; id<genID_.size(); id++)
+               if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
+      
+           if(!isGoodParticle) continue; 
+           genEnergy.push_back(reduceFloat(iGen.energy(),nBits_));
+           genEta.push_back(reduceFloat(iGen.eta(),nBits_));
+           genPhi.push_back(reduceFloat(iGen.phi(),nBits_));
+       } 
+       
        for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
-
            float simEnergy_tmp=0.;  
-           std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
+           hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
+              
            for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
                simEnergy_tmp+=hit_CP.second;
         
-           float fraction = getSharedRecHitFraction(hitsAndEnergies_BC,hitsAndEnergies_CP,true);
-           if(fabs(1-fraction)<delta && fraction!=0.){
-              delta = fabs(1-fraction);
-              matched_index = iCalo; 
-              simEnergy = simEnergy_tmp;  
-           }   
-       }
-
-       std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP = new std::vector<std::pair<DetId, float> >; 
-
-       if(matched_index!=-1){
-          hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(matched_index)));
-
-          caloParticle_simEnergy=reduceFloat(simEnergy,nBits_);
-          caloParticle_energy=reduceFloat(caloParts.at(matched_index).energy(),nBits_);
-          caloParticle_genPt=reduceFloat(caloParts.at(matched_index).pt(),nBits_);
-          caloParticle_genEta=reduceFloat(caloParts.at(matched_index).eta(),nBits_);
-          caloParticle_genPhi=reduceFloat(caloParts.at(matched_index).phi(),nBits_);
-
-          GlobalPoint caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0., useES_);
-          caloParticle_eta=reduceFloat(caloParticle_position.eta(),nBits_);
-          caloParticle_phi=reduceFloat(caloParticle_position.phi(),nBits_);
-          if(std::abs(caloParticle_position.eta()) < 1.479){  
-             EBDetId eb_id(_ebGeom->getClosestCell(caloParticle_position));  
-             caloParticle_ieta=eb_id.ieta();
-             caloParticle_iphi=eb_id.iphi();
-             caloParticle_iz=0; 
-          }else{  
+           std::vector<float> fractionEnergy = getSharedRecHitFraction(hitsAndEnergies_BC,hitsAndEnergies_CP,true);
+              
+           caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+           simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
+           simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
+           simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
+           if(std::abs(iPFCluster.eta()) < 1.479){  
+              EBDetId eb_id(_ebGeom->getClosestCell(caloParticle_position));  
+              simIeta.push_back(eb_id.ieta());
+              simIphi.push_back(eb_id.iphi());
+              simIz.push_back(0); 
+           }else{  
              EEDetId ee_id(_eeGeom->getClosestCell(caloParticle_position));   
-             caloParticle_ieta=ee_id.ix();
-             caloParticle_iphi=ee_id.iy();
-             caloParticle_iz=ee_id.zside(); 
-          }
-       }
+             simIeta.push_back(ee_id.ix());
+             simIphi.push_back(ee_id.iy());
+             simIz.push_back(ee_id.zside());  
+           }           
+           simFractionBCtoBC.push_back(reduceFloat(fractionEnergy[0],nBits_)); 
+           simFractionBCtoCP.push_back(reduceFloat(fractionEnergy[1],nBits_)); 
+           simFractionCPtoBC.push_back(reduceFloat(fractionEnergy[2],nBits_)); 
+           simFractionCPtoCP.push_back(reduceFloat(fractionEnergy[3],nBits_));  
+       }  
 
        tree->Fill();       
    }
@@ -366,27 +380,50 @@ std::vector<std::pair<DetId, float> >* PFClusterDumper::getHitsAndEnergiesBC(rec
     return HitsAndEnergies_BC;
 }
 
-float PFClusterDumper::getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy)
+std::vector<float> PFClusterDumper::getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy)
 {
-    float fraction = -1.;
+    std::vector<float> fraction;
+    fraction.resize(4);
    
     float rechits_tot_CP = 0.;
     for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
         if(useEnergy)  rechits_tot_CP+=hit_CP.second;
         if(!useEnergy) rechits_tot_CP+=1.;
     }
+
+    float rechits_tot_BC = 0.;
+    for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC) {
+        if(useEnergy)  rechits_tot_BC+=hit_BC.second;
+        if(!useEnergy) rechits_tot_BC+=1.;
+    }
    
     float rechits_match_BC = 0.;
+    float rechits_match_CP = 0.;
     for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) 
         for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC)      
             if(hit_CP.first.rawId() == hit_BC.first.rawId()){
-               if(useEnergy)  rechits_match_BC += hit_BC.second;
-               if(!useEnergy) rechits_match_BC += 1.0;
+               if(useEnergy){  
+                  rechits_match_BC += hit_BC.second;
+                  rechits_match_CP += hit_CP.second;    
+               }
+               if(!useEnergy){
+                  rechits_match_BC += 1.0;
+                  rechits_match_CP += 1.0;
+               }
             }  
     
-    fraction = rechits_match_BC/rechits_tot_CP;
+    if(rechits_tot_BC!=0.) fraction[0] = rechits_match_BC/rechits_tot_BC;
+    else fraction[0]=-1.;
+    if(rechits_tot_CP!=0.) fraction[1] = rechits_match_BC/rechits_tot_CP;
+    else fraction[1]=-1.; 
+    if(rechits_tot_BC!=0.) fraction[2] = rechits_match_CP/rechits_tot_BC;
+    else fraction[2]=-1.;
+    if(rechits_tot_CP!=0.) fraction[3] = rechits_match_CP/rechits_tot_CP;
+    else fraction[3]=-1.;
+
     return fraction;
 }
+
 
 GlobalPoint PFClusterDumper::calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES)
 {

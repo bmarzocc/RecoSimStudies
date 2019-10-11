@@ -9,12 +9,21 @@ options = VarParsing ('analysis')
 # define the defaults here, changed from command line
 options.maxEvents = -1 # -1 means all events, maxEvents considers the total over files considered
 # add costum parameters
+options.register ("pfrhMult",
+                  1.0, # default value
+                  VarParsing.multiplicity.singleton, # singleton or list
+                  VarParsing.varType.float,          # string, int, or float
+                  "multiplier of noise used for PFRH thresholds")
 options.register ("seedMult",
                   3.0, # default value
                   VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.varType.float,          # string, int, or float
-                  "multiplier of noise used for seeding threshold"
-                 )
+                  "multiplier of noise used for seeding threshold")
+options.register('nThr',
+                 1,
+                 VarParsing.multiplicity.singleton,
+                 VarParsing.varType.int,
+                "Number of threads")
 
 options.parseArguments()
 
@@ -45,7 +54,7 @@ process.load('Configuration.StandardSequences.Validation_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(-1)
 )
 
 
@@ -188,16 +197,16 @@ process.es_prefer = cms.ESPrefer("EcalTrivialConditionRetriever","myCond")
 
 ### set all conditions producers to false except those I am interested in
 process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(True)
-process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(1.0)
-process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(1.0)
-process.myCond.PFRecHitFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
-process.myCond.PFRecHitFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
+process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(options.pfrhMult/2.0)
+process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(options.pfrhMult/3.0)
+process.myCond.PFRecHitFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFRecHitFileEE = cms.untracked.string("./data/noise/PFRecHitThresholds_EE.txt")
 
 process.myCond.producedEcalPFSeedingThresholds = cms.untracked.bool(True)
 process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seedMult/2.0) # PFRHs files are at 2sigma of the noise for |eta|<2.5
 process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #                3sigma of the noise for |eta|>2.5
-process.myCond.PFSeedingFile = cms.untracked.string("../data/noise/PFRecHitThresholds_EB.txt")
-process.myCond.PFSeedingFileEE = cms.untracked.string("../data/noise/PFRecHitThresholds_EE.txt")
+process.myCond.PFSeedingFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
+process.myCond.PFSeedingFileEE = cms.untracked.string("./data/noise/PFRecHitThresholds_EE.txt")
 
 process.myCond.producedEcalPedestals = cms.untracked.bool(False)
 process.myCond.producedEcalWeights = cms.untracked.bool(False)
@@ -308,10 +317,9 @@ process.schedule.associate(process.patTask)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
-
 #Setup FWK for multithreaded 
-#process.options.numberOfThreads=cms.untracked.uint32(8)
-#process.options.numberOfStreams=cms.untracked.uint32(0)
+process.options.numberOfThreads=cms.untracked.uint32(options.nThr)
+process.options.numberOfStreams=cms.untracked.uint32(0)
 process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
 
 
@@ -339,6 +347,7 @@ process = miniAOD_customizeAllMC(process)
 # End of customisation functions
 
 # Customisation from command line
+#process.PixelCPEGenericESProducer.IrradiationBiasCorrection = True
 
 #Have logErrorHarvester wait for the same EDProducers to finish as those providing data for the OutputModule
 from FWCore.Modules.logErrorHarvester_cff import customiseLogErrorHarvesterUsingOutputCommands
