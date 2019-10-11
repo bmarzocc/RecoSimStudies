@@ -2,8 +2,11 @@ import FWCore.ParameterSet.Config as cms
 
 superclustertreemaker = cms.EDAnalyzer("SuperClusterTreeMaker",
 
+    genParticleCollection             = cms.InputTag("genParticles","","HLT"),
     vertexCollection                  = cms.InputTag("offlinePrimaryVertices","","RECO"),
     caloParticleCollection            = cms.InputTag("mix","MergedCaloTruth","HLT"),
+    ebRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
+    eeRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
     ebSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALBarrel","RECO"), 
     eeSuperClusterCollection          = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
     

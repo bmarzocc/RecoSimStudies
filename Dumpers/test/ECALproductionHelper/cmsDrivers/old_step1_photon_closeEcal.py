@@ -4,7 +4,60 @@
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: SingleGammaPt35_pythia8_cfi --conditions auto:phase1_2017_realistic -n 10 --era Run2_2017 --eventcontent FEVTDEBUG --relval 9000,50 -s GEN,SIM --datatier GEN-SIM --beamspot Realistic25ns13TeVEarly2017Collision --geometry DB:Extended --fileout file:step1.root
 import FWCore.ParameterSet.Config as cms
+import FWCore.ParameterSet.VarParsing as VarParsing
 
+options = VarParsing.VarParsing('standard')
+options.register('etmin',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "ET min")
+options.register('etmax',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "ET max")
+options.register('rmin',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Radius min")
+options.register('rmax',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Radius max")
+options.register('zmin',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Z min")
+options.register('zmax',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.float,
+                "Zmax")
+options.register('np',
+                 1,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                "Number of Particles")
+options.register('nThr',
+                 1,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                "Number of threads")
+options.register('seedOffset',
+                 1,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Seed offset")
+
+options.parseArguments()
+print options
+
+#from Configuration.Eras.Era_Run3_cff import Run3
+#process = cms.Process('SIM',Run3)
 from Configuration.StandardSequences.Eras import eras
 
 process = cms.Process('SIM',eras.Run2_2017)
@@ -20,21 +73,21 @@ process.load('Configuration.StandardSequences.GeometrySimDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
 process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic25ns13TeVEarly2017Collision_cfi')
+#process.load('IOMC.EventVertexGenerators.VtxSmearedRun3RoundOptics25ns13TeVLowSigmaZ_cfi')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(options.maxEvents)
 )
 
 # Input source
 process.source = cms.Source("EmptySource")
 
-process.options = cms.untracked.PSet(
-
-)
+process.options = cms.untracked.PSet()
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
@@ -66,29 +119,31 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
 
-process.generator = cms.EDProducer("CloseByParticleGunProducer",
-                                   PGunParameters = cms.PSet(PartID = cms.vint32(22, 22),
-                                   NParticles = cms.int32(2),
-                                   EnMin = cms.double(1.),   # in GeV
-                                   EnMax = cms.double(100.),
-                                   RMin = cms.double(123.8), # in cm
-                                   RMax = cms.double(123.8),
-                                   ZMin = cms.double(-304.5),    # in cm
-                                   ZMax = cms.double(304.5),
-                                   Delta = cms.double(300),  # in cm  -> phi1-phi2 = Delta/R 
-                                   Pointing = cms.bool(True),# otherwise showers parallel/perpendicular to beam axis
-                                   Overlapping = cms.bool(False),
-                                   RandomShoot = cms.bool(False),
-                                   MaxPhi = cms.double(3.14159265359),
-                                   MinPhi = cms.double(-3.14159265359),
-                                   MaxEta = cms.double(0.), # dummy, it is not used
-                                   MinEta = cms.double(0.), # dummy, it is not used
-                                   ),
-                                   Verbosity = cms.untracked.int32(10),
-                                   psethack = cms.string('two close by particles'),
-                                   AddAntiParticle = cms.bool(False),
-                                   firstRun = cms.untracked.uint32(1)
-)
+process.generator = cms.EDProducer("CloseByParticleFlatEtGunProducer",
+    PGunParameters = cms.PSet(
+        PartID = cms.vint32(22, 22),
+        MaxPt = cms.double(options.etmax),
+        MinPt = cms.double(options.etmin),
+        RMax = cms.double(options.rmax),
+        RMin = cms.double(options.rmin),
+        ZMax = cms.double(options.zmax),
+        ZMin = cms.double(options.zmin),
+        Delta = cms.double(350), # not used
+        Pointing = cms.bool(True),
+        Overlapping = cms.bool(False),
+        RandomShoot = cms.bool(False),
+        NParticles = cms.int32(options.np),
+        MaxPhi = cms.double(3.14159265359),
+        MinPhi = cms.double(-3.14159265359),
+        MinEta = cms.double(-3.), # not used
+        MaxEta = cms.double(3.) # not used
+        ),
+    Verbosity = cms.untracked.int32(0),
+    psethack = cms.string('single particle in front of ecal'),
+    AddAntiParticle = cms.bool(False),
+    firstRun = cms.untracked.uint32(1) 
+    )
+
 
 
 # Path and EndPath definitions
@@ -96,6 +151,7 @@ process.generation_step = cms.Path(process.pgen)
 process.simulation_step = cms.Path(process.psim)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.endjob_step = cms.EndPath(process.endOfProcess)
+#process.RAWSIMoutput_step = cms.EndPath(process.RAWSIMoutput)
 process.FEVTDEBUGoutput_step = cms.EndPath(process.FEVTDEBUGoutput)
 
 # Schedule definition
@@ -106,6 +162,13 @@ associatePatAlgosToolsTask(process)
 for path in process.paths:
 	getattr(process,path).insert(0, process.generator)
 
+#Setup FWK for multithreaded
+process.options.numberOfThreads=cms.untracked.uint32(options.nThr)
+process.options.numberOfStreams=cms.untracked.uint32(0)
+process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+
+# set a different offset seed, if you run multiple jobs 
+process.RandomNumberGeneratorService.eventSeedOffset=cms.untracked.uint32(options.seedOffset)
 
 # Customisation from command line
 
