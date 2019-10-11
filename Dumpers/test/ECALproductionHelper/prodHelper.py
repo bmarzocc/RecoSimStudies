@@ -31,7 +31,7 @@ def getOptions():
   parser.add_argument('--doshort', dest='doshort', help='set 2 hours as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
-  parser.add_argument('--dorereco', dest='dorereco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
+  parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
   parser.add_argument('--custominput', type=str, dest='custominput', help='SE path of the input that you want to use for the reconstruction', default=None)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
@@ -57,9 +57,9 @@ if __name__ == "__main__":
   nevtsjob = opt.nevts if not opt.domultijob else opt.nevts/opt.njobs
   nevtspremixfile = 600 # current number of events in each premixed file
   npremixfiles = nevtsjob / nevtspremixfile + 1
-  if opt.dorereco and opt.custominput == None: raise RuntimeError('you must supply the custom input, when running with dorereco activated')
-  if opt.dorereco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
-  if opt.dorereco and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.doreco and opt.custominput == None: raise RuntimeError('you must supply the custom input, when running with doreco activated')
+  if opt.doreco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
+  if opt.doreco and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
 
   ##############################
   # create production directory and logs directory within
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
   ## copy them to dir
   for i,idriver in enumerate(drivers):
-    if opt.dorereco and i!=2: continue # skip everything that is not related to step3
+    if opt.doreco and i!=2: continue # skip everything that is not related to step3
     if not os.path.isfile('cmsDrivers/{idr}'.format(idr=idriver)):
       raise RuntimeError('cmsDriver {idr} not found, please check naming'.format(idr=idriver))
     command = 'cp cmsDrivers/{idr} {d}/{td}'.format(idr=idriver,d=prodDir,td=target_drivers[i])
@@ -129,7 +129,7 @@ if __name__ == "__main__":
   ############################
   for i,idriver in enumerate(drivers):
 
-    if opt.dorereco and i!=2: continue # skip everything that is not related to step3
+    if opt.doreco and i!=2: continue # skip everything that is not related to step3
 
     for nj in range(0,njobs):
   
@@ -144,7 +144,7 @@ if __name__ == "__main__":
       if infiles[i]!='':
         cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
         if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
-        if opt.dorereco: 
+        if opt.doreco: 
           if opt.dosavehome: cpinput_command = 'cp {custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
           else:              cpinput_command = 'xrdcp $SEPREFIX/{custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
 
@@ -266,10 +266,10 @@ if __name__ == "__main__":
     sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.log -e logs/step2_nj{nj}.log --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
 
     sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
-    if opt.dorereco: # strip the dependency away
+    if opt.doreco: # strip the dependency away
       sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
 
-    if not opt.dorereco:
+    if not opt.doreco:
       submitter_template.append(sbatch_command_step1)
       submitter_template.append('echo "$jid1_nj%i"' % nj)
       submitter_template.append('jid1_nj%i=${jid1_nj%i#"Submitted batch job "}' % (nj,nj))
