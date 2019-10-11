@@ -196,7 +196,7 @@ process.myCond = EcalTrivialConditionRetriever.clone()
 process.es_prefer = cms.ESPrefer("EcalTrivialConditionRetriever","myCond")
 
 ### set all conditions producers to false except those I am interested in
-#process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(False)
+process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(True)
 process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(options.pfrhMult/2.0)
 process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(options.pfrhMult/3.0)
 process.myCond.PFRecHitFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
