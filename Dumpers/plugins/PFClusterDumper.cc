@@ -295,7 +295,7 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        }
        for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
            float simEnergy_tmp=0.;  
-           hitsAndEnergies_CP->clear();   
+           //hitsAndEnergies_CP->clear();   
            hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
            for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
@@ -546,4 +546,3 @@ float PFClusterDumper::reduceFloat(float val, int bits)
 #include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(PFClusterDumper);
-
