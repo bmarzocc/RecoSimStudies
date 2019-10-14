@@ -13,7 +13,9 @@ If you get an error, make sure that the remote machine on which you are working 
     * cd CMSSW_10_6_1_patch1/src/
     * cmsenv
     * git cms-init
-    * git cms-merge-topic bmarzocc:RecoSimStudies 
+    * git cms-merge-topic bmarzocc:PR_CaloParticles
+    * git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds
+    * git cms-merge-topic mgratti:bmarzocc/PR_ParticleGuns
     * git clone git@github.com:pfclustering/RecoSimStudies.git
     * scram b -j 5
 
