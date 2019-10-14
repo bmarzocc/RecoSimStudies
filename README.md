@@ -10,15 +10,16 @@ First installation:
     * cmsrel CMSSW_10_6_1_patch1
 If you get an error, make sure that the remote machine on which you are working on is new enough to be compatible with the CMSSW_10_6_1_patch1 release. At the moment of writing, this release only works for machines with SL7 architecture at least, and one has typically to ask for a t3ui07 account to the PSI-T3 administrators.
 
-    * cd CMSSW_10_6_1_patch1/src/
-    * cmsenv
-    * git cms-init
-    * git cms-merge-topic bmarzocc:PR_CaloParticles
-    * git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds
-    * git cms-merge-topic mgratti:bmarzocc/PR_ParticleGuns
-    * git clone git@github.com:pfclustering/RecoSimStudies.git
-    * scram b -j 5
-
+```
+cd CMSSW_10_6_1_patch1/src/
+cmsenv
+git cms-init
+git cms-merge-topic bmarzocc:PR_CaloParticles
+git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds
+git cms-merge-topic bmarzocc/PR_ParticleGuns
+git clone git@github.com:pfclustering/RecoSimStudies.git
+scram b -j 5
+```
 
 In case you want to interact with the Storage Element, don't forget to set up your proxy:
 ```    
@@ -28,21 +29,42 @@ voms-proxy-init --voms cms --valid 186:00
 ## Workflow
 
 ### Development of ```cmssw```
-Development of ```cmssw``` by members of pfclustering team are done via fork
-One creates his/her own branch locally, pushes it to his/her own fork and then opens pull request for https://github.com/bmarzocc/cmssw/tree/RecoSimStudies
+Development of ```cmssw``` by members of pfclustering team are done via fork of cmssw.
+Currently there are three topics that can be changed (see above), under bmarzocc repo.
+Changes are pushed first to own fork, and then PR is done https://github.com/bmarzocc/cmssw/tree/<TOPIC_BRANCH>
+
+Workflow is as follows:
+    * usual installation
+```
+cd CMSSW_X_Y_Z/src
+git cms-merge-topic bmarzocc:PR_CaloParticles
+git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds
+git cms-merge-topic bmarzocc:PR_ParticleGuns
+git remote add my-cmssw git@github.com:mgratti/cmssw.git # only first time
+```
+    * create new local branch with following convention and do developments:
+```
+git checkout -b mg-PR_<topic>
+git cms-addpkg CalibCalorimetry/EcalTrivialCondModules # this is an exmaple
+git add bla.cpp
+git commit -m "bla" 
+```
+    * push to remote branch, with same name convention:
+```
+git push my-cmssw mg-PR_<topic>
+```
+    * test that changes are working as expected
+    * pull request to relevant topic branch under bmarzocc repo
+    * once PR has been accepted, go back to base branch (from_CMSSW_X_Y_Z), and DELETE both local and remote branches
+```
+git checkout from_CMSSW_X_Y_Z
+git branch -d mg-PR_<topic>
+git push my-cmssw --delete mg-PR_<topic>
+```
+    * re-do the relevant merge-topic 
 
 More information and tricks on how to work with cmssw and github here: http://cms-sw.github.io/faq.html
 
-    * cd CMSSW_X_Y_Z/src
-    * git cms-merge-topic bmarzocc:PR_CaloParticles
-    * git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds
-    * git cms-merge-topic mgratti:bmarzocc/PR_ParticleGuns
-    * git remote add my-cmssw git@github.com:mgratti/cmssw.git # only first time
-    * git checkout -b RecoSimStudies-reco-mg # this is an example
-    * git cms-addpkg CalibCalorimetry/EcalTrivialCondModules # this is an exmaple
-    * developments (git add bla.cpp, git commit -m "bla") 
-    * git push my-cmssw RecoSimStudies-reco-mg
-    * open pull request to relevant topic branch under bmarzocc repo
 
 ### Development of ```RecoSimStudies```
 Development of ```RecoSimStudies``` by members of pfclustering team happens within the pfclustering fork; 
