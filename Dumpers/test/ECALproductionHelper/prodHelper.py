@@ -114,7 +114,7 @@ if __name__ == "__main__":
       rmax = 171.1
       zmin = 317.0
       zmax = 317.0
-      npart = 5
+      npart = 10
   
     if opt.npart!=None:
       npart = opt.npart
@@ -245,7 +245,8 @@ if __name__ == "__main__":
       ] 
       template = '\n'.join(template)
       template = template.format(ind=prodLabel,od=outputDir,jo=target_drivers[i],mkdir=mkdiroutput_command,
-                                 cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i]+' '+cmsRuns_add[i].format(nj=nj+nthr+1),cpaux=cpaux_command) 
+                                 #cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i]+' '+cmsRuns_add[i].format(nj=nj+nthr+1),cpaux=cpaux_command) 
+                                 cpin=cpinput_command,cpout=cpoutput_command,cmsRun=cmsRuns[i]+' '+cmsRuns_add[i].format(nj=nj+1),cpaux=cpaux_command) 
 
       launcherFile = '{}/launch_{}.sh'.format(prodDir,outfiles[i].format(nj=nj).split('.root')[0])
       with open(launcherFile, 'w') as f:
