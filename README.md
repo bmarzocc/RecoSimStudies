@@ -2,11 +2,13 @@
 
 1) Install:
 
-    * scram project CMSSW_10_6_0
-    * cd CMSSW_10_6_0/src/
+    * scram project CMSSW_10_6_4
+    * cd CMSSW_10_6_4/src/
     * cmsenv
     * git cms-init
-    * git cms-merge-topic bmarzocc:RecoSimStudies 
+    * git cms-merge-topic bmarzocc:PR_CaloParticles
+    * git cms-merge-topic bmarzocc:PR_ParticleGuns
+    * git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds #if you want new PFSeeding and PFGathering thresholds
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * scram b -j 5
 
@@ -34,22 +36,24 @@
     * cd RecoSimStudies/Dumpers/test/
     * cmsRun step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py
 
-6) Run the dumper on a RECO sample (produced in the previous steps):
+6) Produce TwentyPhotons Run3_2021 Recos with condor:
+
+    * cd RecoSimStudies/Dumpers/test/
+    * python condor_production.py  -o /eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/TwentyGammasGunPt1-100_pythia8_withPU_withTracker_Run3_2021/ -c /afs/cern.ch/work/b/bmarzocc/Clustering/CMSSW_10_6_4/ -q tomorrow -n 100000 -s 100 -e cms
+
+7) Run general dumper to save per crystal information, on a RECO sample (produced in the previous steps):
     
     * cd RecoSimStudies/Dumpers/
     * cmsRun python/RecoSimDumper_cfg.py
 
-7) Dumper tree info, a vector of caloParticles per event is saved with:
+8) Run the PFCluster dumper, on a RECO sample (produced in the previous steps):
     
-    * genParticles information;
-    * caloParticle information;
-    * In std::vector<float> information of hits of caloParticle simClusters;
-    * In std::vector<float> energy of recHits associated with simClusters hit (-1. if the recHit is missing);
-    * In std::vector<float> energy of pfRecHits associated with simClusters hit (-1. if the pfRecHit is missing);
-    * In std::vector<float> energy of PFCluster hits associated with simClusters hit (-1. if the PFCluster hit is missing);
-    * In std::vector<float> energy of SuperCluster hits associated with simClusters hit (-1. if the SuperCluster hit is missing);
-    * PFClusters information;
-    * SuperClusters information;
-    * In std::map<int,int> mapping between std::vector<float> of simCluster hits and std::vector<float> of PFClusters
-    * In std::map<int,int> mapping between std::vector<float> of superCluster hits and std::vector<float> of SuperClusters
+    * cd RecoSimStudies/Dumpers/
+    * cmsRun python/PFClusterDumper_cfg.py
+
+9) Run the SuperCluster dumper, on a RECO sample (produced in the previous steps):
+    
+    * cd RecoSimStudies/Dumpers/
+    * cmsRun python/SuperClusterInfoTreeMaker_cfg.py
+    
 
