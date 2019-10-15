@@ -2,10 +2,10 @@ import FWCore.ParameterSet.Config as cms
 
 recosimdumper = cms.EDAnalyzer("RecoSimDumper",
 
-    genParticleCollection             = cms.InputTag("genParticles","","HLT"),
-    caloParticleCollection            = cms.InputTag("mix","MergedCaloTruth","HLT"),
-    PCaloHitEBCollection              = cms.InputTag("g4SimHits","EcalHitsEB","SIM"),
-    PCaloHitEECollection              = cms.InputTag("g4SimHits","EcalHitsEE","SIM"),
+    genParticleCollection             = cms.InputTag("genParticles",""),
+    caloParticleCollection            = cms.InputTag("mix","MergedCaloTruth"),
+    PCaloHitEBCollection              = cms.InputTag("g4SimHits","EcalHitsEB"),
+    PCaloHitEECollection              = cms.InputTag("g4SimHits","EcalHitsEE"),
     ebRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     eeRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
     pfRechitCollection                = cms.InputTag("particleFlowRecHitECAL","","RECO"),

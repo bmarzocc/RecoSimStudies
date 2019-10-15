@@ -265,8 +265,7 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        simFractionBCtoCP.clear();
        simFractionCPtoBC.clear();
        simFractionCPtoCP.clear();
-       hitsAndEnergies_BC->clear();   
-
+       
        pfCluster_energy=reduceFloat(iPFCluster.energy(),nBits_);
        pfCluster_eta=reduceFloat(iPFCluster.eta(),nBits_);
        pfCluster_phi=reduceFloat(iPFCluster.phi(),nBits_);
@@ -295,7 +294,6 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        }
        for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
            float simEnergy_tmp=0.;  
-           //hitsAndEnergies_CP->clear();   
            hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
            for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 

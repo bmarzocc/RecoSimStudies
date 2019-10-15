@@ -337,7 +337,6 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        psClusterRawEnergy.clear();
        psClusterEta.clear();
        psClusterPhi.clear();
-       //hitsAndEnergies_SC->clear();
        
        hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
@@ -359,7 +358,6 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           } 
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
-              //hitsAndEnergies_CP->clear(); 
               hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
               for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
@@ -484,8 +482,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        psClusterRawEnergy.clear();
        psClusterEta.clear();
        psClusterPhi.clear();
-       //hitsAndEnergies_SC->clear();
-
+       
        hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
        scRawEnergy = reduceFloat(iSuperCluster.rawEnergy(),nBits_);
@@ -511,7 +508,6 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           }    
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
-              //hitsAndEnergies_CP->clear();  
               hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
               for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
