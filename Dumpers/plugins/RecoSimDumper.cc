@@ -189,6 +189,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       }   
    }
    if(savePFRechits_){ 
+      tree->Branch("pfRecHit_unMatched_energy","std::vector<float>",&pfRecHit_unMatched_energy); 
       tree->Branch("pfRecHit_unMatched_eta","std::vector<float>",&pfRecHit_unMatched_eta); 
       tree->Branch("pfRecHit_unMatched_phi","std::vector<float>",&pfRecHit_unMatched_phi); 
       tree->Branch("pfRecHit_unMatched_ieta","std::vector<int>",&pfRecHit_unMatched_ieta); 
