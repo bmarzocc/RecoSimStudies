@@ -572,7 +572,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       
        if(!isGoodParticle) continue; 
        genParticle_id.push_back(iGen.pdgId()); 
-       genParticle_energy.push_back(iGen.energy()); 
+       genParticle_energy.push_back(iGen.pdgId()); 
        genParticle_pt.push_back(iGen.pt());
        genParticle_eta.push_back(iGen.eta());
        genParticle_phi.push_back(iGen.phi()); 
@@ -738,7 +738,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                                 //for matched SuperClusterHit   
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
-                                map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
+                                if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
+                                else map_superCluster_energy[superCluster_index_tmp]+=reduceFloat(superClusterHit_energy_,nBits_);
                                 break;
                              }                   
                          }
@@ -803,7 +804,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                              if(seedrechits[i].first.rawId() == id.rawId()){      
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
-                                map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
+                                if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
+                                else map_superCluster_energy[superCluster_index_tmp]+=reduceFloat(superClusterHit_energy_,nBits_);
                                 break;
                              }                 
                          }
