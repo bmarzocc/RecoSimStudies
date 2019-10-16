@@ -153,14 +153,18 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    tree->Branch("genParticle_pt","std::vector<float>",&genParticle_pt);
    tree->Branch("genParticle_eta","std::vector<float>",&genParticle_eta);
    tree->Branch("genParticle_phi","std::vector<float>",&genParticle_phi);
-   tree->Branch("caloParticle_energy","std::vector<float>",&caloParticle_energy);
+   tree->Branch("caloParticle_id","std::vector<int>",&caloParticle_id); 
+   tree->Branch("caloParticle_genEnergy","std::vector<float>",&caloParticle_genEnergy);
    tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy); 
-   tree->Branch("caloParticle_pt","std::vector<float>",&caloParticle_pt);
-   tree->Branch("caloParticle_eta","std::vector<float>",&caloParticle_eta);
-   tree->Branch("caloParticle_phi","std::vector<float>",&caloParticle_phi);
-   tree->Branch("caloParticle_ieta","std::vector<int>",&caloParticle_ieta);
-   tree->Branch("caloParticle_iphi","std::vector<int>",&caloParticle_iphi);
-   tree->Branch("caloParticle_iz","std::vector<int>",&caloParticle_iz);
+   tree->Branch("caloParticle_genPt","std::vector<float>",&caloParticle_genPt);
+   tree->Branch("caloParticle_simPt","std::vector<float>",&caloParticle_simPt);
+   tree->Branch("caloParticle_genEta","std::vector<float>",&caloParticle_genEta);
+   tree->Branch("caloParticle_simEta","std::vector<float>",&caloParticle_simEta);
+   tree->Branch("caloParticle_genPhi","std::vector<float>",&caloParticle_genPhi);
+   tree->Branch("caloParticle_simPhi","std::vector<float>",&caloParticle_simPhi);
+   tree->Branch("caloParticle_simIeta","std::vector<int>",&caloParticle_simIeta);
+   tree->Branch("caloParticle_simIphi","std::vector<int>",&caloParticle_simIphi);
+   tree->Branch("caloParticle_simIz","std::vector<int>",&caloParticle_simIz);
    if(saveCalohits_){
       tree->Branch("caloHit_energy","std::vector<std::vector<float> >",&caloHit_energy);
       tree->Branch("caloHit_time","std::vector<std::vector<float> >",&caloHit_time);
@@ -407,15 +411,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    genParticle_pt.clear();
    genParticle_eta.clear();
    genParticle_phi.clear();
-   caloParticle_energy.clear();
+   caloParticle_id.clear();
+   caloParticle_genEnergy.clear();
    caloParticle_simEnergy.clear();
-   caloParticle_pt.clear();
-   caloParticle_eta.clear();
-   caloParticle_phi.clear();
-   caloParticle_ieta.clear();
-   caloParticle_iphi.clear();
-   caloParticle_iz.clear();
- 
+   caloParticle_genPt.clear();
+   caloParticle_simPt.clear();
+   caloParticle_genEta.clear();
+   caloParticle_simEta.clear();
+   caloParticle_genPhi.clear();
+   caloParticle_simPhi.clear();
+   caloParticle_simIeta.clear();
+   caloParticle_simIphi.clear();
+   caloParticle_simIz.clear();
    caloHit_energy.clear();
    caloHit_time.clear();
    caloHit_eta.clear();
@@ -557,6 +564,20 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     
    GlobalPoint cell;
 
+   for(const auto& iGen : *(genParticles.product()))
+   {
+       bool isGoodParticle = false; 
+       for(unsigned int id=0; id<genID_.size(); id++)
+           if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
+      
+       if(!isGoodParticle) continue; 
+       genParticle_id.push_back(iGen.pdgId()); 
+       genParticle_energy.push_back(iGen.energy()); 
+       genParticle_pt.push_back(iGen.pt());
+       genParticle_eta.push_back(iGen.eta());
+       genParticle_phi.push_back(iGen.phi()); 
+   } 
+
    std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
    for(const auto& iCalo : *(caloParticles.product()))
    {
@@ -567,7 +588,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        if(!isGoodParticle) continue;     
 
        const auto& genParticles_caloPart = iCalo.genParticles();
-       genParticle_id.push_back(iCalo.pdgId());
+       caloParticle_id.push_back(iCalo.pdgId());
        if(genParticles_caloPart.empty()){
           cout << "WARNING: no associated genParticle found, making standard dR matching" << endl;
           float dR=999.;
@@ -584,37 +605,36 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           } 
           const auto& genParticles_tmp = *(genParticles.product());
           auto genParticle = genParticles_tmp[igen_tmp]; 
-          genParticle_energy.push_back(reduceFloat(genParticle.energy(),nBits_));
-          genParticle_pt.push_back(reduceFloat(genParticle.pt(),nBits_));
-          genParticle_eta.push_back(reduceFloat(genParticle.eta(),nBits_));
-          genParticle_phi.push_back(reduceFloat(genParticle.phi(),nBits_));
+          caloParticle_genEnergy.push_back(reduceFloat(genParticle.energy(),nBits_));
+          caloParticle_genPt.push_back(reduceFloat(genParticle.pt(),nBits_));
+          caloParticle_genEta.push_back(reduceFloat(genParticle.eta(),nBits_));
+          caloParticle_genPhi.push_back(reduceFloat(genParticle.phi(),nBits_));
        }else{
-          genParticle_energy.push_back(reduceFloat((*genParticles_caloPart.begin())->energy(),nBits_));
-          genParticle_pt.push_back(reduceFloat((*genParticles_caloPart.begin())->pt(),nBits_));
-          genParticle_eta.push_back(reduceFloat((*genParticles_caloPart.begin())->eta(),nBits_));
-          genParticle_phi.push_back(reduceFloat((*genParticles_caloPart.begin())->phi(),nBits_));
+          caloParticle_genEnergy.push_back(reduceFloat((*genParticles_caloPart.begin())->energy(),nBits_));
+          caloParticle_genPt.push_back(reduceFloat((*genParticles_caloPart.begin())->pt(),nBits_));
+          caloParticle_genEta.push_back(reduceFloat((*genParticles_caloPart.begin())->eta(),nBits_));
+          caloParticle_genPhi.push_back(reduceFloat((*genParticles_caloPart.begin())->phi(),nBits_));
        }
- 
-       caloParticle_energy.push_back(reduceFloat(iCalo.energy(),nBits_));
-       caloParticle_pt.push_back(reduceFloat(iCalo.pt(),nBits_));
+
+       caloParticle_simPt.push_back(reduceFloat(iCalo.pt(),nBits_));
       
        std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(iCalo);
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0., geometry, false);
-       caloParticle_eta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
-       caloParticle_phi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
+       caloParticle_simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
+       caloParticle_simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
        if(std::abs(caloParticle_position.eta()) < 1.479){  
           EBDetId eb_id(_ebGeom->getClosestCell(caloParticle_position));  
-          caloParticle_ieta.push_back(eb_id.ieta());
-          caloParticle_iphi.push_back(eb_id.iphi());
-          caloParticle_iz.push_back(0); 
+          caloParticle_simIeta.push_back(eb_id.ieta());
+          caloParticle_simIphi.push_back(eb_id.iphi());
+          caloParticle_simIz.push_back(0); 
        }else{            
           int iz=-99;
           EEDetId ee_id(_eeGeom->getClosestCell(caloParticle_position));   
-          caloParticle_ieta.push_back(ee_id.ix());
-          caloParticle_iphi.push_back(ee_id.iy());
+          caloParticle_simIeta.push_back(ee_id.ix());
+          caloParticle_simIphi.push_back(ee_id.iy());
           if(ee_id.zside()<0) iz=-1;
           if(ee_id.zside()>0) iz=1;  
-          caloParticle_iz.push_back(iz); 
+          caloParticle_simIz.push_back(iz); 
        }   
    }
 
