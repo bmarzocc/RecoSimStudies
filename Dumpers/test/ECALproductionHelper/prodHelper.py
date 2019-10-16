@@ -29,10 +29,12 @@ def getOptions():
 
   #parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
-  parser.add_argument('--doshort', dest='doshort', help='set 2 hours as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--doold', dest='doold', help='use old_ version of the scripts', action='store_true', default=False)
+  parser.add_argument('--doshort', dest='doshort', help='set 2 hours as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
+  parser.add_argument('--docustomtime', dest='docustomtime', help='set custom time', action='store_true', default=False)
+  parser.add_argument('--time', type=str, dest='time', help='allowed time for each job of each step in hours, example 01,02,01 for 1 hour for step1, 2 for step2, 2 for step3', default='2,2,5')
   parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
   parser.add_argument('--custominput', type=str, dest='custominput', help='SE path of the input that you want to use for the reconstruction', default=None)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
@@ -62,6 +64,20 @@ if __name__ == "__main__":
   if opt.doreco and opt.custominput == None: raise RuntimeError('you must supply the custom input, when running with doreco activated')
   if opt.doreco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
   if opt.doreco and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.docustomtime: 
+    time1=opt.time.split(',')[0]
+    time2=opt.time.split(',')[1]
+    time3=opt.time.split(',')[2]
+    times = [time1,time2,time3]
+    sbatch_times = map(lambda x: '--time=0-{}:00'.format(x), times)
+  else:
+    if opt.domedium:
+      time = '--time=1-23:59'
+    elif opt.dolong:
+      time = '--time=2-23:59'
+    elif opt.doshort:
+      time = '--time=0-02:00'
+    sbatch_times = [time, time, time]
 
   ##############################
   # create production directory and logs directory within
@@ -255,26 +271,18 @@ if __name__ == "__main__":
 
   #############################
   # finally write the submitter
-  #############################
-  time = ''
-  if opt.domedium:
-    time = '--time=1-23:59'
-  elif opt.dolong:
-    time = '--time=2-23:59'
-  elif opt.doshort:
-    time = '--time=0-02:00'
-  
+  ############################# 
   submitter_template = []
 
   for nj in range(0,njobs):
 
-    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn -o logs/step1_nj{nj}.log -e logs/step1_nj{nj}.log --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn -o logs/step1_nj{nj}.log -e logs/step1_nj{nj}.log --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[0],nt=nthr)
 
-    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.log -e logs/step2_nj{nj}.log --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.log -e logs/step2_nj{nj}.log --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[1],nt=nthr)
 
-    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
     if opt.doreco: # strip the dependency away
-      sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=time,nt=nthr)
+      sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
 
     if not opt.doreco:
       submitter_template.append(sbatch_command_step1)
