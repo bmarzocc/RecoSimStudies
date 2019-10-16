@@ -15,7 +15,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     puInfoTag                         = cms.InputTag("slimmedAddPileupInfo","","RECO"), 
     rhoTag                            = cms.InputTag("fixedGridRhoFastjetAll","","RECO"), 
     
-    doCompression                     = cms.bool(True),  #do the compression of floats
+    doCompression                     = cms.bool(False),  #do the compression of floats
     nBits                             = cms.int32(12),   #nbits for float compression (<=23)
 
     saveCalohits                      = cms.bool(False), #save pCaloHits information
