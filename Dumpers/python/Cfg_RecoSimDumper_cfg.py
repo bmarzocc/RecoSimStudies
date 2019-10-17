@@ -31,8 +31,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 100 )
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),                       
     fileNames = cms.untracked.vstring (options.inputFiles),
-    secondaryFileNames = cms.untracked.vstring()
-    ) 
+    secondaryFileNames = cms.untracked.vstring(),
+    duplicateCheckMode = cms.untracked.string("noDuplicateCheck")
+) 
 
 process.load('RecoSimStudies.Dumpers.Cfg_RecoSimDumper_cfi')
 
