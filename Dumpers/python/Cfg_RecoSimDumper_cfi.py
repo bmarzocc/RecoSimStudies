@@ -19,7 +19,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     nBits                             = cms.int32(12),   #nbits for float compression (<=23)
 
     saveCalohits                      = cms.bool(False), #save pCaloHits information
-    saveSimhits                       = cms.bool(False),  #save simHits information
+    saveSimhits                       = cms.bool(True),  #save simHits information
     saveRechits                       = cms.bool(False),  #save recHits information
     savePFRechits                     = cms.bool(False),  #save pfRecHits information
     savePFCluster                     = cms.bool(True),  #save pfClusters information
