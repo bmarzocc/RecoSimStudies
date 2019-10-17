@@ -101,6 +101,7 @@ process.PREMIXRAWoutput = cms.OutputModule("PoolOutputModule",
 )
 process.PREMIXRAWEventContent.outputCommands.extend(['keep *_mix_MergedCaloTruth_*',
                                                      'keep *_genParticles_*_*'])
+#process.PREMIXRAWEventContent.outputCommands.extend(['keep *'])
 
 # Additional output definition
 
@@ -5119,7 +5120,7 @@ process.mix.digitizers = cms.PSet(process.theDigitizersValid)
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '106X_mcRun3_2023_realistic_v3', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '106X_mcRun3_2021_realistic_v3', '')
 
 # Path and EndPath definitions
 process.digitisation_step = cms.Path(process.pdigi)
