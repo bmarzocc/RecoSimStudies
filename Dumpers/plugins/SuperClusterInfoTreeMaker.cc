@@ -176,10 +176,11 @@ SuperClusterTreeMaker::SuperClusterTreeMaker(const edm::ParameterSet& iConfig)
      tree->Branch("simEnergy", "std::vector<float>", &simEnergy);
      tree->Branch("simDRToCentroid", "std::vector<float>", &simDRToCentroid);
      tree->Branch("simDRToSeed", "std::vector<float>", &simDRToSeed);
-     tree->Branch("simFractionBCtoBC", "std::vector<float>", &simFractionBCtoBC);
-     tree->Branch("simFractionBCtoCP", "std::vector<float>", &simFractionBCtoCP);
-     tree->Branch("simFractionCPtoBC", "std::vector<float>", &simFractionCPtoBC);
-     tree->Branch("simFractionCPtoCP", "std::vector<float>", &simFractionCPtoCP);   
+     tree->Branch("n_shared_xtals", "std::vector<float>", &n_shared_xtals);
+     tree->Branch("sim_fraction", "std::vector<float>", &sim_fraction);
+     tree->Branch("sim_rechit_diff", "std::vector<float>", &sim_rechit_diff);
+     tree->Branch("sim_rechit_fraction", "std::vector<float>", &sim_rechit_fraction);   
+     tree->Branch("global_sim_rechit_fraction", "std::vector<float>", &global_sim_rechit_fraction);   
      tree->Branch("clusterDPhiToSim", "std::vector<std::vector<float> >", &clusterDPhiToSim);
      tree->Branch("clusterDEtaToSim", "std::vector<std::vector<float> >", &clusterDEtaToSim);
      tree->Branch("clusterLeakageWrtSim", "std::vector<std::vector<float> >", &clusterLeakageWrtSim);
@@ -315,10 +316,11 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        simPhi.clear();
        simDRToCentroid.clear();
        simDRToSeed.clear();
-       simFractionBCtoBC.clear();
-       simFractionBCtoCP.clear();
-       simFractionCPtoBC.clear();
-       simFractionCPtoCP.clear();
+       n_shared_xtals.clear();
+       sim_fraction.clear();
+       sim_rechit_diff.clear();
+       sim_rechit_fraction.clear();
+       global_sim_rechit_fraction.clear();
        clusterRawEnergy.clear();;
        clusterCalibEnergy.clear();
        clusterEta.clear();
@@ -363,17 +365,18 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
                   simEnergy_tmp+=hit_CP.second;
         
-              std::vector<float> fractionEnergy = getSharedRecHitFraction(hitsAndEnergies_SC,hitsAndEnergies_CP,true);
+              std::vector<float> scores = getScores(hitsAndEnergies_SC,hitsAndEnergies_CP);
               
               caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
               simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
               simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
-              simFractionBCtoBC.push_back(reduceFloat(fractionEnergy[0],nBits_)); 
-              simFractionBCtoCP.push_back(reduceFloat(fractionEnergy[1],nBits_)); 
-              simFractionCPtoBC.push_back(reduceFloat(fractionEnergy[2],nBits_)); 
-              simFractionCPtoCP.push_back(reduceFloat(fractionEnergy[3],nBits_));  
+              n_shared_xtals.push_back(reduceFloat(scores[0],nBits_)); 
+              sim_fraction.push_back(reduceFloat(scores[1],nBits_)); 
+              sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
+              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));  
+              global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));   
               if(iSuperCluster.seed().isAvailable() && doSimMatch_) simDRToSeed.push_back(reduceFloat( deltaR(caloParticle_position.eta(),caloParticle_position.phi(), iSuperCluster.seed()->eta(), iSuperCluster.seed()->phi()),nBits_)); 
           }  
        } 
@@ -412,8 +415,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterDEtaToSeed[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.seed()->eta(),nBits_);    
               clusterDPhiToCentroid[iClus] = reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - iSuperCluster.phi()),nBits_); 
               clusterDEtaToCentroid[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.eta(),nBits_);
-              clusterHitFractionSharedWithSeed[iClus] = reduceFloat(getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),&iSuperCluster.seed()->hitsAndFractions(),true)[1],nBits_);  
-              clusterLeakage[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE),true)[1],nBits_);
+              //clusterHitFractionSharedWithSeed[iClus] = reduceFloat(getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),&iSuperCluster.seed()->hitsAndFractions(),true)[1],nBits_);  
+              //clusterLeakage[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE),true)[1],nBits_);
               clusterInMustache[iClus] = (int)reco::MustacheKernel::inMustache(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(),iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_){ 
@@ -424,7 +427,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
 
                      clusterDPhiToSim[iClus].push_back(reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - caloParticle_position.phi()),nBits_));    
                      clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));    
-                     clusterLeakageWrtSim[iClus].push_back(reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),hitsAndEnergies_CP,false)[1],nBits_));    
+                     //clusterLeakageWrtSim[iClus].push_back(reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),hitsAndEnergies_CP,false)[1],nBits_));    
                  }
               }
   
@@ -460,10 +463,11 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        simPhi.clear();
        simDRToCentroid.clear();
        simDRToSeed.clear();
-       simFractionBCtoBC.clear();
-       simFractionBCtoCP.clear();
-       simFractionCPtoBC.clear();
-       simFractionCPtoCP.clear();
+       n_shared_xtals.clear();
+       sim_fraction.clear();
+       sim_rechit_diff.clear();
+       sim_rechit_fraction.clear();
+       global_sim_rechit_fraction.clear();
        clusterRawEnergy.clear();;
        clusterCalibEnergy.clear();
        clusterEta.clear();
@@ -513,17 +517,18 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
                   simEnergy_tmp+=hit_CP.second;
         
-              std::vector<float> fractionEnergy = getSharedRecHitFraction(hitsAndEnergies_SC,hitsAndEnergies_CP,true);
+              std::vector<float> scores = getScores(hitsAndEnergies_SC,hitsAndEnergies_CP);
               
               caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
               simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
               simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
-              simFractionBCtoBC.push_back(reduceFloat(fractionEnergy[0],nBits_)); 
-              simFractionBCtoCP.push_back(reduceFloat(fractionEnergy[1],nBits_)); 
-              simFractionCPtoBC.push_back(reduceFloat(fractionEnergy[2],nBits_)); 
-              simFractionCPtoCP.push_back(reduceFloat(fractionEnergy[3],nBits_));  
+              n_shared_xtals.push_back(reduceFloat(scores[0],nBits_)); 
+              sim_fraction.push_back(reduceFloat(scores[1],nBits_)); 
+              sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
+              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));  
+              global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));   
               if(iSuperCluster.seed().isAvailable() && doSimMatch_) simDRToSeed.push_back(reduceFloat( deltaR(caloParticle_position.eta(),caloParticle_position.phi(), iSuperCluster.seed()->eta(), iSuperCluster.seed()->phi()),nBits_)); 
           }  
        } 
@@ -562,8 +567,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterDEtaToSeed[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.seed()->eta(),nBits_);    
               clusterDPhiToCentroid[iClus] = reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - iSuperCluster.phi()),nBits_); 
               clusterDEtaToCentroid[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.eta(),nBits_);
-              clusterHitFractionSharedWithSeed[iClus] = reduceFloat(getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),&iSuperCluster.seed()->hitsAndFractions(),true)[1],nBits_);  
-              clusterLeakage[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE),true)[1],nBits_);
+              //clusterHitFractionSharedWithSeed[iClus] = reduceFloat(getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),&iSuperCluster.seed()->hitsAndFractions(),true)[1],nBits_);  
+              //clusterLeakage[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE),true)[1],nBits_);
               clusterInMustache[iClus] = (int)reco::MustacheKernel::inMustache(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(),iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_){ 
@@ -574,7 +579,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
 
                      clusterDPhiToSim[iClus].push_back(reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - caloParticle_position.phi()),nBits_));    
                      clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));    
-                     clusterLeakageWrtSim[iClus].push_back(reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),hitsAndEnergies_CP,false)[1],nBits_));    
+                     //clusterLeakageWrtSim[iClus].push_back(reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),hitsAndEnergies_CP,false)[1],nBits_));    
                  }
               }
   
@@ -613,47 +618,68 @@ void SuperClusterTreeMaker::endJob()
 }
 
 ///------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-std::vector<float> SuperClusterTreeMaker::getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy)
+std::vector<float> SuperClusterTreeMaker::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_CL, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP)
 {
     std::vector<float> fraction;
-    fraction.resize(4);
+    fraction.resize(5);
+
+    float nSharedXtals=-1.;
+    float simFraction=-1.;
+    float sim_rechit_diff=0.;
+    float sim_rechit_fraction=0.;     
+    float global_sim_rechit_fraction=-1.;       
    
     float rechits_tot_CP = 0.;
+    float rechits_tot_CP_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
-        if(useEnergy)  rechits_tot_CP+=hit_CP.second;
-        if(!useEnergy) rechits_tot_CP+=1.;
+        rechits_tot_CP+=hit_CP.second;
+        rechits_tot_CP_noEnergy+=1.;
     }
 
-    float rechits_tot_BC = 0.;
-    for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC) {
-        if(useEnergy)  rechits_tot_BC+=hit_BC.second;
-        if(!useEnergy) rechits_tot_BC+=1.;
+    float rechits_tot_CL = 0.;
+    float rechits_tot_CL_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_CL : *hits_and_energies_CL) {
+        rechits_tot_CL+=hit_CL.second;
+        rechits_tot_CL_noEnergy+=1.;
     }
    
-    float rechits_match_BC = 0.;
+    float rechits_match_CL = 0.;
     float rechits_match_CP = 0.;
-    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) 
-        for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC){      
-            if(hit_CP.first.rawId() == hit_BC.first.rawId()){
-               if(useEnergy){  
-                  rechits_match_BC += hit_BC.second;
-                  rechits_match_CP += hit_CP.second;    
-               }
-               if(!useEnergy){
-                  rechits_match_BC += 1.0;
-                  rechits_match_CP += 1.0;
-               }
-            } 
+    float rechits_match_CP_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_CL : *hits_and_energies_CL){
+        float reco_ratio=0.; 
+        if(rechits_tot_CL!=0.) reco_ratio = hit_CL.second/rechits_tot_CL;
+        float sim_ratio = 0.;        
+        for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP){  
+            if(hit_CP.first.rawId() == hit_CL.first.rawId()){
+
+               rechits_match_CL += hit_CL.second;
+               rechits_match_CP += hit_CP.second;    
+               rechits_match_CP_noEnergy += 1.0;
+
+               sim_rechit_diff += fabs(hit_CP.second-hit_CL.second);
+               if(rechits_tot_CP!=0.) sim_ratio = hit_CP.second/rechits_tot_CP; 
+            }         
         } 
+        sim_rechit_fraction += fabs(sim_ratio - reco_ratio);  
+    }
+
+    if(rechits_tot_CP_noEnergy!=0.) nSharedXtals = rechits_tot_CP_noEnergy;
+
+    if(rechits_tot_CP!=0.) simFraction = rechits_match_CP/rechits_tot_CP;
+
+    if(rechits_match_CP_noEnergy!=0.) sim_rechit_diff = 1-1./rechits_match_CP_noEnergy*sim_rechit_diff;
+    else sim_rechit_diff=-1.; 
+
+    sim_rechit_fraction = 1-sim_rechit_fraction;
     
-    if(rechits_tot_BC!=0.) fraction[0] = rechits_match_BC/rechits_tot_BC;
-    else fraction[0]=-1.;
-    if(rechits_tot_CP!=0.) fraction[1] = rechits_match_BC/rechits_tot_CP;
-    else fraction[1]=-1.; 
-    if(rechits_tot_BC!=0.) fraction[2] = rechits_match_CP/rechits_tot_BC;
-    else fraction[2]=-1.;
-    if(rechits_tot_CP!=0.) fraction[3] = rechits_match_CP/rechits_tot_CP;
-    else fraction[3]=-1.;
+    if(rechits_tot_CP!=0. && rechits_tot_CL!=0.) global_sim_rechit_fraction = 1-fabs(rechits_match_CP/rechits_tot_CP- rechits_match_CL/rechits_tot_CL);
+    
+    fraction[0] = nSharedXtals;
+    fraction[1] = simFraction;
+    fraction[2] = sim_rechit_diff;
+    fraction[3] = sim_rechit_fraction;     
+    fraction[4] = global_sim_rechit_fraction;  
 
     return fraction;
 }
@@ -676,7 +702,7 @@ std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndEnergies
                 if (HitsAndEnergies_map.find(seedrechits.at(i).first) == HitsAndEnergies_map.end()) {
                     HitsAndEnergies_map[seedrechits.at(i).first]=seedrechits.at(i).second * (*(recHitsEE.product())->find(seedrechits.at(i).first)).energy();   
                 }else{
-                    HitsAndEnergies_map[seedrechits.at(i).first]=HitsAndEnergies_map[seedrechits.at(i).first]+seedrechits.at(i).second * (*(recHitsEB.product())->find(seedrechits.at(i).first)).energy();
+                    HitsAndEnergies_map[seedrechits.at(i).first]=HitsAndEnergies_map[seedrechits.at(i).first]+seedrechits.at(i).second * (*(recHitsEE.product())->find(seedrechits.at(i).first)).energy();
                 } 
             }
         }                      

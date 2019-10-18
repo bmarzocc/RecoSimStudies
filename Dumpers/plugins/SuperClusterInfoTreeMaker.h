@@ -122,6 +122,7 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       std::vector<float> getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy);
+      std::vector<float> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_CL, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP);
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
    
       // ----------collection tokens-------------------
@@ -169,10 +170,11 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       std::vector<float> simPhi;
       std::vector<float> simDRToCentroid;
       std::vector<float> simDRToSeed;
-      std::vector<float> simFractionBCtoBC;
-      std::vector<float> simFractionBCtoCP;
-      std::vector<float> simFractionCPtoBC;
-      std::vector<float> simFractionCPtoCP;
+      std::vector<float> n_shared_xtals;
+      std::vector<float> sim_fraction;
+      std::vector<float> sim_rechit_diff;
+      std::vector<float> sim_rechit_fraction;
+      std::vector<float> global_sim_rechit_fraction;
       int N_ECALClusters;
       std::vector<float> clusterRawEnergy;
       std::vector<float> clusterCalibEnergy;
