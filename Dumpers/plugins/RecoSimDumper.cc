@@ -961,7 +961,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    //Save SuperClusters 
    if(saveSuperCluster_ || saveShowerShapes_){
       int iSC=0;
-      std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
+      //std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEB.product())){  
           reco::CaloCluster caloBC(*iSuperCluster.seed());  
           locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
