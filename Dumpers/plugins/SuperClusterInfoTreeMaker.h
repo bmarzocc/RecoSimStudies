@@ -122,8 +122,8 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       std::vector<float> getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy);
-      std::vector<float> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_CL, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP);
-      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
+      std::vector<float> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart);
+      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
    
       // ----------collection tokens-------------------
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
@@ -146,6 +146,7 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       int nBits_;
       std::vector<int> genID_;
       bool doSimMatch_;
+      bool saveScores_; 
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;
@@ -165,16 +166,25 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       std::vector<float> genEnergy;
       std::vector<float> genEta;
       std::vector<float> genPhi;
+      std::vector<float> dR_genScore;
+      int dR_genScore_MatchedIndex;
       std::vector<float> simEnergy;
       std::vector<float> simEta;
       std::vector<float> simPhi;
       std::vector<float> simDRToCentroid;
       std::vector<float> simDRToSeed;
+      std::vector<float> dR_simScore;
+      int dR_simScore_MatchedIndex;
       std::vector<float> n_shared_xtals;
+      int n_shared_xtals_MatchedIndex;
       std::vector<float> sim_fraction;
+      int sim_fraction_MatchedIndex;
       std::vector<float> sim_rechit_diff;
+      int sim_rechit_diff_MatchedIndex;
       std::vector<float> sim_rechit_fraction;
+      int sim_rechit_fraction_MatchedIndex;
       std::vector<float> global_sim_rechit_fraction;
+      int global_sim_rechit_fraction_MatchedIndex;
       int N_ECALClusters;
       std::vector<float> clusterRawEnergy;
       std::vector<float> clusterCalibEnergy;
@@ -186,9 +196,6 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       std::vector<float> clusterDEtaToCentroid;
       std::vector<std::vector<float> > clusterDPhiToSim;
       std::vector<std::vector<float> > clusterDEtaToSim;
-      std::vector<std::vector<float> > clusterLeakageWrtSim;
-      std::vector<float> clusterHitFractionSharedWithSeed;
-      std::vector<float> clusterLeakage;
       std::vector<int> clusterInMustache;
       std::vector<int> clusterInDynDPhi;
       int N_PSClusters;
