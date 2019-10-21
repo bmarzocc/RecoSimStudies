@@ -534,6 +534,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    superClusterHit_iz.resize(nCaloParticles);
 
    int nSuperClusters = (superClusterEB.product())->size() + (superClusterEE.product())->size();
+   int nSuperClusters_EB = (superClusterEB.product())->size();
    superClusterHit_noCaloPart_energy.clear();
    superClusterHit_noCaloPart_eta.clear();
    superClusterHit_noCaloPart_phi.clear();
@@ -646,7 +647,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        int simHit_index=-1; 
        int recHit_index=-1; 
        int pfRecHit_index=-1; 
-       int superClusterHit_index=-1;
 
        float calo_simEnergy=0.;
        for(auto const& hit: caloParticleXtals_[iCaloCount])
@@ -738,6 +738,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                                 //for matched SuperClusterHit   
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
+                                // Check if the supercluster exists already, add energy (overlapping pfclusters)
                                 if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
                                 else map_superCluster_energy[superCluster_index_tmp]+=reduceFloat(superClusterHit_energy_,nBits_);
                                 break;
@@ -746,7 +747,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                      } 
                      superCluster_index_tmp++;
                  }
-                 superClusterHit_index++; 
                  superClusterHit_energy[iCaloCount].push_back(map_superCluster_energy);
                  if(!saveSimhits_ && !saveRechits_ && !savePFRechits_ && !savePFCluster_){  
                     superClusterHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_)); 
@@ -795,7 +795,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                    
               //Save SuperClusterHit energy
               float superClusterHit_energy_ = -1.;
-              int superCluster_index_tmp=0; 
+              // Using nSuperClusterEB as an offset for global supercluster reference
+              int superCluster_index_tmp = nSuperClusters_EB; 
               if(saveSuperCluster_){
                  for(const auto& iSuperCluster : *(superClusterEE.product())){
                      for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
@@ -804,6 +805,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                              if(seedrechits[i].first.rawId() == id.rawId()){      
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
+                                
+                                // We save superclusterindex with an offset = nSuperClustersEB
                                 if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
                                 else map_superCluster_energy[superCluster_index_tmp]+=reduceFloat(superClusterHit_energy_,nBits_);
                                 break;
@@ -811,8 +814,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                          }
                      }    
                      superCluster_index_tmp++;
-                 }
-                 superClusterHit_index++; 
+                 } 
                  superClusterHit_energy[iCaloCount].push_back(map_superCluster_energy);
                  if(!saveSimhits_ && !saveRechits_ && !savePFRechits_ && !savePFCluster_){  
                     superClusterHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_)); 
@@ -1005,7 +1007,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }      
           iSC++;  
       } 
-      iSC=0;
+      // The global SuperCluster indexing for EE has an offset = nSuperClusterEB
+      iSC = nSuperClusters_EB;
       std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEE.product())){    
           reco::CaloCluster caloBC(*iSuperCluster.seed());  
