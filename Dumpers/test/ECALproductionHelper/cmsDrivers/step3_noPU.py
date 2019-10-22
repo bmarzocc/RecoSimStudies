@@ -140,6 +140,7 @@ if options.doRef == 0:
   process.myCond.PFSeedingFile = cms.untracked.string("./data/noise/PFRecHitThresholds_EB.txt")
   process.myCond.PFSeedingFileEE = cms.untracked.string("./data/noise/PFRecHitThresholds_EE.txt")
 else: # use the reference values
+  process.myCond.producedEcalPFSeedingThresholds = cms.untracked.bool(True)
   process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(1.0) 
   process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(1.0) 
   process.myCond.PFSeedingFile = cms.untracked.string("./data/noise/fixed_SeedingThresholds_EB.txt")
