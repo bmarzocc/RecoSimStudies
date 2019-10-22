@@ -61,6 +61,8 @@ options.register('doFlatEnergy',
 options.parseArguments()
 print options
 
+my_doFlatEnergy = cms.bool(False) if options.doFlatEnergy == 0 else cms.bool(True)
+
 from Configuration.Eras.Era_Run3_cff import Run3
 process = cms.Process('SIM',Run3)
 
@@ -133,7 +135,7 @@ process.generator = cms.EDProducer("CloseByParticleMultiGunProducer",
         ZMax = cms.double(options.zmax),
         ZMin = cms.double(options.zmin),
         Delta = cms.double(350), # not used
-        doFlatEnergy = cms.bool(options.doFlatEnergy) 
+        doFlatEnergy = my_doFlatEnergy, 
         Pointing = cms.bool(True),
         Overlapping = cms.bool(False),
         RandomShoot = cms.bool(False),

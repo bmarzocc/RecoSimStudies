@@ -54,10 +54,11 @@ if __name__ == "__main__":
   ##############################
   # job configurations
   #############################
-  etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
-  prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
+  evar = 'E' if opt.doflatenergy else 'Et'
+  etRange='{}{}to{}GeV'.format(evar,opt.etmin,opt.etmax)
+  prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
   if opt.doref: # change to ref label
-    prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
+    prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
     doref = 1 if opt.doref else 0
   doflatenergy = 1 if opt.doflatenergy else 0
   nthr = 8 if opt.domultithread else 1
