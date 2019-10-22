@@ -56,7 +56,7 @@ if __name__ == "__main__":
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
   prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
   if opt.doref: # change to ref label
-    prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='ref',s='ref',v=opt.ver,n=opt.nevts)
+    prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
     doref = 1 if opt.doref else 0
   nthr = 8 if opt.domultithread else 1
   njobs = opt.njobs if opt.domultijob else 1
@@ -81,6 +81,8 @@ if __name__ == "__main__":
       time = '--time=2-23:59'
     elif opt.doshort:
       time = '--time=0-02:00'
+    else:
+      time = '--time=1-00:00'
     sbatch_times = [time, time, time]
 
   ##############################

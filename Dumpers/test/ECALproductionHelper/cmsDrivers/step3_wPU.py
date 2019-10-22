@@ -206,6 +206,28 @@ process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
 
 
 # customisation of the process.
+if options.doRef == 0:
+  process.particleFlowClusterECALUncorrected.initialClusteringStep.thresholdsByDetector = cms.VPSet(
+        cms.PSet( detector = cms.string("ECAL_BARREL"),
+               gatheringThreshold = cms.double(0.0),
+               gatheringThresholdPt = cms.double(0.0)
+               ),
+        cms.PSet( detector = cms.string("ECAL_ENDCAP"),
+               gatheringThreshold = cms.double(0.0),
+               gatheringThresholdPt = cms.double(0.0)
+               )
+  )
+else: # use reference values
+  process.particleFlowClusterECALUncorrected.initialClusteringStep.thresholdsByDetector = cms.VPSet(
+        cms.PSet( detector = cms.string("ECAL_BARREL"),
+               gatheringThreshold = cms.double(0.08),
+               gatheringThresholdPt = cms.double(0.0)
+               ),
+        cms.PSet( detector = cms.string("ECAL_ENDCAP"),
+               gatheringThreshold = cms.double(0.30),
+               gatheringThresholdPt = cms.double(0.0)
+               )
+  )
 
 # Automatic addition of the customisation function from SimGeneral.MixingModule.fullMixCustomize_cff
 from SimGeneral.MixingModule.fullMixCustomize_cff import setCrossingFrameOn 
