@@ -36,14 +36,14 @@ def getOptions():
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--docustomtime', dest='docustomtime', help='set custom time', action='store_true', default=False)
   parser.add_argument('--time', type=str, dest='time', help='allowed time for each job of each step in hours, example 01,02,01 for 1 hour for step1, 2 for step2, 2 for step3', default='2,2,5')
-  parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
+  parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing production', action='store_true', default=False)
   parser.add_argument('--doref', dest='doref', help='use reference values for pfrh,seed, thresholds', action='store_true', default=False)
-  parser.add_argument('--custominput', type=str, dest='custominput', help='SE path of the input that you want to use for the reconstruction', default=None)
+  parser.add_argument('--custominput', type=str, dest='custominput', help='full path of the input file that you want to use for the reconstruction (also SE is supported)', default=None)
+  parser.add_argument('--custominputdir', type=str, dest='custominputdir', help='full path of the input directory that you want to use for the reconstruction (also SE is supported)', default=None)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
   parser.add_argument('--njobs', type=int, dest='njobs', help='number of parallel jobs to submit', default=10)
   
-
   return parser.parse_args()
 
 
@@ -68,9 +68,11 @@ if __name__ == "__main__":
   nevtsjob = opt.nevts if not opt.domultijob else opt.nevts/opt.njobs
   nevtspremixfile = 600 # current number of events in each premixed file
   npremixfiles = nevtsjob / nevtspremixfile + 1
-  if opt.doreco and opt.custominput == None: raise RuntimeError('you must supply the custom input, when running with doreco activated')
-  if opt.doreco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
-  if opt.doreco and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.doreco and (opt.custominput == None or opt.custominputdir == None): raise RuntimeError('you must supply the custom input, when running with doreco activated')
+  if opt.doreco and not opt.domultijob and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.doreco and opt.domultijob and not os.path.isdir(opt.custominputdir): raise RuntimeError('custominputdir {} not found').format(opt.custominputdir)
+  if opt.doreco and opt.domultijob: print 'Dear user, please note that if you are running with doreco and domultijob activated, you should use the same job splitting that was used for the original production'
+  #if opt.doreco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
   if opt.docustomtime: 
     time1=opt.time.split(',')[0]
     time2=opt.time.split(',')[1]
@@ -176,8 +178,9 @@ if __name__ == "__main__":
         cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
         if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
         if opt.doreco: 
-          if opt.dosavehome: cpinput_command = 'cp {custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
-          else:              cpinput_command = 'xrdcp $SEPREFIX/{custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
+          custompinput = opt.custominput if not opt.domultijob else opt.custominputdir + '/step2_nj{nj}.root'.format(nj=nj) # could have used also infiles[i].format(nj=nj)
+          if opt.dosavehome: cpinput_command = 'cp {ci} $WORKDIR/{infile_loc}'.format(ci=custominput,infile_loc=infiles_loc[i])
+          else:              cpinput_command = 'xrdcp $SEPREFIX/{ci} $WORKDIR/{infile_loc}'.format(ci=opt.custominput,infile_loc=infiles_loc[i])
 
       cpoutput_command = 'xrdcp -f {outfile_loc} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
       if opt.dosavehome: cpoutput_command = 'cp {outfile_loc} $SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
