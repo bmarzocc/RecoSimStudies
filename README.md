@@ -35,6 +35,8 @@ Developments Development of ```cmssw``` by members of pfclustering team are done
 Currently there are three topics that can be changed (see above), under bmarzocc repo.
 Changes to a given topic are pushed first to own fork, and then PR is done https://github.com/bmarzocc/cmssw/tree/<TOPIC_BRANCH>
 
+*IMPORTANT NOTE* B. is still using an old release! So if you try to push, will get also release changes in the PR
+
 The developments should be tested in the full (meaning three topics) configuration, but only the commits relevant to a given topic should be pushed
 to the relevant topic, with the following workflow:
 

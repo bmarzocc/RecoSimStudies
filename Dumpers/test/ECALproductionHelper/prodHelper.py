@@ -21,6 +21,7 @@ def getOptions():
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
   parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
   parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
+  parser.add_argument('--doflatenergy', dest='doflatenergy', help='generate flat in energy, otherwise in pt', action='store_true', default=False)
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
@@ -58,6 +59,7 @@ if __name__ == "__main__":
   if opt.doref: # change to ref label
     prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
     doref = 1 if opt.doref else 0
+  doflatenergy = 1 if opt.doflatenergy else 0
   nthr = 8 if opt.domultithread else 1
   njobs = opt.njobs if opt.domultijob else 1
   if opt.domultijob and opt.njobs <= 1: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 1')
@@ -141,8 +143,8 @@ if __name__ == "__main__":
     if opt.npart!=None:
       npart = opt.npart
 
-    step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt}'.format(
-                    jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
+    step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt} doFlatEnergy={dfe}'.format(
+                    jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr, dfe=doflatenergy)
     step1_cmsRun_add = 'seedOffset={nj}' # format at a later stage
   else:
     raise RuntimeError('this option is not currently supported')
