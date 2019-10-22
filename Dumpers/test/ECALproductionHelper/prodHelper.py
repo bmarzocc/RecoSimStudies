@@ -36,6 +36,7 @@ def getOptions():
   parser.add_argument('--docustomtime', dest='docustomtime', help='set custom time', action='store_true', default=False)
   parser.add_argument('--time', type=str, dest='time', help='allowed time for each job of each step in hours, example 01,02,01 for 1 hour for step1, 2 for step2, 2 for step3', default='2,2,5')
   parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
+  parser.add_argument('--doref', dest='doref', help='use reference values for pfrh,seed, thresholds', action='store_true', default=False)
   parser.add_argument('--custominput', type=str, dest='custominput', help='SE path of the input that you want to use for the reconstruction', default=None)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
@@ -54,6 +55,9 @@ if __name__ == "__main__":
   #############################
   etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
   prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
+  if opt.doref: # change to ref label
+    prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='ref',s='ref',v=opt.ver,n=opt.nevts)
+    doref = 1 if opt.doref else 0
   nthr = 8 if opt.domultithread else 1
   njobs = opt.njobs if opt.domultijob else 1
   if opt.domultijob and opt.njobs <= 1: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 1')
@@ -143,7 +147,7 @@ if __name__ == "__main__":
   ## other steps  
   step2_cmsRun = 'cmsRun {jo} nThr={nt} nPremixFiles={npf}'.format(jo=target_drivers[1], nt=nthr, npf=npremixfiles)
   step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
-  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr)
+  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt} doRef={dr}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr, dr=doref)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
   cmsRuns_add = [step1_cmsRun_add, step2_cmsRun_add, '']
   ############################
