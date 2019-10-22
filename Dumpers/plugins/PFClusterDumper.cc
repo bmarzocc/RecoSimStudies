@@ -121,6 +121,7 @@ PFClusterDumper::PFClusterDumper(const edm::ParameterSet& iConfig)
    saveHitsPosition_        = iConfig.getParameter<bool>("saveHitsPosition");
    useES_                   = iConfig.getParameter<bool>("useES");
    genID_                   = iConfig.getParameter<std::vector<int>>("genID");
+   saveScores_              = iConfig.getParameter<bool>("saveScores"); 
 
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
@@ -132,16 +133,28 @@ PFClusterDumper::PFClusterDumper(const edm::ParameterSet& iConfig)
    tree->Branch("genEta", "std::vector<float>", &genEta);
    tree->Branch("genPhi", "std::vector<float>", &genPhi);
    tree->Branch("genEnergy", "std::vector<float>", &genEnergy);
+   if(saveScores_) tree->Branch("dR_genScore", "std::vector<float>", &dR_genScore);   
    tree->Branch("simEta", "std::vector<float>", &simEta);
    tree->Branch("simPhi", "std::vector<float>", &simPhi);
    tree->Branch("simIeta", "std::vector<float>", &simIeta);
    tree->Branch("simIphi", "std::vector<float>", &simIphi);
    tree->Branch("simIz", "std::vector<float>", &simIz);
    tree->Branch("simEnergy", "std::vector<float>", &simEnergy);
-   tree->Branch("simFractionBCtoBC", "std::vector<float>", &simFractionBCtoBC);
-   tree->Branch("simFractionBCtoCP", "std::vector<float>", &simFractionBCtoCP);
-   tree->Branch("simFractionCPtoBC", "std::vector<float>", &simFractionCPtoBC);
-   tree->Branch("simFractionCPtoCP", "std::vector<float>", &simFractionCPtoCP);   
+   if(saveScores_){
+      tree->Branch("dR_simScore", "std::vector<float>", &dR_simScore);
+      tree->Branch("n_shared_xtals", "std::vector<float>", &n_shared_xtals);
+      tree->Branch("sim_fraction", "std::vector<float>", &sim_fraction);
+      tree->Branch("sim_rechit_diff", "std::vector<float>", &sim_rechit_diff);
+      tree->Branch("sim_rechit_fraction", "std::vector<float>", &sim_rechit_fraction);   
+      tree->Branch("global_sim_rechit_fraction", "std::vector<float>", &global_sim_rechit_fraction); 
+   }  
+   tree->Branch("dR_genScore_MatchedIndex",&dR_genScore_MatchedIndex,"dR_genScore_MatchedIndex/I");
+   tree->Branch("dR_simScore_MatchedIndex",&dR_simScore_MatchedIndex,"dR_simScore_MatchedIndex/I");
+   tree->Branch("n_shared_xtals_MatchedIndex",&n_shared_xtals_MatchedIndex,"n_shared_xtals_MatchedIndex/I");
+   tree->Branch("sim_fraction_MatchedIndex",&sim_fraction_MatchedIndex,"sim_fraction_MatchedIndex/I");
+   tree->Branch("sim_rechit_diff_MatchedIndex",&sim_rechit_diff_MatchedIndex,"sim_rechit_diff_MatchedIndex/I");
+   tree->Branch("sim_rechit_fraction_MatchedIndex",&sim_rechit_fraction_MatchedIndex,"sim_rechit_fraction_MatchedIndex/I");   
+   tree->Branch("global_sim_rechit_fraction_MatchedIndex",&global_sim_rechit_fraction_MatchedIndex,"global_sim_rechit_fraction_MatchedIndex/I"); 
    tree->Branch("pfCluster_energy",&pfCluster_energy,"pfCluster_energy/F");
    tree->Branch("pfCluster_eta",&pfCluster_eta,"pfCluster_eta/F");
    tree->Branch("pfCluster_phi",&pfCluster_phi,"pfCluster_phi/F"); 
@@ -255,16 +268,26 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        genEnergy.clear();
        genEta.clear();
        genPhi.clear();
+       dR_genScore.clear();
        simEnergy.clear();
        simEta.clear();
        simPhi.clear();
        simIeta.clear();
        simIphi.clear();
        simIz.clear();
-       simFractionBCtoBC.clear();
-       simFractionBCtoCP.clear();
-       simFractionCPtoBC.clear();
-       simFractionCPtoCP.clear();
+       dR_simScore.clear();
+       n_shared_xtals.clear();
+       sim_fraction.clear();
+       sim_rechit_diff.clear();
+       sim_rechit_fraction.clear();
+       global_sim_rechit_fraction.clear();
+       dR_genScore_MatchedIndex=-1;
+       dR_simScore_MatchedIndex=-1;
+       n_shared_xtals_MatchedIndex=-1;
+       sim_fraction_MatchedIndex=-1;
+       sim_rechit_diff_MatchedIndex=-1;
+       sim_rechit_fraction_MatchedIndex=-1;
+       global_sim_rechit_fraction_MatchedIndex=-1;
        
        pfCluster_energy=reduceFloat(iPFCluster.energy(),nBits_);
        pfCluster_eta=reduceFloat(iPFCluster.eta(),nBits_);
@@ -291,16 +314,18 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
            genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
            genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
            genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
+           dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_));
        }
+       if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;
+       else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin();  
+
        for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
            float simEnergy_tmp=0.;  
            hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
               
            for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
                simEnergy_tmp+=hit_CP.second;
-        
-           std::vector<float> fractionEnergy = getSharedRecHitFraction(hitsAndEnergies_BC,hitsAndEnergies_CP,true);
-              
+
            caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
            simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
            simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
@@ -315,12 +340,28 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
              simIeta.push_back(ee_id.ix());
              simIphi.push_back(ee_id.iy());
              simIz.push_back(ee_id.zside());  
-           }           
-           simFractionBCtoBC.push_back(reduceFloat(fractionEnergy[0],nBits_)); 
-           simFractionBCtoCP.push_back(reduceFloat(fractionEnergy[1],nBits_)); 
-           simFractionCPtoBC.push_back(reduceFloat(fractionEnergy[2],nBits_)); 
-           simFractionCPtoCP.push_back(reduceFloat(fractionEnergy[3],nBits_));  
-       }  
+           }   
+
+           std::vector<float> scores = getScores(hitsAndEnergies_BC,hitsAndEnergies_CP);         
+           dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_)); 
+           n_shared_xtals.push_back(scores[0]);  
+           sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
+           sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
+           sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));           
+           global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));
+       } 
+       if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) dR_simScore_MatchedIndex = -1;
+       else dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
+       if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) n_shared_xtals_MatchedIndex = -1;
+       else n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();  
+       if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) sim_fraction_MatchedIndex = -1;
+       else sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin(); 
+       if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) sim_rechit_diff_MatchedIndex = -1;
+       else sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin();  
+       if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) sim_rechit_fraction_MatchedIndex = -1;
+       else sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin(); 
+       if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) global_sim_rechit_fraction_MatchedIndex = -1;
+       else global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();    
 
        tree->Fill();       
    }
@@ -339,9 +380,93 @@ void PFClusterDumper::endJob()
 }
 
 ///------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+std::vector<float> PFClusterDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart)
+{
+    std::vector<float> scores;
+    scores.resize(5);
+
+    float nSharedXtals=-1.;
+    float simFraction=-1.;
+    float sim_rechit_diff=0.;
+    float sim_rechit_fraction=0.;     
+    float global_sim_rechit_fraction=-1.;       
+   
+    float rechits_tot_CaloPart = 0.;
+    float rechits_tot_CaloPart_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart) {
+        rechits_tot_CaloPart+=hit_CaloPart.second;
+        rechits_tot_CaloPart_noEnergy+=1.;
+    }
+
+    float rechits_tot_Cluster = 0.;
+    float rechits_tot_Cluster_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster) {
+        rechits_tot_Cluster+=hit_Cluster.second;
+        rechits_tot_Cluster_noEnergy+=1.;
+    }
+   
+    float rechits_match_Cluster = 0.;
+    float rechits_match_CaloPart = 0.;
+    float rechits_match_CaloPart_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster){
+        float reco_ratio=0.; 
+        if(rechits_tot_Cluster!=0.) reco_ratio = hit_Cluster.second/rechits_tot_Cluster;
+        float sim_ratio = 0.;        
+        for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart){  
+            if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
+
+               rechits_match_Cluster += hit_Cluster.second;
+               rechits_match_CaloPart += hit_CaloPart.second;    
+               rechits_match_CaloPart_noEnergy += 1.0;
+
+               sim_rechit_diff += fabs(hit_CaloPart.second-hit_Cluster.second);
+               if(rechits_tot_CaloPart!=0.) sim_ratio = hit_CaloPart.second/rechits_tot_CaloPart; 
+            }         
+        } 
+        sim_rechit_fraction += fabs(sim_ratio - reco_ratio);  
+    }
+
+    if(rechits_tot_CaloPart_noEnergy!=0.) nSharedXtals = rechits_match_CaloPart_noEnergy;
+
+    if(rechits_tot_CaloPart!=0.) simFraction = rechits_match_CaloPart/rechits_tot_CaloPart;
+
+    if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./rechits_match_CaloPart_noEnergy)*sim_rechit_diff;
+    else sim_rechit_diff=-1.; 
+
+    if(sim_rechit_fraction!=0.) sim_rechit_fraction = 1-sim_rechit_fraction;
+    else sim_rechit_fraction=-1.;
+    
+    if(rechits_tot_CaloPart!=0. && rechits_tot_Cluster!=0. && rechits_match_CaloPart/rechits_tot_CaloPart!=0. && rechits_match_Cluster/rechits_tot_Cluster!=0.) global_sim_rechit_fraction = 1-fabs(rechits_match_CaloPart/rechits_tot_CaloPart - rechits_match_Cluster/rechits_tot_Cluster);
+    
+    scores[0] = nSharedXtals;
+    scores[1] = simFraction;
+    scores[2] = sim_rechit_diff;
+    scores[3] = sim_rechit_fraction;     
+    scores[4] = global_sim_rechit_fraction;  
+
+    return scores;
+}
+
+std::vector<std::pair<DetId, float> >* PFClusterDumper::getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
+{
+    std::vector<std::pair<DetId, float> >* HitsAndEnergies_BC = new std::vector<std::pair<DetId, float> >;
+    
+    const std::vector<std::pair<DetId,float> > &hitsAndFractions = iPFCluster->hitsAndFractions();
+    for(unsigned int i = 0; i < hitsAndFractions.size(); i++){
+        if(hitsAndFractions.at(i).first.subdetId()==EcalBarrel){
+           HitsAndEnergies_BC->push_back(make_pair(hitsAndFractions.at(i).first,hitsAndFractions.at(i).second*(*(recHitsEB.product())->find(hitsAndFractions[i].first)).energy()));
+        }else if(hitsAndFractions.at(i).first.subdetId()==EcalEndcap){
+           HitsAndEnergies_BC->push_back(make_pair(hitsAndFractions.at(i).first,hitsAndFractions.at(i).second*(*(recHitsEE.product())->find(hitsAndFractions[i].first)).energy()));
+        }
+    }
+
+    return HitsAndEnergies_BC;
+}
+
+
 std::vector<std::pair<DetId, float> >* PFClusterDumper::getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle)
 {
-    std::vector<std::pair<DetId, float> >* HitsAndEnergies_CP = new std::vector<std::pair<DetId, float> >;
+    std::vector<std::pair<DetId, float> >* HitsAndEnergies_CaloPart = new std::vector<std::pair<DetId, float> >;
     std::vector<std::pair<DetId, float> >* HitsAndEnergies_tmp = new std::vector<std::pair<DetId, float> >;
     std::map<DetId, float> HitsAndEnergies_map;
     
@@ -363,69 +488,9 @@ std::vector<std::pair<DetId, float> >* PFClusterDumper::getHitsAndEnergiesCaloPa
     }
 
     for(auto const& hit : HitsAndEnergies_map) 
-         HitsAndEnergies_CP->push_back(make_pair(hit.first,hit.second));
+         HitsAndEnergies_CaloPart->push_back(make_pair(hit.first,hit.second));
 
-    return HitsAndEnergies_CP;
-}
-
-std::vector<std::pair<DetId, float> >* PFClusterDumper::getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
-{
-    std::vector<std::pair<DetId, float> >* HitsAndEnergies_BC = new std::vector<std::pair<DetId, float> >;
-    
-    const std::vector<std::pair<DetId,float> > &hitsAndFractions = iPFCluster->hitsAndFractions();
-    for(unsigned int i = 0; i < hitsAndFractions.size(); i++){
-        if(hitsAndFractions.at(i).first.subdetId()==EcalBarrel){
-           HitsAndEnergies_BC->push_back(make_pair(hitsAndFractions.at(i).first,hitsAndFractions.at(i).second*(*(recHitsEB.product())->find(hitsAndFractions[i].first)).energy()));
-        }else if(hitsAndFractions.at(i).first.subdetId()==EcalEndcap){
-           HitsAndEnergies_BC->push_back(make_pair(hitsAndFractions.at(i).first,hitsAndFractions.at(i).second*(*(recHitsEE.product())->find(hitsAndFractions[i].first)).energy()));
-        }
-    }
-
-    return HitsAndEnergies_BC;
-}
-
-std::vector<float> PFClusterDumper::getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy)
-{
-    std::vector<float> fraction;
-    fraction.resize(4);
-   
-    float rechits_tot_CP = 0.;
-    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
-        if(useEnergy)  rechits_tot_CP+=hit_CP.second;
-        if(!useEnergy) rechits_tot_CP+=1.;
-    }
-
-    float rechits_tot_BC = 0.;
-    for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC) {
-        if(useEnergy)  rechits_tot_BC+=hit_BC.second;
-        if(!useEnergy) rechits_tot_BC+=1.;
-    }
-   
-    float rechits_match_BC = 0.;
-    float rechits_match_CP = 0.;
-    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) 
-        for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC)      
-            if(hit_CP.first.rawId() == hit_BC.first.rawId()){
-               if(useEnergy){  
-                  rechits_match_BC += hit_BC.second;
-                  rechits_match_CP += hit_CP.second;    
-               }
-               if(!useEnergy){
-                  rechits_match_BC += 1.0;
-                  rechits_match_CP += 1.0;
-               }
-            }  
-    
-    if(rechits_tot_BC!=0.) fraction[0] = rechits_match_BC/rechits_tot_BC;
-    else fraction[0]=-1.;
-    if(rechits_tot_CP!=0.) fraction[1] = rechits_match_BC/rechits_tot_CP;
-    else fraction[1]=-1.; 
-    if(rechits_tot_BC!=0.) fraction[2] = rechits_match_CP/rechits_tot_BC;
-    else fraction[2]=-1.;
-    if(rechits_tot_CP!=0.) fraction[3] = rechits_match_CP/rechits_tot_CP;
-    else fraction[3]=-1.;
-
-    return fraction;
+    return HitsAndEnergies_CaloPart;
 }
 
 

@@ -126,6 +126,7 @@ SuperClusterTreeMaker::SuperClusterTreeMaker(const edm::ParameterSet& iConfig)
    nBits_                   = iConfig.getParameter<int>("nBits");
    genID_                   = iConfig.getParameter<std::vector<int>>("genID");
    doSimMatch_              = iConfig.getParameter<bool>("doSimMatch"); 
+   saveScores_              = iConfig.getParameter<bool>("saveScores"); 
 
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
@@ -299,12 +300,10 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
    std::vector<std::pair<DetId, float> >* hitsAndEnergies_SC;
    std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
    GlobalPoint caloParticle_position;
-
-   int iSC=-1;   
+  
    std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
    for(const auto& iSuperCluster : *(superClusterEB.product())){   
 
-       iSC++;
        scRawEnergy = -1.;
        scCalibratedEnergy = -1.;
        scPreshowerEnergy = -1.;
@@ -375,7 +374,9 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
               dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
           } 
-          dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
+          if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;   
+          else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
+
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
               hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
@@ -391,22 +392,25 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
               simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
               dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
-              dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
-              n_shared_xtals.push_back(scores[0]); 
-              n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();   
-              sim_fraction.push_back(reduceFloat(scores[1],nBits_)); 
-              sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin();   
+              n_shared_xtals.push_back(scores[0]);  
+              sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
               sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
-              sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin(); 
-              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));  
-              sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin();          
+              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));           
               global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));   
-              global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();   
               if(iSuperCluster.seed().isAvailable() && doSimMatch_) simDRToSeed.push_back(reduceFloat( deltaR(caloParticle_position.eta(),caloParticle_position.phi(), iSuperCluster.seed()->eta(), iSuperCluster.seed()->phi()),nBits_)); 
           }  
-          for(unsigned int i=0; i<n_shared_xtals.size(); i++)
-              std::cout << iSC << " - " << hitsAndEnergies_SC->size() << " - " <<  i  << " - " << n_shared_xtals.at(i) << std::endl;
-          std::cout << "n_shared_xtals_MatchedIndex: " << iSC << " - " << n_shared_xtals_MatchedIndex << std::endl;  
+          if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) dR_simScore_MatchedIndex = -1;
+          else dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
+          if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) n_shared_xtals_MatchedIndex = -1;
+          else n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();  
+          if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) sim_fraction_MatchedIndex = -1;
+          else sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin(); 
+          if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) sim_rechit_diff_MatchedIndex = -1;
+          else sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin();  
+          if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) sim_rechit_fraction_MatchedIndex = -1;
+          else sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin(); 
+          if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) global_sim_rechit_fraction_MatchedIndex = -1;
+          else global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();    
        } 
        if(iSuperCluster.seed().isAvailable()){ 
           scSeedRawEnergy = reduceFloat(iSuperCluster.seed()->energy(),nBits_);
@@ -532,6 +536,9 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
               dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
           } 
+          if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;
+          else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
+
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
               hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
@@ -547,19 +554,25 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
               simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
               dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
-              dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
-              n_shared_xtals.push_back(scores[0]); 
-              n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();   
-              sim_fraction.push_back(reduceFloat(scores[1],nBits_)); 
-              sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin();   
+              n_shared_xtals.push_back(scores[0]);  
+              sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
               sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
-              sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin(); 
-              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));  
-              sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin();          
+              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));           
               global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));   
-              global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();   
               if(iSuperCluster.seed().isAvailable() && doSimMatch_) simDRToSeed.push_back(reduceFloat( deltaR(caloParticle_position.eta(),caloParticle_position.phi(), iSuperCluster.seed()->eta(), iSuperCluster.seed()->phi()),nBits_)); 
-          }  
+          }
+          if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) dR_simScore_MatchedIndex = -1;
+          else dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
+          if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) n_shared_xtals_MatchedIndex = -1;
+          else n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();  
+          if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) sim_fraction_MatchedIndex = -1;
+          else sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin(); 
+          if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) sim_rechit_diff_MatchedIndex = -1;
+          else sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin();  
+          if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) sim_rechit_fraction_MatchedIndex = -1;
+          else sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin(); 
+          if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) global_sim_rechit_fraction_MatchedIndex = -1;
+          else global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();    
        } 
        if(iSuperCluster.seed().isAvailable()){ 
           scSeedRawEnergy = reduceFloat(iSuperCluster.seed()->energy(),nBits_);
