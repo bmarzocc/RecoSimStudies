@@ -597,7 +597,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       
        if(!isGoodParticle) continue; 
        genParticle_id.push_back(iGen.pdgId()); 
-       genParticle_energy.push_back(iGen.pdgId()); 
+       genParticle_energy.push_back(iGen.energy()); 
        genParticle_pt.push_back(iGen.pt());
        genParticle_eta.push_back(iGen.eta());
        genParticle_phi.push_back(iGen.phi());
