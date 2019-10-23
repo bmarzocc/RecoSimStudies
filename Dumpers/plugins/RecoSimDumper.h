@@ -119,8 +119,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
       std::vector<std::map<uint32_t,float> > caloParticleXtals(edm::Handle<std::vector<CaloParticle> > caloParticles, std::vector<int>* genID_);
-      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle iCaloParticle);
-      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, const CaloGeometry *geometry, bool useES);
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
+      std::vector<float> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart);
+      GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
       
       // ----------collection tokens-------------------
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
@@ -163,6 +166,15 @@ class RecoSimDumper : public edm::EDAnalyzer
       long int eventId;
       int lumiId;
       int runId; 
+      std::vector<float> dR_genScore;
+      std::vector<float> dR_simScore;
+      std::vector<int> n_shared_xtals;
+      std::vector<float> sim_fraction;
+      std::vector<float> sim_fraction_min1;
+      std::vector<float> sim_fraction_min3;
+      std::vector<float> sim_rechit_diff;
+      std::vector<float> sim_rechit_fraction;
+      std::vector<float> global_sim_rechit_fraction;
       std::vector<int> genParticle_id;
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;
@@ -230,6 +242,15 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> pfCluster_ieta;
       std::vector<int> pfCluster_iphi;
       std::vector<int> pfCluster_iz;
+      std::vector<int> pfCluster_dR_genScore_MatchedIndex;
+      std::vector<int> pfCluster_dR_simScore_MatchedIndex;
+      std::vector<int> pfCluster_n_shared_xtals_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min1_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min3_MatchedIndex;
+      std::vector<int> pfCluster_sim_rechit_diff_MatchedIndex;
+      std::vector<int> pfCluster_sim_rechit_fraction_MatchedIndex;
+      std::vector<int> pfCluster_global_sim_rechit_fraction_MatchedIndex;
       std::vector<std::vector< std::map<int, float> >> superClusterHit_energy;
       std::vector<std::vector<float> > superClusterHit_eta;
       std::vector<std::vector<float> > superClusterHit_phi;  
@@ -255,7 +276,17 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> superCluster_phi;   
       std::vector<int> superCluster_ieta;
       std::vector<int> superCluster_iphi;    
-      std::vector<int> superCluster_iz;    
+      std::vector<int> superCluster_iz;  
+      std::vector<int> superCluster_dR_genScore;
+      std::vector<int> superCluster_dR_genScore_MatchedIndex;
+      std::vector<int> superCluster_dR_simScore_MatchedIndex;
+      std::vector<int> superCluster_n_shared_xtals_MatchedIndex;
+      std::vector<int> superCluster_sim_fraction_MatchedIndex;
+      std::vector<int> superCluster_sim_fraction_min1_MatchedIndex; 
+      std::vector<int> superCluster_sim_fraction_min3_MatchedIndex; 
+      std::vector<int> superCluster_sim_rechit_diff_MatchedIndex;
+      std::vector<int> superCluster_sim_rechit_fraction_MatchedIndex;
+      std::vector<int> superCluster_global_sim_rechit_fraction_MatchedIndex;
 };
 
 #endif

@@ -144,6 +144,8 @@ PFClusterDumper::PFClusterDumper(const edm::ParameterSet& iConfig)
       tree->Branch("dR_simScore", "std::vector<float>", &dR_simScore);
       tree->Branch("n_shared_xtals", "std::vector<float>", &n_shared_xtals);
       tree->Branch("sim_fraction", "std::vector<float>", &sim_fraction);
+      tree->Branch("sim_fraction_min1", "std::vector<float>", &sim_fraction_min1);
+      tree->Branch("sim_fraction_min3", "std::vector<float>", &sim_fraction_min3);
       tree->Branch("sim_rechit_diff", "std::vector<float>", &sim_rechit_diff);
       tree->Branch("sim_rechit_fraction", "std::vector<float>", &sim_rechit_fraction);   
       tree->Branch("global_sim_rechit_fraction", "std::vector<float>", &global_sim_rechit_fraction); 
@@ -152,6 +154,8 @@ PFClusterDumper::PFClusterDumper(const edm::ParameterSet& iConfig)
    tree->Branch("dR_simScore_MatchedIndex",&dR_simScore_MatchedIndex,"dR_simScore_MatchedIndex/I");
    tree->Branch("n_shared_xtals_MatchedIndex",&n_shared_xtals_MatchedIndex,"n_shared_xtals_MatchedIndex/I");
    tree->Branch("sim_fraction_MatchedIndex",&sim_fraction_MatchedIndex,"sim_fraction_MatchedIndex/I");
+   tree->Branch("sim_fraction_min1_MatchedIndex",&sim_fraction_min1_MatchedIndex,"sim_fraction_min1_MatchedIndex/I");
+   tree->Branch("sim_fraction_min3_MatchedIndex",&sim_fraction_min3_MatchedIndex,"sim_fraction_min3_MatchedIndex/I");
    tree->Branch("sim_rechit_diff_MatchedIndex",&sim_rechit_diff_MatchedIndex,"sim_rechit_diff_MatchedIndex/I");
    tree->Branch("sim_rechit_fraction_MatchedIndex",&sim_rechit_fraction_MatchedIndex,"sim_rechit_fraction_MatchedIndex/I");   
    tree->Branch("global_sim_rechit_fraction_MatchedIndex",&global_sim_rechit_fraction_MatchedIndex,"global_sim_rechit_fraction_MatchedIndex/I"); 
@@ -278,6 +282,8 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        dR_simScore.clear();
        n_shared_xtals.clear();
        sim_fraction.clear();
+       sim_fraction_min1.clear();
+       sim_fraction_min3.clear(); 
        sim_rechit_diff.clear();
        sim_rechit_fraction.clear();
        global_sim_rechit_fraction.clear();
@@ -285,6 +291,8 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        dR_simScore_MatchedIndex=-1;
        n_shared_xtals_MatchedIndex=-1;
        sim_fraction_MatchedIndex=-1;
+       sim_fraction_min1_MatchedIndex=-1;
+       sim_fraction_min3_MatchedIndex=-1;   
        sim_rechit_diff_MatchedIndex=-1;
        sim_rechit_fraction_MatchedIndex=-1;
        global_sim_rechit_fraction_MatchedIndex=-1;
@@ -349,6 +357,8 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
            sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
            sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));           
            global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));
+           sim_fraction_min1.push_back(reduceFloat(scores[5],nBits_));  
+           sim_fraction_min3.push_back(reduceFloat(scores[6],nBits_));  
        } 
        if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) dR_simScore_MatchedIndex = -1;
        else dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
@@ -356,6 +366,10 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        else n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();  
        if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) sim_fraction_MatchedIndex = -1;
        else sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin(); 
+       if(std::equal(sim_fraction_min1.begin() + 1, sim_fraction_min1.end(), sim_fraction_min1.begin())) sim_fraction_min1_MatchedIndex = -1;
+       else sim_fraction_min1_MatchedIndex = std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin(); 
+       if(std::equal(sim_fraction_min3.begin() + 1, sim_fraction_min3.end(), sim_fraction_min3.begin())) sim_fraction_min3_MatchedIndex = -1;
+       else sim_fraction_min3_MatchedIndex = std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin();    
        if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) sim_rechit_diff_MatchedIndex = -1;
        else sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin();  
        if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) sim_rechit_fraction_MatchedIndex = -1;
@@ -442,7 +456,11 @@ std::vector<float> PFClusterDumper::getScores(const std::vector<std::pair<DetId,
     scores[1] = simFraction;
     scores[2] = sim_rechit_diff;
     scores[3] = sim_rechit_fraction;     
-    scores[4] = global_sim_rechit_fraction;  
+    scores[4] = global_sim_rechit_fraction; 
+    if(simFraction>0.01) scores[5] = simFraction; 
+    else scores[5] = -1.; 
+    if(simFraction>0.03) scores[6] = simFraction; 
+    else scores[6] = -1.;  
 
     return scores;
 }

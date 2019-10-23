@@ -179,6 +179,10 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       int n_shared_xtals_MatchedIndex;
       std::vector<float> sim_fraction;
       int sim_fraction_MatchedIndex;
+      std::vector<float> sim_fraction_min1;
+      int sim_fraction_min1_MatchedIndex;
+      std::vector<float> sim_fraction_min3;
+      int sim_fraction_min3_MatchedIndex;
       std::vector<float> sim_rechit_diff;
       int sim_rechit_diff_MatchedIndex;
       std::vector<float> sim_rechit_fraction;
