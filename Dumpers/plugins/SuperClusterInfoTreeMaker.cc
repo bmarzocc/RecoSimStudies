@@ -380,7 +380,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
               genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
               genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
-              dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              else dR_genScore.push_back(999.);
           } 
           if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;   
           else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
@@ -399,7 +400,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
               simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
-              dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              else dR_simScore.push_back(999.);
               n_shared_xtals.push_back(scores[0]);  
               sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
               sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
@@ -552,7 +554,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
               genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
               genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
-              dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              else dR_genScore.push_back(999.);
           } 
           if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;
           else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
@@ -571,7 +574,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
               simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
-              dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              else dR_simScore.push_back(999.);
               n_shared_xtals.push_back(scores[0]);  
               sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
               sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 

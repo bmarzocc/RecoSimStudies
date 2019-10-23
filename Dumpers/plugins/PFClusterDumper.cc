@@ -322,7 +322,8 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
            genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
            genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
            genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
-           dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_));
+           if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_));
+           else dR_genScore.push_back(reduceFloat(999.,nBits_));
        }
        if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;
        else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin();  
@@ -351,7 +352,8 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
            }   
 
            std::vector<float> scores = getScores(hitsAndEnergies_BC,hitsAndEnergies_CP);         
-           dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_)); 
+           if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_)); 
+           else dR_simScore.push_back(reduceFloat(999.,nBits_)); 
            n_shared_xtals.push_back(scores[0]);  
            sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
            sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
