@@ -4,7 +4,9 @@
 ```
 cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/test_5000_updated4_EB_doubleGamma.root inputFiles=file:test/test_5000_updated4_EB_douleGamma/step3.root
 ```
-
+```
+cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/photon_Et1to100GeV_closeEcal_EE_noPU_pfrh1.0_seed3.0_V01_v52_n15000.root inputFiles_load=data/samples/photon_Et1to100GeV_closeEcal_EE_noPU_pfrh1.0_seed3.0_V01_v52_n15000.txt
+```
 
 ### EB no PU
 cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/test_EB_noPU.root inputFiles=/store/user/mratti/EcalProd/photon_Et1to100GeV_closeEcal_EB_noPU_pfrh1_seed3_V01_v01_n10/step3.root
