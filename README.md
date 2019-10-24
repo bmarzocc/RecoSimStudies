@@ -15,12 +15,22 @@ If you get an error, make sure that the remote machine on which you are working 
 cd CMSSW_10_6_1_patch1/src/
 cmsenv
 git cms-init
-git branch -b base
+git checkout -b base
+```
+either:
+```
 git cms-merge-topic bmarzocc:PR_CaloParticles
 git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds
 git cms-merge-topic bmarzocc:PR_ParticleGuns
+```
+or:
+```
+git cms-merge-topic mgratti:mg-flatenergyproducer
+```
+
+```
 git clone git@github.com:pfclustering/RecoSimStudies.git
-scram b -j 5
+scram b -j 8
 ```
 
 In case you want to interact with the Storage Element, don't forget to set up your proxy:
@@ -35,17 +45,18 @@ Developments Development of ```cmssw``` by members of pfclustering team are done
 Currently there are three topics that can be changed (see above), under bmarzocc repo.
 Changes to a given topic are pushed first to own fork, and then PR is done https://github.com/bmarzocc/cmssw/tree/<TOPIC_BRANCH>
 
-*IMPORTANT NOTE* B. is still using an old release! So if you try to push, will get also release changes in the PR
+*IMPORTANT NOTE*  So if you try to push, will get also release changes in the PR
 
 The developments should be tested in the full (meaning three topics) configuration, but only the commits relevant to a given topic should be pushed
 to the relevant topic, with the following workflow:
 
-* within the same area you usually work on, create new local branch with following convention and do developments:
+* within a clean area, create new local branch with following convention and do developments:
 ```
 cd CMSSW_X_Y_Z/src
-git checkout -b mg-PR_<TOPIC>
-git cms-merge-topic bmarzocc:<TOPIC>
-git remote add my-cmssw git@github.com:mgratti/cmssw.git # only first time
+git checkout -b mg-<TOPIC>
+git remote add my-cmssw git@github.com:mgratti/cmssw.git 
+git remote add badder-cmssw https://github.com/bmarzocc/cmssw.git
+git pull badder-cmssw <TOPIC>
 ```
 * make the relevant changes (which should already have been tested)
 ```
@@ -57,13 +68,14 @@ git commit -m "bla"
 git push my-cmssw mg-PR_<TOPIC>
 ```
 * pull request to relevant topic branch under bmarzocc repo
-* once PR has been accepted, go back to `base` branch, and DELETE both local and remote branches
+
+* [OBSOLETE] once PR has been accepted, go back to `base` branch, and DELETE both local and remote branches
 ```
 git checkout base
 git branch -d mg-PR_<topic>
 git push my-cmssw --delete mg-PR_<topic>
 ```
-* re-do all the relevant merge-topic 
+* [OBSOLETE] re-do all the relevant merge-topic 
 
 More information and tricks on how to work with cmssw and github here: http://cms-sw.github.io/faq.html
 
