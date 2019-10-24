@@ -11,12 +11,12 @@ options.register('etmin',
                  0,
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.float,
-                "ET min")
+                "ET or E min depending on doFlatEnergy")
 options.register('etmax',
                  0,
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.float,
-                "ET max")
+                "ET or E max depending on doFlatEnergy")
 options.register('rmin',
                  0,
                  VarParsing.VarParsing.multiplicity.singleton,
@@ -52,9 +52,16 @@ options.register('seedOffset',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.int,
                  "Seed offset")
+options.register('doFlatEnergy',
+                 0,
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "generate flat in energy, otherwise flat in pt")
 
 options.parseArguments()
 print options
+
+my_doFlatEnergy = cms.bool(False) if options.doFlatEnergy == 0 else cms.bool(True)
 
 from Configuration.Eras.Era_Run3_cff import Run3
 process = cms.Process('SIM',Run3)
@@ -118,7 +125,7 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2021_realistic_v5', '')
 
-process.generator = cms.EDProducer("CloseByParticleFlatEtGunProducer",
+process.generator = cms.EDProducer("CloseByParticleMultiGunProducer",
     PGunParameters = cms.PSet(
         PartID = cms.vint32(22, 22),
         MaxPt = cms.double(options.etmax),
@@ -128,6 +135,7 @@ process.generator = cms.EDProducer("CloseByParticleFlatEtGunProducer",
         ZMax = cms.double(options.zmax),
         ZMin = cms.double(options.zmin),
         Delta = cms.double(350), # not used
+        doFlatEnergy = my_doFlatEnergy, 
         Pointing = cms.bool(True),
         Overlapping = cms.bool(False),
         RandomShoot = cms.bool(False),

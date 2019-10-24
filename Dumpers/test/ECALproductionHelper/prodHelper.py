@@ -18,30 +18,32 @@ def getOptions():
   parser.add_argument('-c','--ch', type=str, dest='ch', help='channel, e.g. photon', default='photon', choices=['photon'])
   parser.add_argument('--etmax', type=int, dest='etmax', help='max Et (GeV)', default=100)
   parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
+  parser.add_argument('--doflatenergy', dest='doflatenergy', help='generate flat in energy, otherwise in pt', action='store_true', default=False)
+  parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
   parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
-  parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
   parser.add_argument('--pfrhmult', type=float, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1.)
   parser.add_argument('--seedmult', type=float, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3.)
+  parser.add_argument('--doref', dest='doref', help='use reference values for pfrh,seed, thresholds', action='store_true', default=False)
+  parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing production', action='store_true', default=False)
+  parser.add_argument('--custominput', type=str, dest='custominput', help='full path of the input file that you want to use for the reconstruction (also SE is supported)', default=None)
+  parser.add_argument('--custominputdir', type=str, dest='custominputdir', help='full path of the input directory that you want to use for the reconstruction (also SE is supported)', default=None)
+  parser.add_argument('--doold', dest='doold', help='use old_ version of the scripts', action='store_true', default=False)
 
   #parser.add_argument('--dostep3only', dest='dostep3only', help='do only step 3', action='store_true', default=False)
-  parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
-  parser.add_argument('--doold', dest='doold', help='use old_ version of the scripts', action='store_true', default=False)
   parser.add_argument('--doshort', dest='doshort', help='set 2 hours as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--domedium', dest='domedium', help='set 2 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--dolong', dest='dolong', help='set 3 days as wall clock time instead of 1 day', action='store_true', default=False)
   parser.add_argument('--docustomtime', dest='docustomtime', help='set custom time', action='store_true', default=False)
   parser.add_argument('--time', type=str, dest='time', help='allowed time for each job of each step in hours, example 01,02,01 for 1 hour for step1, 2 for step2, 2 for step3', default='2,2,5')
-  parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing step2.root', action='store_true', default=False)
-  parser.add_argument('--custominput', type=str, dest='custominput', help='SE path of the input that you want to use for the reconstruction', default=None)
   parser.add_argument('--domultithread', dest='domultithread', help='run multithreaded', action='store_true', default=False)
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
   parser.add_argument('--njobs', type=int, dest='njobs', help='number of parallel jobs to submit', default=10)
+  parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
   
-
   return parser.parse_args()
 
 
@@ -52,8 +54,13 @@ if __name__ == "__main__":
   ##############################
   # job configurations
   #############################
-  etRange='{}to{}GeV'.format(opt.etmin,opt.etmax)
-  prodLabel='{c}_Et{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
+  evar = 'E' if opt.doflatenergy else 'Et'
+  etRange='{}{}to{}GeV'.format(evar,opt.etmin,opt.etmax)
+  prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
+  if opt.doref: # change to ref label
+    prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
+  doref = 1 if opt.doref else 0
+  doflatenergy = 1 if opt.doflatenergy else 0
   nthr = 8 if opt.domultithread else 1
   njobs = opt.njobs if opt.domultijob else 1
   if opt.domultijob and opt.njobs <= 1: raise RuntimeError('when running multiple jobs, the number of parallel jobs should be larger than 1')
@@ -61,9 +68,11 @@ if __name__ == "__main__":
   nevtsjob = opt.nevts if not opt.domultijob else opt.nevts/opt.njobs
   nevtspremixfile = 600 # current number of events in each premixed file
   npremixfiles = nevtsjob / nevtspremixfile + 1
-  if opt.doreco and opt.custominput == None: raise RuntimeError('you must supply the custom input, when running with doreco activated')
-  if opt.doreco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
-  if opt.doreco and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.doreco and opt.custominput == None and opt.custominputdir == None: raise RuntimeError('you must supply the custom input, when running with doreco activated')
+  if opt.doreco and not opt.domultijob and not os.path.isfile(opt.custominput): raise RuntimeError('custominput {} not found').format(opt.custominput)
+  if opt.doreco and opt.domultijob and not os.path.isdir(opt.custominputdir): raise RuntimeError('custominputdir {} not found').format(opt.custominputdir)
+  if opt.doreco and opt.domultijob: print 'A gentle reminder that if you are running with doreco and domultijob activated, you should use the same job splitting that was used for the original production'
+  #if opt.doreco and opt.domultijob: raise RuntimeError('combination not supported, currently cannot re-reco from job run over multiple files')
   if opt.docustomtime: 
     time1=opt.time.split(',')[0]
     time2=opt.time.split(',')[1]
@@ -77,6 +86,8 @@ if __name__ == "__main__":
       time = '--time=2-23:59'
     elif opt.doshort:
       time = '--time=0-02:00'
+    else:
+      time = '--time=1-00:00'
     sbatch_times = [time, time, time]
 
   ##############################
@@ -135,15 +146,15 @@ if __name__ == "__main__":
     if opt.npart!=None:
       npart = opt.npart
 
-    step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt}'.format(
-                    jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr )
+    step1_cmsRun = 'cmsRun {jo} maxEvents={n} etmin={etmin} etmax={etmax} rmin={r1} rmax={r2} zmin={z1} zmax={z2} np={np} nThr={nt} doFlatEnergy={dfe}'.format(
+                    jo=target_drivers[0], n=nevtsjob, etmin=opt.etmin, etmax=opt.etmax, r1=rmin, r2=rmax, z1=zmin, z2=zmax, np=npart, nt=nthr, dfe=doflatenergy)
     step1_cmsRun_add = 'seedOffset={nj}' # format at a later stage
   else:
     raise RuntimeError('this option is not currently supported')
   ## other steps  
   step2_cmsRun = 'cmsRun {jo} nThr={nt} nPremixFiles={npf}'.format(jo=target_drivers[1], nt=nthr, npf=npremixfiles)
   step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
-  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr)
+  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt} doRef={dr}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr, dr=doref)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
   cmsRuns_add = [step1_cmsRun_add, step2_cmsRun_add, '']
   ############################
@@ -167,8 +178,9 @@ if __name__ == "__main__":
         cpinput_command = 'xrdcp $SEPREFIX/$SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
         if opt.dosavehome: cpinput_command = 'cp $SERESULTDIR/{infile} $WORKDIR/{infile_loc}'.format(infile=infiles[i].format(nj=nj),infile_loc=infiles_loc[i])
         if opt.doreco: 
-          if opt.dosavehome: cpinput_command = 'cp {custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
-          else:              cpinput_command = 'xrdcp $SEPREFIX/{custominput} $WORKDIR/{infile_loc}'.format(custominput=opt.custominput,infile_loc=infiles_loc[i])
+          custominput = opt.custominput if not opt.domultijob else opt.custominputdir + '/step2_nj{nj}.root'.format(nj=nj) # could have used also infiles[i].format(nj=nj)
+          if opt.dosavehome: cpinput_command = 'cp {ci} $WORKDIR/{infile_loc}'.format(ci=custominput,infile_loc=infiles_loc[i])
+          else:              cpinput_command = 'xrdcp $SEPREFIX/{ci} $WORKDIR/{infile_loc}'.format(ci=custominput,infile_loc=infiles_loc[i])
 
       cpoutput_command = 'xrdcp -f {outfile_loc} $SEPREFIX/$SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))
       if opt.dosavehome: cpoutput_command = 'cp {outfile_loc} $SERESULTDIR/{outfile}'.format(outfile_loc=outfiles_loc[i],outfile=outfiles[i].format(nj=nj))

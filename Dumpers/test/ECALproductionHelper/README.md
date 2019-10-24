@@ -13,3 +13,7 @@ python prodHelper.py -v V01_v02 -n 30000 -g closeEcal -d EE --pu noPU --dolong -
 ## EE w/ PU
 python prodHelper.py -v V01_v04 -n 30000 -g closeEcal -d EE --pu wPU --dolong --domultithread
 
+# Example for post-production
+Production label as per conventions above
+
+python postProdHelper.py --pl photon_Et1to100GeV_closeEcal_EE_noPU_pfrh1.0_seed3.0_V01_v52_n15000

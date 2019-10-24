@@ -212,7 +212,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    }
    if(savePFCluster_){
       tree->Branch("pfClusterHit_energy","std::vector<std::vector<std::map<int, float> >",&pfClusterHit_energy);
-      if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){ 
+      //if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){ 
+      if(!saveRechits_ && !savePFRechits_){ 
          tree->Branch("pfClusterHit_eta","std::vector<std::vector<float> >",&pfClusterHit_eta);
          tree->Branch("pfClusterHit_phi","std::vector<std::vector<float> >",&pfClusterHit_phi);
          tree->Branch("pfClusterHit_ieta","std::vector<std::vector<int> >",&pfClusterHit_ieta);
@@ -874,7 +875,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                   pfCluster_index_tmp++;
               }   
               pfClusterHit_energy[iCaloCount].push_back(map_pfCluster_energy);
-              if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){  
+              //if(!saveSimhits_ && !saveRechits_ && !savePFRechits_){  
+              if(!saveRechits_ && !savePFRechits_){  
                  pfClusterHit_eta[iCaloCount].push_back(reduceFloat(eta,nBits_));
                  pfClusterHit_phi[iCaloCount].push_back(reduceFloat(phi,nBits_)); 
                  pfClusterHit_ieta[iCaloCount].push_back(ieta);
@@ -961,7 +963,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    //Save SuperClusters 
    if(saveSuperCluster_ || saveShowerShapes_){
       int iSC=0;
-      std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
+      //std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEB.product())){  
           reco::CaloCluster caloBC(*iSuperCluster.seed());  
           locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
