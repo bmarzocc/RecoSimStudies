@@ -631,6 +631,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       
        std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(iCalo);
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0., geometry, false);
+       if (caloParticle_position == GlobalPoint(-999999., -999999., -999999.)) {
+         std::cout << "Invalid position for caloparticle, skipping event" << std::endl;
+         return;
+       }
        caloParticle_eta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
        caloParticle_phi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
        if(std::abs(caloParticle_position.eta()) < 1.479){  
@@ -1245,8 +1249,12 @@ GlobalPoint RecoSimDumper::calculateAndSetPositionActual(const std::vector<std::
       ecal_geom = _eeGeom;
       clusterT0 = _param_T0_EE;
   }else{
-      throw cms::Exception("InvalidLayer") << "ECAL Position Calc only accepts ECAL_BARREL or ECAL_ENDCAP";
+      std::cout << "WARNING: wrong layer, ECAL Position Calc only accepts ECAL_BARREL or ECAL_ENDCAP, returning invalid position" << std::endl;      
+      //throw cms::Exception("InvalidLayer") << "ECAL Position Calc only accepts ECAL_BARREL or ECAL_ENDCAP";
   }
+
+  if (ecal_geom == nullptr)
+    return GlobalPoint(-999999., -999999., -999999.);
 
   auto center_cell = ecal_geom->getGeometry(id_max);
   const double ctreta = center_cell->etaPos();
