@@ -770,8 +770,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                                 if(useEnergyRegression_) superClusterHit_energy_ = recHit_energy_*seedrechits[i].second;
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
                                 // Check if the supercluster exists already, add energy (overlapping pfclusters)
-                                if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
-                                else map_superCluster_energy[superCluster_index_tmp]+=reduceFloat(superClusterHit_energy_,nBits_);
+                                if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,superClusterHit_energy_));
+                                else map_superCluster_energy[superCluster_index_tmp]+=superClusterHit_energy_;
                                 break;
                              }                   
                          }
@@ -838,8 +838,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                                 else superClusterHit_energy_ = (iSuperCluster.rawEnergy()/iSuperCluster.energy())*recHit_energy_*seedrechits[i].second;
                                 
                                 // We save superclusterindex with an offset = nSuperClustersEB
-                                if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,reduceFloat(superClusterHit_energy_,nBits_) ));
-                                else map_superCluster_energy[superCluster_index_tmp]+=reduceFloat(superClusterHit_energy_,nBits_);
+                                if(map_superCluster_energy.find(superCluster_index_tmp)!=map_superCluster_energy.end()) map_superCluster_energy.insert(pair<int,float>(superCluster_index_tmp,superClusterHit_energy_));
+                                else map_superCluster_energy[superCluster_index_tmp]+=superClusterHit_energy_;
                                 break;
                              }                 
                          }
@@ -892,7 +892,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                          if(!useEnergyRegression_) pfClusterHit_energy_ = recHit_energy_*hitsAndFractions[i].second;
                          else pfClusterHit_energy_ = (iPFCluster.correctedEnergy()/iPFCluster.energy())*recHit_energy_*hitsAndFractions[i].second;
                          // Save clusterHit with the cluster id
-                         map_pfCluster_energy.insert(pair<int, float>(pfCluster_index_tmp,reduceFloat(pfClusterHit_energy_,nBits_)));
+                         map_pfCluster_energy.insert(pair<int, float>(pfCluster_index_tmp,pfClusterHit_energy_));
                          break; 
                       }    
                   }  
@@ -929,7 +929,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           sim_rechit_diff.clear();
           sim_rechit_fraction.clear();
           global_sim_rechit_fraction.clear();
-    
+
           pfCluster_energy.push_back(reduceFloat(iPFCluster.energy(),nBits_));
           pfCluster_eta.push_back(reduceFloat(iPFCluster.eta(),nBits_));
           pfCluster_phi.push_back(reduceFloat(iPFCluster.phi(),nBits_));
@@ -1053,7 +1053,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           sim_rechit_diff.clear();
           sim_rechit_fraction.clear();
           global_sim_rechit_fraction.clear();
- 
+
           reco::CaloCluster caloBC(*iSuperCluster.seed());  
           locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
           full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
@@ -1146,7 +1146,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     
           iSC++;  
       } 
-       
+
       // The global SuperCluster indexing for EE has an offset = nSuperClusterEB
       iSC = nSuperClusters_EB;
       std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;

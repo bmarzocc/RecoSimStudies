@@ -290,4 +290,3 @@ class RecoSimDumper : public edm::EDAnalyzer
 };
 
 #endif
-
