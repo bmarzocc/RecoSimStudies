@@ -29,11 +29,27 @@ if __name__ == "__main__":
   files = [f for f in glob.glob(path + expr)]
   if len(files)==0: raise RuntimeError('path {} does not exist or is empty'.format(path))
 
+  #print '\n'.join(files)
+
+  print 'One file:'
+  print files[2]
+
+  print 'size:'
+  #print os.path.getsize(files[2])
+
+  def getSize(filename):
+     st = os.stat(filename)
+     return st.st_size
+
+  print getSize(files[2])
+
   files = map(lambda x: prepend+x, files) 
 
   # write sample file with all files per production
   with open(samplefile, 'w') as of:
     of.write('\n'.join(files))
+    
+  #print ' here: file name:', prepend+samplefile, files
 
   print ''
   print 'Wrote list of files for production', opt.pl

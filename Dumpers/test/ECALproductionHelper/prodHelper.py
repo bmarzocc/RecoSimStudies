@@ -17,7 +17,7 @@ def getOptions():
   parser.add_argument('-n','--nevts', type=int, dest='nevts', help='total number of events to be generated', default=10)
   parser.add_argument('-c','--ch', type=str, dest='ch', help='channel, e.g. photon', default='photon', choices=['photon'])
   parser.add_argument('--etmax', type=int, dest='etmax', help='max Et (GeV)', default=100)
-  parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
+  parser.add_argument('--etmin', type=float, dest='etmin', help='min Et (GeV)', default=1)
   parser.add_argument('--doflatenergy', dest='doflatenergy', help='generate flat in energy, otherwise in pt', action='store_true', default=False)
   parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
