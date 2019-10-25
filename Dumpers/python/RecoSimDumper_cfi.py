@@ -23,7 +23,6 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     savePFCluster                     = cms.bool(True),  #save pfClusters information
     saveSuperCluster                  = cms.bool(True),  #save superClusters information
     saveShowerShapes                  = cms.bool(False),  #save saveShowerShapes information
-    useEnergyRegression               = cms.bool(False), #save corrected energy
     genID                             = cms.vint32(22,11), #save only caloParticles with this pdgId 
     #genID                            = cms.vdouble(0),  #save only caloParticles with this pdgId 
 )

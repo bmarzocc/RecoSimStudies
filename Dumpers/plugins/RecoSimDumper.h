@@ -154,7 +154,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool savePFCluster_;
       bool saveSuperCluster_;
       bool saveShowerShapes_;
-      bool useEnergyRegression_;
       std::vector<int> genID_;
       
       // ----------histograms & trees & branches-------------------
@@ -287,6 +286,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> superCluster_sim_rechit_diff_MatchedIndex;
       std::vector<int> superCluster_sim_rechit_fraction_MatchedIndex;
       std::vector<int> superCluster_global_sim_rechit_fraction_MatchedIndex;
+
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_PFCluster;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_SuperClusterEB;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_SuperClusterEE;
 };
 
 #endif
