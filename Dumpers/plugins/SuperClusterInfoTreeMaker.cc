@@ -280,6 +280,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
    nVtx = -1;
    nVtx = vertices->size();
    
+   int iCalo_index=0;
+   hitsAndEnergies_CaloPart.clear(); 
    std::vector<CaloParticle> caloParts;
    for(const auto& iCalo : *(caloParticles.product()))
    {
@@ -289,6 +291,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
       
        if(!isGoodParticle) continue; 
        caloParts.push_back(iCalo); 
+       hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo_index))));
+       iCalo_index++;
    } 
    std::vector<GenParticle> genParts;
    for(const auto& iGen : *(genParticles.product()))
@@ -301,8 +305,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        genParts.push_back(iGen); 
    } 
 
-   std::vector<std::pair<DetId, float> >* hitsAndEnergies_SC;
-   std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
+   std::vector<std::pair<DetId, float> >* hitsAndEnergies_SuperCluster;
    GlobalPoint caloParticle_position;
   
    std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
@@ -363,7 +366,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        psClusterEta.clear();
        psClusterPhi.clear();
        
-       hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
+       hitsAndEnergies_SuperCluster = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
        scRawEnergy = reduceFloat(iSuperCluster.rawEnergy(),nBits_);
        scCalibratedEnergy = reduceFloat(iSuperCluster.energy(),nBits_);
@@ -388,14 +391,13 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
 
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
-              hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-              
-              for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
+             
+              for(const std::pair<DetId, float>& hit_CP : hitsAndEnergies_CaloPart.at(iCalo)) 
                   simEnergy_tmp+=hit_CP.second;
         
-              std::vector<float> scores = getScores(hitsAndEnergies_SC,hitsAndEnergies_CP);
+              std::vector<float> scores = getScores(hitsAndEnergies_SuperCluster,&hitsAndEnergies_CaloPart.at(iCalo));
               
-              caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+              caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
               simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
@@ -464,8 +466,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_){ 
                  for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){                
-                     hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-                     caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+                     caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
                      clusterDPhiToSim[iClus].push_back(reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - caloParticle_position.phi()),nBits_));    
                      clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));    
                  }
@@ -537,7 +538,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        psClusterEta.clear();
        psClusterPhi.clear();
        
-       hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
+       hitsAndEnergies_SuperCluster = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
        scRawEnergy = reduceFloat(iSuperCluster.rawEnergy(),nBits_);
        scCalibratedEnergy = reduceFloat(iSuperCluster.energy(),nBits_);
@@ -562,14 +563,13 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
 
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
-              hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-              
-              for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
+             
+              for(const std::pair<DetId, float>& hit_CP : hitsAndEnergies_CaloPart.at(iCalo)) 
                   simEnergy_tmp+=hit_CP.second;
         
-              std::vector<float> scores = getScores(hitsAndEnergies_SC,hitsAndEnergies_CP);
+              std::vector<float> scores = getScores(hitsAndEnergies_SuperCluster,&hitsAndEnergies_CaloPart.at(iCalo));
               
-              caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+              caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
               simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
@@ -638,8 +638,7 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_){ 
                  for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){                
-                     hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-                     caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+                     caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
                      clusterDPhiToSim[iClus].push_back(reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - caloParticle_position.phi()),nBits_));    
                      clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));      
                  }

@@ -206,6 +206,8 @@ class SuperClusterTreeMaker : public edm::EDAnalyzer
       std::vector<float> psClusterRawEnergy;
       std::vector<float> psClusterEta;
       std::vector<float> psClusterPhi;
+
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart; 
 };
 
 #endif

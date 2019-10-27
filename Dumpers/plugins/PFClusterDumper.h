@@ -181,6 +181,8 @@ class PFClusterDumper : public edm::EDAnalyzer
       int sim_rechit_fraction_MatchedIndex;
       std::vector<float> global_sim_rechit_fraction;
       int global_sim_rechit_fraction_MatchedIndex;
+
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart; 
 };
 
 #endif

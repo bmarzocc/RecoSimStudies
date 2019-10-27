@@ -233,7 +233,9 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
    } 
   
    GlobalPoint cell;
-
+ 
+   int iCalo_index=0; 
+   hitsAndEnergies_CaloPart.clear(); 
    std::vector<CaloParticle> caloParts;
    for(const auto& iCalo : *(caloParticles.product()))
    {
@@ -242,7 +244,9 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
            if(iCalo.pdgId()==genID_.at(id) || genID_.at(id)==0) isGoodParticle=true;
       
        if(!isGoodParticle) continue; 
-       caloParts.push_back(iCalo); 
+       caloParts.push_back(iCalo);
+       hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo_index))));
+       iCalo_index++; 
    }
    std::vector<GenParticle> genParts;
    for(const auto& iGen : *(genParticles.product()))
@@ -255,8 +259,7 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        genParts.push_back(iGen); 
    } 
 
-   std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
-   std::vector<std::pair<DetId, float> >* hitsAndEnergies_BC;
+   std::vector<std::pair<DetId, float> >* hitsAndEnergies_PFCluster;
    GlobalPoint caloParticle_position;
 
    //Save PFClusters
@@ -302,7 +305,7 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
        pfCluster_phi=reduceFloat(iPFCluster.phi(),nBits_);
 
        reco::CaloCluster caloBC(iPFCluster);
-       hitsAndEnergies_BC = getHitsAndEnergiesBC(&caloBC,recHitsEB,recHitsEE);
+       hitsAndEnergies_PFCluster = getHitsAndEnergiesBC(&caloBC,recHitsEB,recHitsEE);
 
        math::XYZPoint caloPos = caloBC.position();
        if(std::abs(iPFCluster.eta()) < 1.479){  
@@ -330,12 +333,11 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
 
        for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
            float simEnergy_tmp=0.;  
-           hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-              
-           for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
+            
+           for(const std::pair<DetId, float>& hit_CP : hitsAndEnergies_CaloPart.at(iCalo)) 
                simEnergy_tmp+=hit_CP.second;
 
-           caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+           caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
            simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
            simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
            simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
@@ -351,7 +353,7 @@ void PFClusterDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetu
              simIz.push_back(ee_id.zside());  
            }   
 
-           std::vector<float> scores = getScores(hitsAndEnergies_BC,hitsAndEnergies_CP);         
+           std::vector<float> scores = getScores(hitsAndEnergies_PFCluster,&hitsAndEnergies_CaloPart.at(iCalo));         
            if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_)); 
            else dR_simScore.push_back(reduceFloat(999.,nBits_)); 
            n_shared_xtals.push_back(scores[0]);  
