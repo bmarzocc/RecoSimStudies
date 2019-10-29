@@ -168,6 +168,9 @@ class RecoSimDumper : public edm::EDAnalyzer
       long int eventId;
       int lumiId;
       int runId; 
+      double rho;
+      float pu_nTrueInt;
+      float pu_nPU;
       std::vector<float> dR_genScore;
       std::vector<float> dR_simScore;
       std::vector<int> n_shared_xtals;

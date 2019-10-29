@@ -637,7 +637,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       } 
 
       int iCalo_index=-1;
-      std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
+      //std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
       std::vector<CaloParticle> caloParts;
       for(const auto& iCalo : *(caloParticles.product()))
       {
@@ -685,10 +685,10 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
 
          hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo_index))));
          GlobalPoint caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo_index), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-         //if (caloParticle_position == GlobalPoint(-999999., -999999., -999999.)) {
-         // std::cout << "Invalid position for caloparticle, skipping event" << std::endl;
-         //return;
-         // }
+         if (caloParticle_position == GlobalPoint(-999999., -999999., -999999.)) {
+            std::cout << "Invalid position for caloparticle, skipping event" << std::endl;
+            return;
+         }
          caloParticle_simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
          caloParticle_simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
          if(std::abs(caloParticle_position.eta()) < 1.479){  
@@ -938,7 +938,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          //Save PFClusters
          if(savePFCluster_){
             int iPFCl=0;
-            std::cout << "PFClusters size     : " << (pfClusters.product())->size() << std::endl;
+            //std::cout << "PFClusters size     : " << (pfClusters.product())->size() << std::endl;
 
             for(const auto& iPFCluster : *(pfClusters.product())){  
 
@@ -1151,7 +1151,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
             // The global SuperCluster indexing for EE has an offset = nSuperClusterEB
             iSC = nSuperClusters_EB;
             int iSC_tmp=-1;
-            std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;
+            //std::cout << "SuperClustersEE size: " << (superClusterEE.product())->size() << std::endl;
             for(const auto& iSuperCluster : *(superClusterEE.product())){    
 
                dR_genScore.clear();
@@ -1547,7 +1547,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          }
 
          if (ecal_geom == nullptr)
-            return GlobalPoint(-999999., -999999., -999999.);
+           return GlobalPoint(-999999., -999999., -999999.);
 
          auto center_cell = ecal_geom->getGeometry(id_max);
          const double ctreta = center_cell->etaPos();
