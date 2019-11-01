@@ -27,7 +27,8 @@ def getOptions():
 
   parser.add_argument('--pfrhmult', type=float, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1.)
   parser.add_argument('--seedmult', type=float, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3.)
-  parser.add_argument('--doref', dest='doref', help='use reference values for pfrh,seed, thresholds', action='store_true', default=False)
+  parser.add_argument('--dorefpfrh', dest='dorefpfrh', help='use reference values for pfrh and gathering thresholds', action='store_true', default=False)
+  parser.add_argument('--dorefseed', dest='dorefseed', help='use reference values for seeding thresholds', action='store_true', default=False)
   parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing production', action='store_true', default=False)
   parser.add_argument('--custominput', type=str, dest='custominput', help='full path of the input file that you want to use for the reconstruction (also SE is supported)', default=None)
   parser.add_argument('--custominputdir', type=str, dest='custominputdir', help='full path of the input directory that you want to use for the reconstruction (also SE is supported)', default=None)
@@ -58,10 +59,11 @@ if __name__ == "__main__":
   user = os.environ["USER"]
   evar = 'E' if opt.doflatenergy else 'Et'
   etRange='{}{}to{}GeV'.format(evar,opt.etmin,opt.etmax)
-  prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
-  if opt.doref: # change to ref label
-    prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
-  doref = 1 if opt.doref else 0
+  pfrhLabel= opt.pfrhmult if not opt.dorefpfrh else 'Ref'
+  seedLabel= opt.seedmult if not opt.dorefseed else 'Ref'
+  prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=pfrhLabel,s=seedLabel,v=opt.ver,n=opt.nevts)
+  dorefpfrh = 1 if opt.dorefpfrh else 0
+  dorefseed = 1 if opt.dorefseed else 0
   doflatenergy = 1 if opt.doflatenergy else 0
   nthr = 8 if opt.domultithread else 1
   njobs = opt.njobs if opt.domultijob else 1
@@ -162,7 +164,7 @@ if __name__ == "__main__":
   ## other steps  
   step2_cmsRun = 'cmsRun {jo} nThr={nt} nPremixFiles={npf}'.format(jo=target_drivers[1], nt=nthr, npf=npremixfiles)
   step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
-  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt} doRef={dr}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr, dr=doref)
+  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt} doRefPfrh={drpf} doRefSeed={drsd}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr, drpf=dorefpfrh, drsd=dorefseed)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
   cmsRuns_add = [step1_cmsRun_add, step2_cmsRun_add, '']
   ############################
