@@ -17,7 +17,7 @@ def getOptions():
   parser.add_argument('-n','--nevts', type=int, dest='nevts', help='total number of events to be generated', default=10)
   parser.add_argument('-c','--ch', type=str, dest='ch', help='channel, e.g. photon', default='photon', choices=['photon'])
   parser.add_argument('--etmax', type=int, dest='etmax', help='max Et (GeV)', default=100)
-  parser.add_argument('--etmin', type=int, dest='etmin', help='min Et (GeV)', default=1)
+  parser.add_argument('--etmin', type=float, dest='etmin', help='min Et (GeV)', default=1)
   parser.add_argument('--doflatenergy', dest='doflatenergy', help='generate flat in energy, otherwise in pt', action='store_true', default=False)
   parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
@@ -288,13 +288,13 @@ if __name__ == "__main__":
 
   for nj in range(0,njobs):
 
-    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn -o logs/step1_nj{nj}.log -e logs/step1_nj{nj}.log --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[0],nt=nthr)
+    sbatch_command_step1 = 'jid1_nj{nj}=$(sbatch -p wn --account=cn-test -o logs/step1_nj{nj}.log -e logs/step1_nj{nj}.log --job-name=step1_{pl} {t} --ntasks={nt} launch_step1_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[0],nt=nthr)
 
-    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn -o logs/step2_nj{nj}.log -e logs/step2_nj{nj}.log --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[1],nt=nthr)
+    sbatch_command_step2 = 'jid2_nj{nj}=$(sbatch -p wn --account=cn-test -o logs/step2_nj{nj}.log -e logs/step2_nj{nj}.log --job-name=step2_{pl} {t} --ntasks={nt} --dependency=afterany:$jid1_nj{nj} launch_step2_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[1],nt=nthr)
 
-    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
+    sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn --account=cn-test -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
     if opt.doreco: # strip the dependency away
-      sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
+      sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn --account=cn-test -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
 
     if not opt.doreco:
       submitter_template.append(sbatch_command_step1)
