@@ -116,7 +116,7 @@ class PFClusterDumper : public edm::EDAnalyzer
          virtual void endJob() ;
         
       // ----------additional functions-------------------
-      std::vector<float> getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy);
+      std::vector<float> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
@@ -143,6 +143,7 @@ class PFClusterDumper : public edm::EDAnalyzer
       bool saveHitsPosition_;
       bool useES_;
       std::vector<int> genID_;
+      bool saveScores_;
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;
@@ -156,16 +157,32 @@ class PFClusterDumper : public edm::EDAnalyzer
       std::vector<float> genEnergy;
       std::vector<float> genEta;
       std::vector<float> genPhi;
+      std::vector<float> dR_genScore;
+      int dR_genScore_MatchedIndex;
       std::vector<float> simEnergy;
       std::vector<float> simEta;
       std::vector<float> simPhi;
       std::vector<float> simIeta;
       std::vector<float> simIphi;
       std::vector<float> simIz;
-      std::vector<float> simFractionBCtoBC;
-      std::vector<float> simFractionBCtoCP;
-      std::vector<float> simFractionCPtoBC;
-      std::vector<float> simFractionCPtoCP;
+      std::vector<float> dR_simScore;
+      int dR_simScore_MatchedIndex;
+      std::vector<float> n_shared_xtals;
+      int n_shared_xtals_MatchedIndex;
+      std::vector<float> sim_fraction;
+      int sim_fraction_MatchedIndex;
+      std::vector<float> sim_fraction_min1;
+      int sim_fraction_min1_MatchedIndex;
+      std::vector<float> sim_fraction_min3;
+      int sim_fraction_min3_MatchedIndex;
+      std::vector<float> sim_rechit_diff;
+      int sim_rechit_diff_MatchedIndex;
+      std::vector<float> sim_rechit_fraction;
+      int sim_rechit_fraction_MatchedIndex;
+      std::vector<float> global_sim_rechit_fraction;
+      int global_sim_rechit_fraction_MatchedIndex;
+
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart; 
 };
 
 #endif

@@ -31,6 +31,9 @@ if __name__ == "__main__":
 
   files = map(lambda x: prepend+x, files) 
 
+  #create outputdir
+  os.system('mkdir {}'.format('../outputfiles/dumpedFiles'))
+
   # write sample file with all files per production
   with open(samplefile, 'w') as of:
     of.write('\n'.join(files))
@@ -40,7 +43,7 @@ if __name__ == "__main__":
   print ''
 
   # write cmsRun command to launch
-  command = 'cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/{pl}.root inputFiles_load=data/samples/{pl}.txt'.format(pl=opt.pl)
+  command = 'cmsRun python/Cfg_RecoSimDumper_cfg.py outputFile=test/outputfiles/dumpedFiles/{pl}.root inputFiles_load=data/samples/{pl}.txt'.format(pl=opt.pl)
   print 'Command to run for production', opt.pl
   print ''
   print command

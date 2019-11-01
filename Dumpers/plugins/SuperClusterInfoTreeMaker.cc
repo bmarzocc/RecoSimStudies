@@ -126,6 +126,7 @@ SuperClusterTreeMaker::SuperClusterTreeMaker(const edm::ParameterSet& iConfig)
    nBits_                   = iConfig.getParameter<int>("nBits");
    genID_                   = iConfig.getParameter<std::vector<int>>("genID");
    doSimMatch_              = iConfig.getParameter<bool>("doSimMatch"); 
+   saveScores_              = iConfig.getParameter<bool>("saveScores"); 
 
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
@@ -158,8 +159,6 @@ SuperClusterTreeMaker::SuperClusterTreeMaker(const edm::ParameterSet& iConfig)
    tree->Branch("clusterDEtaToSeed", "std::vector<float>", &clusterDEtaToSeed);
    tree->Branch("clusterDPhiToCentroid", "std::vector<float>", &clusterDPhiToCentroid);
    tree->Branch("clusterDEtaToCentroid", "std::vector<float>", &clusterDEtaToCentroid);
-   tree->Branch("clusterHitFractionSharedWithSeed","std::vector<float>", &clusterHitFractionSharedWithSeed);
-   tree->Branch("clusterLeakage","std::vector<float>", &clusterLeakage);
    tree->Branch("clusterInMustache", "std::vector<int>", &clusterInMustache);
    tree->Branch("clusterInDynDPhi", "std::vector<int>", &clusterInDynDPhi);
    // preshower information
@@ -171,18 +170,33 @@ SuperClusterTreeMaker::SuperClusterTreeMaker(const edm::ParameterSet& iConfig)
      tree->Branch("genEta", "std::vector<float>", &genEta);
      tree->Branch("genPhi", "std::vector<float>", &genPhi);
      tree->Branch("genEnergy", "std::vector<float>", &genEnergy);
+     if(saveScores_) tree->Branch("dR_genScore", "std::vector<float>", &dR_genScore);
+     tree->Branch("dR_genScore_MatchedIndex",&dR_genScore_MatchedIndex,"dR_genScore_MatchedIndex/I");
      tree->Branch("simEta", "std::vector<float>", &simEta);
      tree->Branch("simPhi", "std::vector<float>", &simPhi);
      tree->Branch("simEnergy", "std::vector<float>", &simEnergy);
      tree->Branch("simDRToCentroid", "std::vector<float>", &simDRToCentroid);
      tree->Branch("simDRToSeed", "std::vector<float>", &simDRToSeed);
-     tree->Branch("simFractionBCtoBC", "std::vector<float>", &simFractionBCtoBC);
-     tree->Branch("simFractionBCtoCP", "std::vector<float>", &simFractionBCtoCP);
-     tree->Branch("simFractionCPtoBC", "std::vector<float>", &simFractionCPtoBC);
-     tree->Branch("simFractionCPtoCP", "std::vector<float>", &simFractionCPtoCP);   
+     if(saveScores_){
+        tree->Branch("dR_simScore", "std::vector<float>", &dR_simScore);
+        tree->Branch("n_shared_xtals", "std::vector<float>", &n_shared_xtals);
+        tree->Branch("sim_fraction", "std::vector<float>", &sim_fraction);
+        tree->Branch("sim_fraction_min1", "std::vector<float>", &sim_fraction_min1);
+        tree->Branch("sim_fraction_min3", "std::vector<float>", &sim_fraction_min3); 
+        tree->Branch("sim_rechit_diff", "std::vector<float>", &sim_rechit_diff);
+        tree->Branch("sim_rechit_fraction", "std::vector<float>", &sim_rechit_fraction);   
+        tree->Branch("global_sim_rechit_fraction", "std::vector<float>", &global_sim_rechit_fraction); 
+     }  
+     tree->Branch("dR_simScore_MatchedIndex",&dR_simScore_MatchedIndex,"dR_simScore_MatchedIndex/I");
+     tree->Branch("n_shared_xtals_MatchedIndex",&n_shared_xtals_MatchedIndex,"n_shared_xtals_MatchedIndex/I");
+     tree->Branch("sim_fraction_MatchedIndex",&sim_fraction_MatchedIndex,"sim_fraction_MatchedIndex/I");
+     tree->Branch("sim_fraction_min1_MatchedIndex",&sim_fraction_min1_MatchedIndex,"sim_fraction_min1_MatchedIndex/I");
+     tree->Branch("sim_fraction_min3_MatchedIndex",&sim_fraction_min3_MatchedIndex,"sim_fraction_min3_MatchedIndex/I");
+     tree->Branch("sim_rechit_diff_MatchedIndex",&sim_rechit_diff_MatchedIndex,"sim_rechit_diff_MatchedIndex/I");
+     tree->Branch("sim_rechit_fraction_MatchedIndex",&sim_rechit_fraction_MatchedIndex,"sim_rechit_fraction_MatchedIndex/I");   
+     tree->Branch("global_sim_rechit_fraction_MatchedIndex",&global_sim_rechit_fraction_MatchedIndex,"global_sim_rechit_fraction_MatchedIndex/I"); 
      tree->Branch("clusterDPhiToSim", "std::vector<std::vector<float> >", &clusterDPhiToSim);
      tree->Branch("clusterDEtaToSim", "std::vector<std::vector<float> >", &clusterDEtaToSim);
-     tree->Branch("clusterLeakageWrtSim", "std::vector<std::vector<float> >", &clusterLeakageWrtSim);
    }
 }
 
@@ -266,6 +280,8 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
    nVtx = -1;
    nVtx = vertices->size();
    
+   int iCalo_index=0;
+   hitsAndEnergies_CaloPart.clear(); 
    std::vector<CaloParticle> caloParts;
    for(const auto& iCalo : *(caloParticles.product()))
    {
@@ -275,12 +291,23 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
       
        if(!isGoodParticle) continue; 
        caloParts.push_back(iCalo); 
+       hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo_index))));
+       iCalo_index++;
+   } 
+   std::vector<GenParticle> genParts;
+   for(const auto& iGen : *(genParticles.product()))
+   {
+       bool isGoodParticle = false; 
+       for(unsigned int id=0; id<genID_.size(); id++)
+           if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
+      
+       if(!isGoodParticle) continue; 
+       genParts.push_back(iGen); 
    } 
 
-   std::vector<std::pair<DetId, float> >* hitsAndEnergies_SC;
-   std::vector<std::pair<DetId, float> >* hitsAndEnergies_CP;
+   std::vector<std::pair<DetId, float> >* hitsAndEnergies_SuperCluster;
    GlobalPoint caloParticle_position;
-
+  
    std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
    for(const auto& iSuperCluster : *(superClusterEB.product())){   
 
@@ -300,15 +327,29 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        genEnergy.clear();
        genEta.clear();
        genPhi.clear();
+       dR_genScore.clear();
        simEnergy.clear();
        simEta.clear();
        simPhi.clear();
        simDRToCentroid.clear();
        simDRToSeed.clear();
-       simFractionBCtoBC.clear();
-       simFractionBCtoCP.clear();
-       simFractionCPtoBC.clear();
-       simFractionCPtoCP.clear();
+       dR_simScore.clear();
+       n_shared_xtals.clear();
+       sim_fraction.clear();
+       sim_fraction_min1.clear();
+       sim_fraction_min3.clear();   
+       sim_rechit_diff.clear();
+       sim_rechit_fraction.clear();
+       global_sim_rechit_fraction.clear();
+       dR_genScore_MatchedIndex=-1;
+       dR_simScore_MatchedIndex=-1;
+       n_shared_xtals_MatchedIndex=-1;
+       sim_fraction_MatchedIndex=-1;
+       sim_fraction_min1_MatchedIndex=-1;
+       sim_fraction_min3_MatchedIndex=-1;    
+       sim_rechit_diff_MatchedIndex=-1;
+       sim_rechit_fraction_MatchedIndex=-1;
+       global_sim_rechit_fraction_MatchedIndex=-1;
        clusterRawEnergy.clear();;
        clusterCalibEnergy.clear();
        clusterEta.clear();
@@ -319,16 +360,13 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        clusterDEtaToCentroid.clear();
        clusterDPhiToSim.clear();
        clusterDEtaToSim.clear();
-       clusterHitFractionSharedWithSeed.clear();
-       clusterLeakage.clear();
-       clusterLeakageWrtSim.clear();
        clusterInMustache.clear();
        clusterInDynDPhi.clear();
        psClusterRawEnergy.clear();
        psClusterEta.clear();
        psClusterPhi.clear();
        
-       hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
+       hitsAndEnergies_SuperCluster = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
        scRawEnergy = reduceFloat(iSuperCluster.rawEnergy(),nBits_);
        scCalibratedEnergy = reduceFloat(iSuperCluster.energy(),nBits_);
@@ -340,37 +378,57 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        scEtaWidth = reduceFloat(iSuperCluster.etaWidth(),nBits_);
        GlobalPoint caloParticle_position;  
        if(doSimMatch_){
-          for(const auto& iGen : *(genParticles.product()))
+          for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
           {
-              bool isGoodParticle = false; 
-              for(unsigned int id=0; id<genID_.size(); id++)
-                  if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
-      
-              if(!isGoodParticle) continue; 
-              genEnergy.push_back(reduceFloat(iGen.energy(),nBits_));
-              genEta.push_back(reduceFloat(iGen.eta(),nBits_));
-              genPhi.push_back(reduceFloat(iGen.phi(),nBits_));
+              genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
+              genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
+              genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
+              if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              else dR_genScore.push_back(999.);
           } 
+          if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;   
+          else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
+
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
-              hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-              
-              for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
+             
+              for(const std::pair<DetId, float>& hit_CP : hitsAndEnergies_CaloPart.at(iCalo)) 
                   simEnergy_tmp+=hit_CP.second;
         
-              std::vector<float> fractionEnergy = getSharedRecHitFraction(hitsAndEnergies_SC,hitsAndEnergies_CP,true);
+              std::vector<float> scores = getScores(hitsAndEnergies_SuperCluster,&hitsAndEnergies_CaloPart.at(iCalo));
               
-              caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+              caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
               simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
-              simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
-              simFractionBCtoBC.push_back(reduceFloat(fractionEnergy[0],nBits_)); 
-              simFractionBCtoCP.push_back(reduceFloat(fractionEnergy[1],nBits_)); 
-              simFractionCPtoBC.push_back(reduceFloat(fractionEnergy[2],nBits_)); 
-              simFractionCPtoCP.push_back(reduceFloat(fractionEnergy[3],nBits_));  
+              simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              else dR_simScore.push_back(999.);
+              n_shared_xtals.push_back(scores[0]);  
+              sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
+              sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
+              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));           
+              global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));  
+              sim_fraction_min1.push_back(reduceFloat(scores[5],nBits_));  
+              sim_fraction_min3.push_back(reduceFloat(scores[6],nBits_));      
               if(iSuperCluster.seed().isAvailable() && doSimMatch_) simDRToSeed.push_back(reduceFloat( deltaR(caloParticle_position.eta(),caloParticle_position.phi(), iSuperCluster.seed()->eta(), iSuperCluster.seed()->phi()),nBits_)); 
           }  
+          if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) dR_simScore_MatchedIndex = -1;
+          else dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
+          if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) n_shared_xtals_MatchedIndex = -1;
+          else n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();  
+          if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) sim_fraction_MatchedIndex = -1;
+          else sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin(); 
+          if(std::equal(sim_fraction_min1.begin() + 1, sim_fraction_min1.end(), sim_fraction_min1.begin())) sim_fraction_min1_MatchedIndex = -1;
+          else sim_fraction_min1_MatchedIndex = std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin(); 
+          if(std::equal(sim_fraction_min3.begin() + 1, sim_fraction_min3.end(), sim_fraction_min3.begin())) sim_fraction_min3_MatchedIndex = -1;
+          else sim_fraction_min3_MatchedIndex = std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin();     
+          if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) sim_rechit_diff_MatchedIndex = -1;
+          else sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin();  
+          if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) sim_rechit_fraction_MatchedIndex = -1;
+          else sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin(); 
+          if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) global_sim_rechit_fraction_MatchedIndex = -1;
+          else global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();    
        } 
        if(iSuperCluster.seed().isAvailable()){ 
           scSeedRawEnergy = reduceFloat(iSuperCluster.seed()->energy(),nBits_);
@@ -390,9 +448,6 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           clusterDEtaToCentroid.resize(N_ECALClusters);
           clusterDPhiToSim.resize(N_ECALClusters);
           clusterDEtaToSim.resize(N_ECALClusters);
-          clusterHitFractionSharedWithSeed.resize(N_ECALClusters);
-          clusterLeakage.resize(N_ECALClusters);
-          clusterLeakageWrtSim.resize(N_ECALClusters);
           clusterInMustache.resize(N_ECALClusters);
           clusterInDynDPhi.resize(N_ECALClusters);  
           int iClus=0;
@@ -407,19 +462,13 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterDEtaToSeed[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.seed()->eta(),nBits_);    
               clusterDPhiToCentroid[iClus] = reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - iSuperCluster.phi()),nBits_); 
               clusterDEtaToCentroid[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.eta(),nBits_);
-              clusterHitFractionSharedWithSeed[iClus] = reduceFloat(getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),&iSuperCluster.seed()->hitsAndFractions(),true)[1],nBits_);  
-              clusterLeakage[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE),true)[1],nBits_);
               clusterInMustache[iClus] = (int)reco::MustacheKernel::inMustache(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(),iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_){ 
-                 for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
-                 
-                     hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-                     caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-
+                 for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){                
+                     caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
                      clusterDPhiToSim[iClus].push_back(reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - caloParticle_position.phi()),nBits_));    
                      clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));    
-                     clusterLeakageWrtSim[iClus].push_back(reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),hitsAndEnergies_CP,false)[1],nBits_));    
                  }
               }
   
@@ -450,15 +499,29 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        genEnergy.clear();
        genEta.clear();
        genPhi.clear();
+       dR_genScore.clear();
        simEnergy.clear();
        simEta.clear();
        simPhi.clear();
        simDRToCentroid.clear();
        simDRToSeed.clear();
-       simFractionBCtoBC.clear();
-       simFractionBCtoCP.clear();
-       simFractionCPtoBC.clear();
-       simFractionCPtoCP.clear();
+       dR_simScore.clear(); 
+       n_shared_xtals.clear();
+       sim_fraction.clear();
+       sim_fraction_min1.clear();
+       sim_fraction_min3.clear();  
+       sim_rechit_diff.clear();
+       sim_rechit_fraction.clear();
+       global_sim_rechit_fraction.clear();
+       dR_genScore_MatchedIndex=-1;
+       dR_simScore_MatchedIndex=-1;
+       n_shared_xtals_MatchedIndex=-1;
+       sim_fraction_MatchedIndex=-1;
+       sim_fraction_min1_MatchedIndex=-1;
+       sim_fraction_min3_MatchedIndex=-1;    
+       sim_rechit_diff_MatchedIndex=-1;
+       sim_rechit_fraction_MatchedIndex=-1;
+       global_sim_rechit_fraction_MatchedIndex=-1;
        clusterRawEnergy.clear();;
        clusterCalibEnergy.clear();
        clusterEta.clear();
@@ -469,16 +532,13 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        clusterDEtaToCentroid.clear();
        clusterDPhiToSim.clear();
        clusterDEtaToSim.clear();
-       clusterHitFractionSharedWithSeed.clear();
-       clusterLeakage.clear();
-       clusterLeakageWrtSim.clear();
        clusterInMustache.clear();
        clusterInDynDPhi.clear();
        psClusterRawEnergy.clear();
        psClusterEta.clear();
        psClusterPhi.clear();
-
-       hitsAndEnergies_SC = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
+       
+       hitsAndEnergies_SuperCluster = getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE);
 
        scRawEnergy = reduceFloat(iSuperCluster.rawEnergy(),nBits_);
        scCalibratedEnergy = reduceFloat(iSuperCluster.energy(),nBits_);
@@ -490,37 +550,57 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
        scEtaWidth = reduceFloat(iSuperCluster.etaWidth(),nBits_);
        GlobalPoint caloParticle_position;  
        if(doSimMatch_){ 
-          for(const auto& iGen : *(genParticles.product()))
+          for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
           {
-              bool isGoodParticle = false; 
-              for(unsigned int id=0; id<genID_.size(); id++)
-                  if((iGen.pdgId()==genID_.at(id) || genID_.at(id)==0) && iGen.status()==1) isGoodParticle=true;
-      
-              if(!isGoodParticle) continue; 
-              genEnergy.push_back(reduceFloat(iGen.energy(),nBits_));
-              genEta.push_back(reduceFloat(iGen.eta(),nBits_));
-              genPhi.push_back(reduceFloat(iGen.phi(),nBits_));
-          }    
+              genEnergy.push_back(reduceFloat(genParts.at(iGen).energy(),nBits_));
+              genEta.push_back(reduceFloat(genParts.at(iGen).eta(),nBits_));
+              genPhi.push_back(reduceFloat(genParts.at(iGen).phi(),nBits_));
+              if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              else dR_genScore.push_back(999.);
+          } 
+          if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) dR_genScore_MatchedIndex = -1;
+          else dR_genScore_MatchedIndex = std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin(); 
+
           for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
               float simEnergy_tmp=0.;  
-              hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-              
-              for(const std::pair<DetId, float>& hit_CP : *hitsAndEnergies_CP) 
+             
+              for(const std::pair<DetId, float>& hit_CP : hitsAndEnergies_CaloPart.at(iCalo)) 
                   simEnergy_tmp+=hit_CP.second;
         
-              std::vector<float> fractionEnergy = getSharedRecHitFraction(hitsAndEnergies_SC,hitsAndEnergies_CP,true);
+              std::vector<float> scores = getScores(hitsAndEnergies_SuperCluster,&hitsAndEnergies_CaloPart.at(iCalo));
               
-              caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+              caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
               simEnergy.push_back(reduceFloat(simEnergy_tmp,nBits_));
               simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
               simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
-              simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
-              simFractionBCtoBC.push_back(reduceFloat(fractionEnergy[0],nBits_)); 
-              simFractionBCtoCP.push_back(reduceFloat(fractionEnergy[1],nBits_)); 
-              simFractionCPtoBC.push_back(reduceFloat(fractionEnergy[2],nBits_)); 
-              simFractionCPtoCP.push_back(reduceFloat(fractionEnergy[3],nBits_));  
+              simDRToCentroid.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_));
+              if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
+              else dR_simScore.push_back(999.);
+              n_shared_xtals.push_back(scores[0]);  
+              sim_fraction.push_back(reduceFloat(scores[1],nBits_));  
+              sim_rechit_diff.push_back(reduceFloat(scores[2],nBits_)); 
+              sim_rechit_fraction.push_back(reduceFloat(scores[3],nBits_));           
+              global_sim_rechit_fraction.push_back(reduceFloat(scores[4],nBits_));  
+              sim_fraction_min1.push_back(reduceFloat(scores[5],nBits_));  
+              sim_fraction_min3.push_back(reduceFloat(scores[6],nBits_));       
               if(iSuperCluster.seed().isAvailable() && doSimMatch_) simDRToSeed.push_back(reduceFloat( deltaR(caloParticle_position.eta(),caloParticle_position.phi(), iSuperCluster.seed()->eta(), iSuperCluster.seed()->phi()),nBits_)); 
-          }  
+          }
+          if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) dR_simScore_MatchedIndex = -1;
+          else dR_simScore_MatchedIndex = std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin();  
+          if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) n_shared_xtals_MatchedIndex = -1;
+          else n_shared_xtals_MatchedIndex = std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin();  
+          if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) sim_fraction_MatchedIndex = -1;
+          else sim_fraction_MatchedIndex = std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin(); 
+          if(std::equal(sim_fraction_min1.begin() + 1, sim_fraction_min1.end(), sim_fraction_min1.begin())) sim_fraction_min1_MatchedIndex = -1;
+          else sim_fraction_min1_MatchedIndex = std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin(); 
+          if(std::equal(sim_fraction_min3.begin() + 1, sim_fraction_min3.end(), sim_fraction_min3.begin())) sim_fraction_min3_MatchedIndex = -1;
+          else sim_fraction_min3_MatchedIndex = std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin();    
+          if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) sim_rechit_diff_MatchedIndex = -1;
+          else sim_rechit_diff_MatchedIndex = std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin();  
+          if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) sim_rechit_fraction_MatchedIndex = -1;
+          else sim_rechit_fraction_MatchedIndex = std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin(); 
+          if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) global_sim_rechit_fraction_MatchedIndex = -1;
+          else global_sim_rechit_fraction_MatchedIndex = std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin();    
        } 
        if(iSuperCluster.seed().isAvailable()){ 
           scSeedRawEnergy = reduceFloat(iSuperCluster.seed()->energy(),nBits_);
@@ -540,9 +620,6 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
           clusterDEtaToCentroid.resize(N_ECALClusters);
           clusterDPhiToSim.resize(N_ECALClusters);
           clusterDEtaToSim.resize(N_ECALClusters);
-          clusterHitFractionSharedWithSeed.resize(N_ECALClusters);
-          clusterLeakage.resize(N_ECALClusters);
-          clusterLeakageWrtSim.resize(N_ECALClusters);
           clusterInMustache.resize(N_ECALClusters);
           clusterInDynDPhi.resize(N_ECALClusters);  
           int iClus=0;
@@ -557,19 +634,13 @@ void SuperClusterTreeMaker::analyze(const edm::Event& ev, const edm::EventSetup&
               clusterDEtaToSeed[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.seed()->eta(),nBits_);    
               clusterDPhiToCentroid[iClus] = reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - iSuperCluster.phi()),nBits_); 
               clusterDEtaToCentroid[iClus] = reduceFloat(iSuperCluster.clusters()[iBC]->eta() - iSuperCluster.eta(),nBits_);
-              clusterHitFractionSharedWithSeed[iClus] = reduceFloat(getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),&iSuperCluster.seed()->hitsAndFractions(),true)[1],nBits_);  
-              clusterLeakage[iClus] = reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),getHitsAndEnergiesSC(&iSuperCluster,recHitsEB,recHitsEE),true)[1],nBits_);
               clusterInMustache[iClus] = (int)reco::MustacheKernel::inMustache(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(),iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               clusterInDynDPhi[iClus] = (int)reco::MustacheKernel::inDynamicDPhiWindow(iSuperCluster.seed()->eta(),iSuperCluster.seed()->phi(), iSuperCluster.clusters()[iBC]->energy(),iSuperCluster.clusters()[iBC]->eta(),iSuperCluster.clusters()[iBC]->phi()); 
               if(doSimMatch_){ 
-                 for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
-                 
-                     hitsAndEnergies_CP = getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)));
-                     caloParticle_position = calculateAndSetPositionActual(hitsAndEnergies_CP, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-
+                 for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){                
+                     caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
                      clusterDPhiToSim[iClus].push_back(reduceFloat(TVector2::Phi_mpi_pi(iSuperCluster.clusters()[iBC]->phi() - caloParticle_position.phi()),nBits_));    
-                     clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));    
-                     clusterLeakageWrtSim[iClus].push_back(reduceFloat(1.-getSharedRecHitFraction(&iSuperCluster.clusters()[iBC]->hitsAndFractions(),hitsAndEnergies_CP,false)[1],nBits_));    
+                     clusterDEtaToSim[iClus].push_back(reduceFloat(iSuperCluster.clusters()[iBC]->eta() - caloParticle_position.eta(),nBits_));      
                  }
               }
   
@@ -608,53 +679,80 @@ void SuperClusterTreeMaker::endJob()
 }
 
 ///------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-std::vector<float> SuperClusterTreeMaker::getSharedRecHitFraction(const std::vector<std::pair<DetId, float> >*hits_and_energies_BC, const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, bool useEnergy)
+std::vector<float> SuperClusterTreeMaker::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart)
 {
-    std::vector<float> fraction;
-    fraction.resize(4);
+    std::vector<float> scores;
+    scores.resize(5);
+
+    float nSharedXtals=-1.;
+    float simFraction=-1.;
+    float sim_rechit_diff=0.;
+    float sim_rechit_fraction=0.;     
+    float global_sim_rechit_fraction=-1.;       
    
-    float rechits_tot_CP = 0.;
-    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
-        if(useEnergy)  rechits_tot_CP+=hit_CP.second;
-        if(!useEnergy) rechits_tot_CP+=1.;
+    float rechits_tot_CaloPart = 0.;
+    float rechits_tot_CaloPart_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart) {
+        rechits_tot_CaloPart+=hit_CaloPart.second;
+        rechits_tot_CaloPart_noEnergy+=1.;
     }
 
-    float rechits_tot_BC = 0.;
-    for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC) {
-        if(useEnergy)  rechits_tot_BC+=hit_BC.second;
-        if(!useEnergy) rechits_tot_BC+=1.;
+    float rechits_tot_Cluster = 0.;
+    float rechits_tot_Cluster_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster) {
+        rechits_tot_Cluster+=hit_Cluster.second;
+        rechits_tot_Cluster_noEnergy+=1.;
     }
    
-    float rechits_match_BC = 0.;
-    float rechits_match_CP = 0.;
-    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) 
-        for(const std::pair<DetId, float>& hit_BC : *hits_and_energies_BC)      
-            if(hit_CP.first.rawId() == hit_BC.first.rawId()){
-               if(useEnergy){  
-                  rechits_match_BC += hit_BC.second;
-                  rechits_match_CP += hit_CP.second;    
-               }
-               if(!useEnergy){
-                  rechits_match_BC += 1.0;
-                  rechits_match_CP += 1.0;
-               }
-            }  
+    float rechits_match_Cluster = 0.;
+    float rechits_match_CaloPart = 0.;
+    float rechits_match_CaloPart_noEnergy = 0.;
+    for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster){
+        float reco_ratio=0.; 
+        if(rechits_tot_Cluster!=0.) reco_ratio = hit_Cluster.second/rechits_tot_Cluster;
+        float sim_ratio = 0.;        
+        for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart){  
+            if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
+
+               rechits_match_Cluster += hit_Cluster.second;
+               rechits_match_CaloPart += hit_CaloPart.second;    
+               rechits_match_CaloPart_noEnergy += 1.0;
+
+               sim_rechit_diff += fabs(hit_CaloPart.second-hit_Cluster.second);
+               if(rechits_tot_CaloPart!=0.) sim_ratio = hit_CaloPart.second/rechits_tot_CaloPart; 
+            }         
+        } 
+        sim_rechit_fraction += fabs(sim_ratio - reco_ratio);  
+    }
+
+    if(rechits_tot_CaloPart_noEnergy!=0.) nSharedXtals = rechits_match_CaloPart_noEnergy;
+
+    if(rechits_tot_CaloPart!=0.) simFraction = rechits_match_CaloPart/rechits_tot_CaloPart;
+
+    if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./rechits_match_CaloPart_noEnergy)*sim_rechit_diff;
+    else sim_rechit_diff=-1.; 
+
+    if(sim_rechit_fraction!=0.) sim_rechit_fraction = 1-sim_rechit_fraction;
+    else sim_rechit_fraction=-1.;
     
-    if(rechits_tot_BC!=0.) fraction[0] = rechits_match_BC/rechits_tot_BC;
-    else fraction[0]=-1.;
-    if(rechits_tot_CP!=0.) fraction[1] = rechits_match_BC/rechits_tot_CP;
-    else fraction[1]=-1.; 
-    if(rechits_tot_BC!=0.) fraction[2] = rechits_match_CP/rechits_tot_BC;
-    else fraction[2]=-1.;
-    if(rechits_tot_CP!=0.) fraction[3] = rechits_match_CP/rechits_tot_CP;
-    else fraction[3]=-1.;
+    if(rechits_tot_CaloPart!=0. && rechits_tot_Cluster!=0. && rechits_match_CaloPart/rechits_tot_CaloPart!=0. && rechits_match_Cluster/rechits_tot_Cluster!=0.) global_sim_rechit_fraction = 1-fabs(rechits_match_CaloPart/rechits_tot_CaloPart - rechits_match_Cluster/rechits_tot_Cluster);
+    
+    scores[0] = nSharedXtals;
+    scores[1] = simFraction;
+    scores[2] = sim_rechit_diff;
+    scores[3] = sim_rechit_fraction;     
+    scores[4] = global_sim_rechit_fraction; 
+    if(simFraction>0.01) scores[5] = simFraction; 
+    else scores[5] = -1.; 
+    if(simFraction>0.03) scores[6] = simFraction; 
+    else scores[6] = -1.;  
 
-    return fraction;
+    return scores;
 }
 
 std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
 {
-    std::vector<std::pair<DetId, float> >* HitsAndEnergies_SC = new std::vector<std::pair<DetId, float> >;
+    std::vector<std::pair<DetId, float> >* HitsAndEnergies_SuperCluster = new std::vector<std::pair<DetId, float> >;
     std::map<DetId, float> HitsAndEnergies_map;
 
     for(reco::CaloCluster_iterator iBC = iSuperCluster->clustersBegin(); iBC != iSuperCluster->clustersEnd(); ++iBC){
@@ -670,21 +768,21 @@ std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndEnergies
                 if (HitsAndEnergies_map.find(seedrechits.at(i).first) == HitsAndEnergies_map.end()) {
                     HitsAndEnergies_map[seedrechits.at(i).first]=seedrechits.at(i).second * (*(recHitsEE.product())->find(seedrechits.at(i).first)).energy();   
                 }else{
-                    HitsAndEnergies_map[seedrechits.at(i).first]=HitsAndEnergies_map[seedrechits.at(i).first]+seedrechits.at(i).second * (*(recHitsEB.product())->find(seedrechits.at(i).first)).energy();
+                    HitsAndEnergies_map[seedrechits.at(i).first]=HitsAndEnergies_map[seedrechits.at(i).first]+seedrechits.at(i).second * (*(recHitsEE.product())->find(seedrechits.at(i).first)).energy();
                 } 
             }
         }                      
     } 
 
     for(auto const& hit : HitsAndEnergies_map) 
-         HitsAndEnergies_SC->push_back(make_pair(hit.first,hit.second));
+         HitsAndEnergies_SuperCluster->push_back(make_pair(hit.first,hit.second));
 
-    return HitsAndEnergies_SC;
+    return HitsAndEnergies_SuperCluster;
 }
 
 std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle)
 {
-    std::vector<std::pair<DetId, float> >* HitsAndEnergies_CP = new std::vector<std::pair<DetId, float> >;
+    std::vector<std::pair<DetId, float> >* HitsAndEnergies_CaloPart = new std::vector<std::pair<DetId, float> >;
     std::vector<std::pair<DetId, float> >* HitsAndEnergies_tmp = new std::vector<std::pair<DetId, float> >;
     std::map<DetId, float> HitsAndEnergies_map;
     
@@ -706,12 +804,12 @@ std::vector<std::pair<DetId, float> >* SuperClusterTreeMaker::getHitsAndEnergies
     }
 
     for(auto const& hit : HitsAndEnergies_map) 
-         HitsAndEnergies_CP->push_back(make_pair(hit.first,hit.second));
+         HitsAndEnergies_CaloPart->push_back(make_pair(hit.first,hit.second));
 
-    return HitsAndEnergies_CP;
+    return HitsAndEnergies_CaloPart;
 }
 
-GlobalPoint SuperClusterTreeMaker::calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES)
+GlobalPoint SuperClusterTreeMaker::calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES)
 {
   double preshowerStartEta = 1.653;
   double preshowerEndEta = 2.6;
@@ -720,12 +818,12 @@ GlobalPoint SuperClusterTreeMaker::calculateAndSetPositionActual(const std::vect
   double clusterT0 = 0.0;
   DetId id_max; 
   // find the seed and max layer
-  for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP){
-    const double rh_energyf = hit_CP.second;
+  for(const std::pair<DetId, float>& hit : *hits_and_energies){
+    const double rh_energyf = hit.second;
     cl_energy_float += rh_energyf;
     if (rh_energyf > max_e) {
       max_e = rh_energyf;
-      id_max = hit_CP.first;
+      id_max = hit.first;
     }
   }
 
@@ -760,12 +858,12 @@ GlobalPoint SuperClusterTreeMaker::calculateAndSetPositionActual(const std::vect
   double position_norm = 0.0;
   double x(0.0), y(0.0), z(0.0);
   
-  for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
-    if(hit_CP.first.subdetId()!=EcalBarrel && hit_CP.first.subdetId()!=EcalEndcap) continue;
-    auto cell = ecal_geom->getGeometry(hit_CP.first);
+  for(const std::pair<DetId, float>& hit : *hits_and_energies) {
+    if(hit.first.subdetId()!=EcalBarrel && hit.first.subdetId()!=EcalEndcap) continue;
+    auto cell = ecal_geom->getGeometry(hit.first);
     if(!cell.get()) continue;
     double weight = 0.0;
-    const double rh_energy = hit_CP.second;
+    const double rh_energy = hit.second;
     if (rh_energy > 0.0)
       weight = std::max(0.0, (_param_W0 + log(rh_energy) + logETot_inv));
     
@@ -781,12 +879,12 @@ GlobalPoint SuperClusterTreeMaker::calculateAndSetPositionActual(const std::vect
 
   // FALL BACK to LINEAR WEIGHTS
   if (position_norm == 0.) {
-    for(const std::pair<DetId, float>& hit_CP : *hits_and_energies_CP) {
-      if(hit_CP.first.subdetId()!=EcalBarrel && hit_CP.first.subdetId()!=EcalEndcap) continue; 
-      auto cell = ecal_geom->getGeometry(hit_CP.first);
+    for(const std::pair<DetId, float>& hit : *hits_and_energies) {
+      if(hit.first.subdetId()!=EcalBarrel && hit.first.subdetId()!=EcalEndcap) continue; 
+      auto cell = ecal_geom->getGeometry(hit.first);
       if(!cell.get()) continue;
       double weight = 0.0;
-      const double rh_energy = hit_CP.second;
+      const double rh_energy = hit.second;
       if (rh_energy > 0.0)
         weight = rh_energy / cl_energy_float;
 
