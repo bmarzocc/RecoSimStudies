@@ -43,6 +43,7 @@ def getOptions():
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
   parser.add_argument('--njobs', type=int, dest='njobs', help='number of parallel jobs to submit', default=10)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
+  parser.add_argument('--doskipdumper', dest='doskipdumper', help='do not run the dumper at the end', action='store_true', default=False)
   
   return parser.parse_args()
 
@@ -54,6 +55,7 @@ if __name__ == "__main__":
   ##############################
   # job configurations
   #############################
+  user = os.environ["USER"]
   evar = 'E' if opt.doflatenergy else 'Et'
   etRange='{}{}to{}GeV'.format(evar,opt.etmin,opt.etmax)
   prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
@@ -280,11 +282,57 @@ if __name__ == "__main__":
       with open(launcherFile, 'w') as f:
         f.write(template)
 
+  #############################
+  # write the template script to run the dumper
+  # one template for the full task
+  ############################
+  if not opt.doskipdumper:
+ 
+    # the template should run a python script to get the sample list
+    # and then run the actual cmsRun command for the dumper
+    # all done locally
+    template_dumper = [
+      '#!/bin/bash',
+      '',
+      'STARTDIR=$PWD/../',
+      #### environment
+      'source $VO_CMS_SW_DIR/cmsset_default.sh',
+      'shopt -s expand_aliases',
+      'echo ""',
+      'echo "Going to set up cms environment"',
+      'cd $STARTDIR',
+      'cmsenv',
+      'echo ""',
+      '',
+      ### running part
+      'echo "Going to run postProdHelper.py"',
+      'DATE_START=`date +%s`',
+      'python postProdHelper.py --pl {pl} --user {u}'.format(pl=prodLabel, u=user),
+      'echo ""',
+      '',
+      'echo "Going to run the Dumper"',
+      'cmsRun ../../python/Cfg_RecoSimDumper_cfg.py outputFile=../../test/outputfiles/{pl}.root inputFiles_load=../../data/samples/{pl}.txt'.format(pl=prodLabel),
+      'DATE_END=`date +%s`',
+      'echo ""',
+      '',
+      ### print job time
+      'echo "Finished running"',
+      'RUNTIME=$((DATE_END-DATE_START))',
+      'echo "Wallclock running time: $RUNTIME s"',
+    ]
+    
+    template_dumper = '\n'.join(template_dumper)
+
+    launcherFile_dumper = '{}/launch_dumper.sh'.format(prodDir)
+    with open(launcherFile_dumper, 'w') as f:
+      f.write(template_dumper)
 
   #############################
   # finally write the submitter
   ############################# 
   submitter_template = []
+
+  dumper_dependencies = ''
 
   for nj in range(0,njobs):
 
@@ -295,6 +343,8 @@ if __name__ == "__main__":
     sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
     if opt.doreco: # strip the dependency away
       sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
+
+    dumper_dependencies += ':$jid3_nj{nj}'.format(nj=nj)
 
     if not opt.doreco:
       submitter_template.append(sbatch_command_step1)
@@ -307,6 +357,13 @@ if __name__ == "__main__":
     submitter_template.append(sbatch_command_step3)
     submitter_template.append('echo "$jid3_nj%i"' % nj)
     submitter_template.append('jid3_nj%i=${jid3_nj%i#"Submitted batch job "}' % (nj,nj))
+
+  # add the dumper part
+  if not opt.doskipdumper:
+    sbatch_command_dumper = 'jid_d=$(sbatch -p wn -o logs/dumper.log -e logs/dumper.log --job-name=dumper_{pl} {t} --ntasks=1 --dependency=afterany:{dd} launch_dumper.sh'.format(pl=prodLabel,t='--time=0-00:59',dd=dumper_dependencies)
+    submitter_template.append(sbatch_command_dumper)
+    submitter_template.append('echo "$jid_d"')
+    submitter_template.append('jid_d=${jid_d#"Submitted batch job "}')
   
   submitter_template = '\n\n'.join(submitter_template)
 
