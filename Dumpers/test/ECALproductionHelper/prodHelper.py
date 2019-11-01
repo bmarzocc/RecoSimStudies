@@ -21,7 +21,7 @@ def getOptions():
   parser.add_argument('--doflatenergy', dest='doflatenergy', help='generate flat in energy, otherwise in pt', action='store_true', default=False)
   parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
-  parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
+  parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EEclose, EEfar or all', default='EB', choices=['EB', 'EEclose', 'EEfar', 'all'])
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
@@ -138,9 +138,15 @@ if __name__ == "__main__":
       zmin = -304.5
       zmax = 304.5
       npart = 10
-    else:
-      rmin = 31.6
+    elif opt.det == 'EEclose':
+      rmin = 87.4
       rmax = 171.1
+      zmin = 317.0
+      zmax = 317.0
+      npart = 10
+    elif opt.det == 'EEfar':
+      rmin = 31.6
+      rmax = 87.4
       zmin = 317.0
       zmax = 317.0
       npart = 10
