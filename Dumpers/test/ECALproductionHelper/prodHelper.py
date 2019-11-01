@@ -360,7 +360,7 @@ if __name__ == "__main__":
 
   # add the dumper part
   if not opt.doskipdumper:
-    sbatch_command_dumper = 'jid_d=$(sbatch -p wn -o logs/dumper.log -e logs/dumper.log --job-name=dumper_{pl} {t} --ntasks=1 --dependency=afterany:{dd} launch_dumper.sh'.format(pl=prodLabel,t='--time=0-00:59',dd=dumper_dependencies)
+    sbatch_command_dumper = 'jid_d=$(sbatch -p wn -o logs/dumper.log -e logs/dumper.log --job-name=dumper_{pl} {t} --ntasks=1 --dependency=afterany:{dd} launch_dumper.sh)'.format(pl=prodLabel,t='--time=0-00:59',dd=dumper_dependencies)
     submitter_template.append(sbatch_command_dumper)
     submitter_template.append('echo "$jid_d"')
     submitter_template.append('jid_d=${jid_d#"Submitted batch job "}')
