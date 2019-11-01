@@ -19,11 +19,16 @@ options.register ("seedMult",
                   VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.varType.float,          # string, int, or float
                   "multiplier of noise used for seeding threshold")
-options.register('doRef',
+options.register('doRefPfrh',
                  0,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.int,
-                "Use reference values for seeding,gathering,pfrechits")
+                "Use reference values for pfrechit thresholds")
+options.register('doRefSeed',
+                 0,
+                 VarParsing.multiplicity.singleton,
+                 VarParsing.varType.int,
+                "Use reference values for seeding thresholds")
 options.register('nThr',
                  1,
                  VarParsing.multiplicity.singleton,
@@ -124,7 +129,7 @@ process.myCond = EcalTrivialConditionRetriever.clone()
 process.es_prefer = cms.ESPrefer("EcalTrivialConditionRetriever","myCond")
 
 ### set all conditions producers to false except those I am interested in
-if options.doRef == 0:
+if options.doRefPfrh == 0:
   process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(True)
   process.myCond.EcalPFRecHitThresholdNSigmas = cms.untracked.double(options.pfrhMult/2.0)
   process.myCond.EcalPFRecHitThresholdNSigmasHEta = cms.untracked.double(options.pfrhMult/3.0)
@@ -133,7 +138,7 @@ if options.doRef == 0:
 else: # use the reference values
   process.myCond.producedEcalPFRecHitThresholds = cms.untracked.bool(False)
 
-if options.doRef == 0:
+if options.doRefSeed == 0:
   process.myCond.producedEcalPFSeedingThresholds = cms.untracked.bool(True)
   process.myCond.EcalPFSeedingThresholdNSigmas = cms.untracked.double(options.seedMult/2.0) # PFRHs files are at 2sigma of the noise for |eta|<2.5
   process.myCond.EcalPFSeedingThresholdNSigmasHEta = cms.untracked.double(options.seedMult/3.0) #                3sigma of the noise for |eta|>2.5
@@ -203,7 +208,7 @@ process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
 
 
 # customisation of the process.
-if options.doRef == 0:
+if options.doRefPfrh == 0:
   process.particleFlowClusterECALUncorrected.initialClusteringStep.thresholdsByDetector = cms.VPSet(
         cms.PSet( detector = cms.string("ECAL_BARREL"),
                gatheringThreshold = cms.double(0.0),

@@ -21,13 +21,14 @@ def getOptions():
   parser.add_argument('--doflatenergy', dest='doflatenergy', help='generate flat in energy, otherwise in pt', action='store_true', default=False)
   parser.add_argument('--npart', type=int, dest='npart', help='number of particles to generate per event for closeEcal configuration, specify only if you want to override the default', default=None)
   parser.add_argument('-g','--geo',type=str, dest='geo', help='detector configuration: wTk, noTk, closeEcal', default='closeEcal', choices=['wTk', 'noTk', 'closeEcal'])
-  parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EE or all', default='EB', choices=['EB', 'EE', 'all'])
+  parser.add_argument('-d','--det', type=str, dest='det', help='sub-detector: EB, EEclose, EEfar or all', default='EB', choices=['EB', 'EEclose', 'EEfar', 'all'])
 
   parser.add_argument('--pu', type=str, dest='pu', help='PU configuration', default='noPU', choices=['noPU', 'wPU'])
 
   parser.add_argument('--pfrhmult', type=float, dest='pfrhmult', help='how many sigma of the noise to use for PFRH thresholds', default=1.)
   parser.add_argument('--seedmult', type=float, dest='seedmult', help='how many sigma of the noise to use for seeding thresholds', default=3.)
-  parser.add_argument('--doref', dest='doref', help='use reference values for pfrh,seed, thresholds', action='store_true', default=False)
+  parser.add_argument('--dorefpfrh', dest='dorefpfrh', help='use reference values for pfrh and gathering thresholds', action='store_true', default=False)
+  parser.add_argument('--dorefseed', dest='dorefseed', help='use reference values for seeding thresholds', action='store_true', default=False)
   parser.add_argument('--doreco', dest='doreco', help='do only step 3 (reconstruction) starting from an existing production', action='store_true', default=False)
   parser.add_argument('--custominput', type=str, dest='custominput', help='full path of the input file that you want to use for the reconstruction (also SE is supported)', default=None)
   parser.add_argument('--custominputdir', type=str, dest='custominputdir', help='full path of the input directory that you want to use for the reconstruction (also SE is supported)', default=None)
@@ -43,6 +44,7 @@ def getOptions():
   parser.add_argument('--domultijob', dest='domultijob', help='run several separate jobs', action='store_true', default=False)
   parser.add_argument('--njobs', type=int, dest='njobs', help='number of parallel jobs to submit', default=10)
   parser.add_argument('--dosavehome', dest='dosavehome', help='save in home, otherwise save to SE', action='store_true', default=False)
+  parser.add_argument('--doskipdumper', dest='doskipdumper', help='do not run the dumper at the end', action='store_true', default=False)
   
   return parser.parse_args()
 
@@ -54,12 +56,14 @@ if __name__ == "__main__":
   ##############################
   # job configurations
   #############################
+  user = os.environ["USER"]
   evar = 'E' if opt.doflatenergy else 'Et'
   etRange='{}{}to{}GeV'.format(evar,opt.etmin,opt.etmax)
-  prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=opt.pfrhmult,s=opt.seedmult,v=opt.ver,n=opt.nevts)
-  if opt.doref: # change to ref label
-    prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf='Ref',s='Ref',v=opt.ver,n=opt.nevts)
-  doref = 1 if opt.doref else 0
+  pfrhLabel= opt.pfrhmult if not opt.dorefpfrh else 'Ref'
+  seedLabel= opt.seedmult if not opt.dorefseed else 'Ref'
+  prodLabel='{c}_{e}_{g}_{d}_{pu}_pfrh{pf}_seed{s}_{v}_n{n}'.format(c=opt.ch,e=etRange,g=opt.geo,d=opt.det,pu=opt.pu,pf=pfrhLabel,s=seedLabel,v=opt.ver,n=opt.nevts)
+  dorefpfrh = 1 if opt.dorefpfrh else 0
+  dorefseed = 1 if opt.dorefseed else 0
   doflatenergy = 1 if opt.doflatenergy else 0
   nthr = 8 if opt.domultithread else 1
   njobs = opt.njobs if opt.domultijob else 1
@@ -136,9 +140,15 @@ if __name__ == "__main__":
       zmin = -304.5
       zmax = 304.5
       npart = 10
-    else:
-      rmin = 31.6
+    elif opt.det == 'EEclose':
+      rmin = 87.4
       rmax = 171.1
+      zmin = 317.0
+      zmax = 317.0
+      npart = 10
+    elif opt.det == 'EEfar':
+      rmin = 31.6
+      rmax = 87.4
       zmin = 317.0
       zmax = 317.0
       npart = 10
@@ -154,7 +164,7 @@ if __name__ == "__main__":
   ## other steps  
   step2_cmsRun = 'cmsRun {jo} nThr={nt} nPremixFiles={npf}'.format(jo=target_drivers[1], nt=nthr, npf=npremixfiles)
   step2_cmsRun_add = 'randomizePremix=True' if opt.domultijob else ''
-  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt} doRef={dr}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr, dr=doref)
+  step3_cmsRun = 'cmsRun {jo} pfrhMult={pfrhm} seedMult={sm} nThr={nt} doRefPfrh={drpf} doRefSeed={drsd}'.format(jo=target_drivers[2], pfrhm=opt.pfrhmult, sm=opt.seedmult, nt=nthr, drpf=dorefpfrh, drsd=dorefseed)
   cmsRuns = [step1_cmsRun, step2_cmsRun, step3_cmsRun]
   cmsRuns_add = [step1_cmsRun_add, step2_cmsRun_add, '']
   ############################
@@ -280,11 +290,57 @@ if __name__ == "__main__":
       with open(launcherFile, 'w') as f:
         f.write(template)
 
+  #############################
+  # write the template script to run the dumper
+  # one template for the full task
+  ############################
+  if not opt.doskipdumper:
+ 
+    # the template should run a python script to get the sample list
+    # and then run the actual cmsRun command for the dumper
+    # all done locally
+    template_dumper = [
+      '#!/bin/bash',
+      '',
+      'STARTDIR=$PWD/../',
+      #### environment
+      'source $VO_CMS_SW_DIR/cmsset_default.sh',
+      'shopt -s expand_aliases',
+      'echo ""',
+      'echo "Going to set up cms environment"',
+      'cd $STARTDIR',
+      'cmsenv',
+      'echo ""',
+      '',
+      ### running part
+      'echo "Going to run postProdHelper.py"',
+      'DATE_START=`date +%s`',
+      'python postProdHelper.py --pl {pl} --user {u}'.format(pl=prodLabel, u=user),
+      'echo ""',
+      '',
+      'echo "Going to run the Dumper"',
+      'cmsRun ../../python/Cfg_RecoSimDumper_cfg.py outputFile=../../test/outputfiles/{pl}.root inputFiles_load=../../data/samples/{pl}.txt'.format(pl=prodLabel),
+      'DATE_END=`date +%s`',
+      'echo ""',
+      '',
+      ### print job time
+      'echo "Finished running"',
+      'RUNTIME=$((DATE_END-DATE_START))',
+      'echo "Wallclock running time: $RUNTIME s"',
+    ]
+    
+    template_dumper = '\n'.join(template_dumper)
+
+    launcherFile_dumper = '{}/launch_dumper.sh'.format(prodDir)
+    with open(launcherFile_dumper, 'w') as f:
+      f.write(template_dumper)
 
   #############################
   # finally write the submitter
   ############################# 
   submitter_template = []
+
+  dumper_dependencies = ''
 
   for nj in range(0,njobs):
 
@@ -295,6 +351,8 @@ if __name__ == "__main__":
     sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn --account=cn-test -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt} --dependency=afterany:$jid2_nj{nj} launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
     if opt.doreco: # strip the dependency away
       sbatch_command_step3 = 'jid3_nj{nj}=$(sbatch -p wn --account=cn-test -o logs/step3_nj{nj}.log -e logs/step3_nj{nj}.log --job-name=step3_{pl} {t} --ntasks={nt}  launch_step3_nj{nj}.sh)'.format(nj=nj,pl=prodLabel,t=sbatch_times[2],nt=nthr)
+
+    dumper_dependencies += ':$jid3_nj{nj}'.format(nj=nj)
 
     if not opt.doreco:
       submitter_template.append(sbatch_command_step1)
@@ -307,6 +365,13 @@ if __name__ == "__main__":
     submitter_template.append(sbatch_command_step3)
     submitter_template.append('echo "$jid3_nj%i"' % nj)
     submitter_template.append('jid3_nj%i=${jid3_nj%i#"Submitted batch job "}' % (nj,nj))
+
+  # add the dumper part
+  if not opt.doskipdumper:
+    sbatch_command_dumper = 'jid_d=$(sbatch -p wn -o logs/dumper.log -e logs/dumper.log --job-name=dumper_{pl} {t} --ntasks=1 --dependency=afterany{dd} launch_dumper.sh)'.format(pl=prodLabel,t='--time=0-00:59',dd=dumper_dependencies)
+    submitter_template.append(sbatch_command_dumper)
+    submitter_template.append('echo "$jid_d"')
+    submitter_template.append('jid_d=${jid_d#"Submitted batch job "}')
   
   submitter_template = '\n\n'.join(submitter_template)
 
