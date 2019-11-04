@@ -801,13 +801,15 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  pfClusterHit_eta[iPFCl].push_back(reduceFloat(cell.eta(),nBits_));
                  pfClusterHit_phi[iPFCl].push_back(reduceFloat(cell.phi(),nBits_));
                  if(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.subdetId()==EcalBarrel){ 
-                    EBDetId eb_id(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first);  
+                    EBDetId eb_id(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first); 
+                    pfClusterHit_rechitEnergy[iPFCl].push_back(reduceFloat((*(recHitsEB.product())->find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first)).energy(),nBits_)); 
                     pfClusterHit_ieta[iPFCl].push_back(eb_id.ieta());
                     pfClusterHit_iphi[iPFCl].push_back(eb_id.iphi());
                     pfClusterHit_iz[iPFCl].push_back(0); 
                  }else if(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.subdetId()==EcalEndcap){  
                     int iz=-99;
                     EEDetId ee_id(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first);  
+                    pfClusterHit_rechitEnergy[iPFCl].push_back(reduceFloat((*(recHitsEE.product())->find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first)).energy(),nBits_)); 
                     pfClusterHit_ieta[iPFCl].push_back(ee_id.ix());
                     pfClusterHit_iphi[iPFCl].push_back(ee_id.iy());
                     if(ee_id.zside()<0) iz=-1;
