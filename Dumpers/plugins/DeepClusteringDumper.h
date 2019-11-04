@@ -219,6 +219,7 @@ class DeepClusteringDumper : public edm::EDAnalyzer
       std::vector<int> pfRecHit_unClustered_iphi;
       std::vector<int> pfRecHit_unClustered_iz;
       std::vector<std::vector<float> > pfClusterHit_energy; 
+      std::vector<std::vector<float> > pfClusterHit_rechitEnergy; 
       std::vector<std::vector<float> > pfClusterHit_eta;
       std::vector<std::vector<float> > pfClusterHit_phi;
       std::vector<std::vector<int> > pfClusterHit_ieta;

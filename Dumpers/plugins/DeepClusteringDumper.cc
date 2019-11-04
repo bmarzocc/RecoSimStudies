@@ -243,6 +243,7 @@ DeepClusteringDumper::DeepClusteringDumper(const edm::ParameterSet& iConfig)
       }
       if(savePFClusterhits_){ 
          tree->Branch("pfClusterHit_energy","std::vector<std::vector<float> >",&pfClusterHit_energy);
+         tree->Branch("pfClusterHit_rechitEnergy","std::vector<std::vector<float> >",&pfClusterHit_rechitEnergy);
          tree->Branch("pfClusterHit_eta","std::vector<std::vector<float> >",&pfClusterHit_eta);
          tree->Branch("pfClusterHit_phi","std::vector<std::vector<float> >",&pfClusterHit_phi);
          tree->Branch("pfClusterHit_ieta","std::vector<std::vector<int> >",&pfClusterHit_ieta);
@@ -550,22 +551,18 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    pfCluster_sim_fraction_min3.resize(nPFClusters);
    pfCluster_sim_rechit_diff.resize(nPFClusters);
    pfCluster_sim_rechit_fraction.resize(nPFClusters);
-   pfCluster_global_sim_rechit_fraction.resize(nPFClusters);  
-   pfCluster_energy.resize(nPFClusters);  
-   pfCluster_eta.resize(nPFClusters);  
-   pfCluster_phi.resize(nPFClusters);  
-   pfCluster_ieta.resize(nPFClusters);  
-   pfCluster_iphi.resize(nPFClusters);  
-   pfCluster_iz.resize(nPFClusters);    
+   pfCluster_global_sim_rechit_fraction.resize(nPFClusters); 
    pfCluster_superClustersIndex.resize(nPFClusters); 
 
    pfClusterHit_energy.clear();
+   pfClusterHit_rechitEnergy.clear();
    pfClusterHit_eta.clear();
    pfClusterHit_phi.clear();   
    pfClusterHit_ieta.clear();
    pfClusterHit_iphi.clear(); 
    pfClusterHit_iz.clear();           
    pfClusterHit_energy.resize(nPFClusters);  
+   pfClusterHit_rechitEnergy.resize(nPFClusters);  
    pfClusterHit_eta.resize(nPFClusters);  
    pfClusterHit_phi.resize(nPFClusters);     
    pfClusterHit_ieta.resize(nPFClusters);  
@@ -616,21 +613,7 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    superCluster_sim_rechit_diff.resize(nSuperClusters);
    superCluster_sim_rechit_fraction.resize(nSuperClusters);
    superCluster_global_sim_rechit_fraction.resize(nSuperClusters);  
-   superCluster_energy.resize(nSuperClusters);  
-   superCluster_eta.resize(nSuperClusters);  
-   superCluster_phi.resize(nSuperClusters);   
-   superCluster_ieta.resize(nSuperClusters);  
-   superCluster_iphi.resize(nSuperClusters);      
-   superCluster_iz.resize(nSuperClusters);    
    superCluster_pfClustersIndex.resize(nSuperClusters);
-   superCluster_r9.resize(nSuperClusters);   
-   superCluster_sigmaIetaIeta.resize(nSuperClusters);   
-   superCluster_sigmaIetaIphi.resize(nSuperClusters);   
-   superCluster_sigmaIphiIphi.resize(nSuperClusters);   
-   superCluster_full5x5_r9.resize(nSuperClusters);   
-   superCluster_full5x5_sigmaIetaIeta.resize(nSuperClusters);  
-   superCluster_full5x5_sigmaIetaIphi.resize(nSuperClusters);  
-   superCluster_full5x5_sigmaIphiIphi.resize(nSuperClusters);   
   
    hitsAndEnergies_CaloPart.clear();
    hitsAndEnergies_PFCluster.clear();
