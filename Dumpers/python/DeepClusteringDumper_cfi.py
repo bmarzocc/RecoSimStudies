@@ -4,6 +4,7 @@ deepclusteringdumper = cms.EDAnalyzer("DeepClusteringDumper",
 
     genParticleCollection             = cms.InputTag("genParticles",""),
     caloParticleCollection            = cms.InputTag("mix","MergedCaloTruth"),
+    vertexCollection                  = cms.InputTag("offlinePrimaryVertices"),
     ebRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     eeRechitCollection                = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
     pfRechitCollection                = cms.InputTag("particleFlowRecHitECAL","","RECO"),
@@ -22,9 +23,9 @@ deepclusteringdumper = cms.EDAnalyzer("DeepClusteringDumper",
     savePFCluster                     = cms.bool(True),  #save pfClusters information
     savePFClusterhits                 = cms.bool(True),  #save pfClustershits information
     saveSuperCluster                  = cms.bool(True),  #save superClusters information
-    saveShowerShapes                  = cms.bool(False),  #save saveShowerShapes information
-    saveScores                        = cms.bool(True),  #save saveScores information
-    genID                             = cms.vint32(22,11), #save only caloParticles with this pdgId 
+    saveShowerShapes                  = cms.bool(False),  #save showerShapes information
+    saveScores                        = cms.bool(True),  #save scores information
+    genID                             = cms.vint32(22,11, -11), #save only caloParticles with this pdgId 
     #genID                            = cms.vdouble(0),  #save only caloParticles with this pdgId 
 
 )

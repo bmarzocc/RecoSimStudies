@@ -39,6 +39,8 @@
 
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
@@ -111,6 +113,7 @@ using namespace reco;
 DeepClusteringDumper::DeepClusteringDumper(const edm::ParameterSet& iConfig)
 {
 
+   vtxToken_                = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
    genToken_                = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
    caloPartToken_           = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticleCollection"));
    ebRechitToken_           = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ebRechitCollection"));
@@ -144,6 +147,7 @@ DeepClusteringDumper::DeepClusteringDumper(const edm::ParameterSet& iConfig)
    tree->Branch("eventId", &eventId, "eventId/L");
    tree->Branch("lumiId", &lumiId, "lumiId/I");
    tree->Branch("runId", &runId, "runId/I");
+   tree->Branch("nVtx", &nVtx, "nVtx/I");
    if(saveGenParticles_){
       tree->Branch("genParticle_id","std::vector<int>",&genParticle_id);
       tree->Branch("genParticle_energy","std::vector<float>",&genParticle_energy);
@@ -237,17 +241,17 @@ DeepClusteringDumper::DeepClusteringDumper(const edm::ParameterSet& iConfig)
          tree->Branch("pfCluster_hgcal_clusterToCalo_MatchedIndex","std::vector<int>",&pfCluster_hgcal_clusterToCalo_MatchedIndex); 
       } 
       if(saveCaloParticles_ && saveScores_){
-         tree->Branch("pfCluster_dR_genScore","std::vector<std::vector<float> >",&pfCluster_dR_genScore);
-         tree->Branch("pfCluster_dR_simScore","std::vector<std::vector<float> >",&pfCluster_dR_simScore);
+         tree->Branch("pfCluster_dR_genScore","std::vector<std::vector<double> >",&pfCluster_dR_genScore);
+         tree->Branch("pfCluster_dR_simScore","std::vector<std::vector<double> >",&pfCluster_dR_simScore);
          tree->Branch("pfCluster_n_shared_xtals","std::vector<std::vector<int> >",&pfCluster_n_shared_xtals);
-         tree->Branch("pfCluster_sim_fraction","std::vector<std::vector<float> >",&pfCluster_sim_fraction);
-         tree->Branch("pfCluster_sim_fraction_min1","std::vector<std::vector<float> >",&pfCluster_sim_fraction_min1);
-         tree->Branch("pfCluster_sim_fraction_min3","std::vector<std::vector<float> >",&pfCluster_sim_fraction_min3);
-         tree->Branch("pfCluster_sim_rechit_diff","std::vector<std::vector<float> >",&pfCluster_sim_rechit_diff);
-         tree->Branch("pfCluster_sim_rechit_fraction","std::vector<std::vector<float> >",&pfCluster_sim_rechit_fraction);   
-         tree->Branch("pfCluster_global_sim_rechit_fraction","std::vector<std::vector<float> >",&pfCluster_global_sim_rechit_fraction); 
-         tree->Branch("pfCluster_hgcal_caloToCluster","std::vector<std::vector<float> >",&pfCluster_hgcal_caloToCluster); 
-         tree->Branch("pfCluster_hgcal_clusterToCalo","std::vector<std::vector<float> >",&pfCluster_hgcal_clusterToCalo); 
+         tree->Branch("pfCluster_sim_fraction","std::vector<std::vector<double> >",&pfCluster_sim_fraction);
+         tree->Branch("pfCluster_sim_fraction_min1","std::vector<std::vector<double> >",&pfCluster_sim_fraction_min1);
+         tree->Branch("pfCluster_sim_fraction_min3","std::vector<std::vector<double> >",&pfCluster_sim_fraction_min3);
+         tree->Branch("pfCluster_sim_rechit_diff","std::vector<std::vector<double> >",&pfCluster_sim_rechit_diff);
+         tree->Branch("pfCluster_sim_rechit_fraction","std::vector<std::vector<double> >",&pfCluster_sim_rechit_fraction);   
+         tree->Branch("pfCluster_global_sim_rechit_fraction","std::vector<std::vector<double> >",&pfCluster_global_sim_rechit_fraction); 
+         tree->Branch("pfCluster_hgcal_caloToCluster","std::vector<std::vector<double> >",&pfCluster_hgcal_caloToCluster); 
+         tree->Branch("pfCluster_hgcal_clusterToCalo","std::vector<std::vector<double> >",&pfCluster_hgcal_clusterToCalo); 
       }
       if(savePFClusterhits_){ 
          tree->Branch("pfClusterHit_energy","std::vector<std::vector<float> >",&pfClusterHit_energy);
@@ -263,10 +267,18 @@ DeepClusteringDumper::DeepClusteringDumper(const edm::ParameterSet& iConfig)
       tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
       tree->Branch("superCluster_eta","std::vector<float>",&superCluster_eta);
       tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);  
+      tree->Branch("superCluster_etaWidth","std::vector<float>",&superCluster_etaWidth);
+      tree->Branch("superCluster_phiWidth","std::vector<float>",&superCluster_phiWidth);  
+      tree->Branch("superCluster_R","std::vector<float>",&superCluster_R);   
       tree->Branch("superCluster_ieta","std::vector<int>",&superCluster_ieta);
       tree->Branch("superCluster_iphi","std::vector<int>",&superCluster_iphi);  
       tree->Branch("superCluster_iz","std::vector<int>",&superCluster_iz);  
-      if(savePFCluster_) tree->Branch("superCluster_pfClustersIndex","std::vector<std::vector<int> >",&superCluster_pfClustersIndex);   
+      if(savePFCluster_) tree->Branch("superCluster_seedIndex","std::vector<int>",&superCluster_seedIndex);     
+      if(savePFCluster_) tree->Branch("superCluster_pfClustersIndex","std::vector<std::vector<int> >",&superCluster_pfClustersIndex); 
+      // preshower information
+      tree->Branch("psCluster_energy", "std::vector<std::vector<float> >", &psCluster_energy);
+      tree->Branch("psCluster_eta", "std::vector<std::vector<float> >", &psCluster_eta);
+      tree->Branch("psCluster_phi", "std::vector<std::vector<float> >", &psCluster_phi);   
       if(saveCaloParticles_){
          tree->Branch("superCluster_dR_genScore_MatchedIndex","std::vector<int>",&superCluster_dR_genScore_MatchedIndex);
          tree->Branch("superCluster_dR_simScore_MatchedIndex","std::vector<int>",&superCluster_dR_simScore_MatchedIndex);
@@ -281,17 +293,17 @@ DeepClusteringDumper::DeepClusteringDumper(const edm::ParameterSet& iConfig)
          tree->Branch("superCluster_hgcal_clusterToCalo_MatchedIndex","std::vector<int>",&superCluster_hgcal_clusterToCalo_MatchedIndex); 
       } 
       if(saveCaloParticles_ && saveScores_){
-         tree->Branch("superCluster_dR_genScore","std::vector<std::vector<float> >",&superCluster_dR_genScore);
-         tree->Branch("superCluster_dR_simScore","std::vector<std::vector<float> >",&superCluster_dR_simScore);
+         tree->Branch("superCluster_dR_genScore","std::vector<std::vector<double> >",&superCluster_dR_genScore);
+         tree->Branch("superCluster_dR_simScore","std::vector<std::vector<double> >",&superCluster_dR_simScore);
          tree->Branch("superCluster_n_shared_xtals","std::vector<std::vector<int> >",&superCluster_n_shared_xtals);
-         tree->Branch("superCluster_sim_fraction","std::vector<std::vector<float> >",&superCluster_sim_fraction);
-         tree->Branch("superCluster_sim_fraction_min1","std::vector<std::vector<float> >",&superCluster_sim_fraction_min1);
-         tree->Branch("superCluster_sim_fraction_min3","std::vector<std::vector<float> >",&superCluster_sim_fraction_min3);
-         tree->Branch("superCluster_sim_rechit_diff","std::vector<std::vector<float> >",&superCluster_sim_rechit_diff);
-         tree->Branch("superCluster_sim_rechit_fraction","std::vector<std::vector<float> >",&superCluster_sim_rechit_fraction);   
-         tree->Branch("superCluster_global_sim_rechit_fraction","std::vector<std::vector<float> >",&superCluster_global_sim_rechit_fraction); 
-         tree->Branch("superCluster_hgcal_caloToCluster","std::vector<std::vector<float> >",&superCluster_hgcal_caloToCluster); 
-         tree->Branch("superCluster_hgcal_clusterToCalo","std::vector<std::vector<float> >",&superCluster_hgcal_clusterToCalo); 
+         tree->Branch("superCluster_sim_fraction","std::vector<std::vector<double> >",&superCluster_sim_fraction);
+         tree->Branch("superCluster_sim_fraction_min1","std::vector<std::vector<double> >",&superCluster_sim_fraction_min1);
+         tree->Branch("superCluster_sim_fraction_min3","std::vector<std::vector<double> >",&superCluster_sim_fraction_min3);
+         tree->Branch("superCluster_sim_rechit_diff","std::vector<std::vector<double> >",&superCluster_sim_rechit_diff);
+         tree->Branch("superCluster_sim_rechit_fraction","std::vector<std::vector<double> >",&superCluster_sim_rechit_fraction);   
+         tree->Branch("superCluster_global_sim_rechit_fraction","std::vector<std::vector<double> >",&superCluster_global_sim_rechit_fraction); 
+         tree->Branch("superCluster_hgcal_caloToCluster","std::vector<std::vector<double> >",&superCluster_hgcal_caloToCluster); 
+         tree->Branch("superCluster_hgcal_clusterToCalo","std::vector<std::vector<double> >",&superCluster_hgcal_clusterToCalo); 
       }  
       if(saveShowerShapes_){ 
          tree->Branch("superCluster_r9","std::vector<float> ",&superCluster_r9);
@@ -344,6 +356,13 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    ev.getByToken(genToken_,genParticles);
    if (!genParticles.isValid()) {
        std::cerr << "Analyze --> genParticles not found" << std::endl; 
+       return;
+   }
+
+   edm::Handle<reco::VertexCollection> vertices;
+   ev.getByToken(vtxToken_,vertices);
+   if (!vertices.isValid()) {
+       std::cerr << "Analyze --> vertices not found" << std::endl; 
        return;
    }
 
@@ -412,6 +431,14 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    lumiId = ev.luminosityBlock();
    eventId = ev.id().event();
 
+   nVtx = -1;
+   nVtx = vertices->size();
+
+   genParticle_id.clear();
+   genParticle_energy.clear();
+   genParticle_pt.clear();
+   genParticle_eta.clear();
+   genParticle_phi.clear();
    std::vector<GenParticle> genParts;
    for(const auto& iGen : *(genParticles.product()))
    {
@@ -447,11 +474,6 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    int nCaloParticles = caloParts.size(); 
    //std::cout << "CaloParticles size  : " << nCaloParticles << std::endl;
   
-   genParticle_id.clear();
-   genParticle_energy.clear();
-   genParticle_pt.clear();
-   genParticle_eta.clear();
-   genParticle_phi.clear();
    genParticle_pfCluster_dR_genScore_MatchedIndex.clear();
    genParticle_superCluster_dR_genScore_MatchedIndex.clear();
    genParticle_pfCluster_dR_genScore_MatchedIndex.resize(nGenParticles);
@@ -600,9 +622,13 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    superCluster_energy.clear(); 
    superCluster_eta.clear(); 
    superCluster_phi.clear();  
+   superCluster_etaWidth.clear();     
+   superCluster_phiWidth.clear(); 
+   superCluster_R.clear(); 
    superCluster_ieta.clear(); 
-   superCluster_iphi.clear();    
+   superCluster_iphi.clear();
    superCluster_iz.clear(); 
+   superCluster_seedIndex.clear(); 
    superCluster_pfClustersIndex.clear(); 
    superCluster_r9.clear(); 
    superCluster_sigmaIetaIeta.clear(); 
@@ -634,6 +660,10 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    superCluster_global_sim_rechit_fraction.clear();  
    superCluster_hgcal_caloToCluster.clear();  
    superCluster_hgcal_clusterToCalo.clear();  
+   psCluster_energy.clear();
+   psCluster_eta.clear();
+   psCluster_phi.clear();
+   superCluster_seedIndex.resize(nSuperClusters); 
    superCluster_dR_genScore.resize(nSuperClusters);
    superCluster_dR_simScore.resize(nSuperClusters);
    superCluster_n_shared_xtals.resize(nSuperClusters);
@@ -646,6 +676,9 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    superCluster_hgcal_caloToCluster.resize(nSuperClusters);  
    superCluster_hgcal_clusterToCalo.resize(nSuperClusters);    
    superCluster_pfClustersIndex.resize(nSuperClusters);
+   psCluster_energy.resize((int)(superClusterEE.product())->size());
+   psCluster_eta.resize((int)(superClusterEE.product())->size());
+   psCluster_phi.resize((int)(superClusterEE.product())->size());
   
    hitsAndEnergies_CaloPart.clear();
    hitsAndEnergies_PFCluster.clear();
@@ -685,13 +718,12 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
           caloParticle_genEta.push_back(reduceFloat((*genParticles_caloPart.begin())->eta(),nBits_));
           caloParticle_genPhi.push_back(reduceFloat((*genParticles_caloPart.begin())->phi(),nBits_));
        }
-
-       caloParticle_simPt.push_back(reduceFloat(caloParts.at(iCalo).pt(),nBits_));
       
        hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo))));
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
        caloParticle_simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
        caloParticle_simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
+       caloParticle_simPt.push_back(reduceFloat(sqrt(caloParts.at(iCalo).px()*caloParts.at(iCalo).px() + caloParts.at(iCalo).py()*caloParts.at(iCalo).py() + caloParts.at(iCalo).pz()*caloParts.at(iCalo).pz())/TMath::CosH(caloParticle_position.eta()),nBits_));   
        if(std::abs(caloParticle_position.eta()) < 1.479){  
           EBDetId eb_id(_ebGeom->getClosestCell(caloParticle_position));  
           caloParticle_simIeta.push_back(eb_id.ieta());
@@ -857,16 +889,16 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
           if(saveGenParticles_){
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_genScore.push_back(reduceFloat(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi()),nBits_)); 
-                 else dR_genScore.push_back(reduceFloat(999.,nBits_));    
+                 else dR_genScore.push_back(reduceFloat(999.,nBits_));     
              }    
              if(saveScores_) pfCluster_dR_genScore[iPFCl] = dR_genScore;        
-             if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) pfCluster_dR_genScore_MatchedIndex.push_back(-1);
-             else pfCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin());  
+             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==999;})) pfCluster_dR_genScore_MatchedIndex.push_back(-1);
+             else pfCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin()); 
           } 
           if(saveCaloParticles_){ 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-                 std::vector<float> scores = getScores(&hitsAndEnergies_PFCluster.at(iPFCl),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE);         
+                 std::vector<double> scores = getScores(&hitsAndEnergies_PFCluster.at(iPFCl),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE);         
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_simScore.push_back(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())); 
                  else dR_simScore.push_back(reduceFloat(999.,nBits_)); 
                  n_shared_xtals.push_back(scores[0]);  
@@ -890,25 +922,25 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                 pfCluster_hgcal_caloToCluster[iPFCl] = hgcal_caloToCluster; 
                 pfCluster_hgcal_clusterToCalo[iPFCl] = hgcal_clusterToCalo;
              }
-             if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) pfCluster_dR_simScore_MatchedIndex.push_back(-1);
-             else pfCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());  
-             if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==999;})) pfCluster_dR_simScore_MatchedIndex.push_back(-1);
+             else pfCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0.;})) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else pfCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==0.;})) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
-             if(std::equal(sim_fraction_min1.begin() + 1, sim_fraction_min1.end(), sim_fraction_min1.begin())) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==0.;})) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::equal(sim_fraction_min3.begin() + 1, sim_fraction_min3.end(), sim_fraction_min3.begin())) pfCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==0.;})) pfCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) pfCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==0.;})) pfCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else pfCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) pfCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==0.;})) pfCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else pfCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==0.;})) pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::equal(hgcal_caloToCluster.begin() + 1, hgcal_caloToCluster.end(), hgcal_caloToCluster.begin())) pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==0.;})) pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
              else pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::equal(hgcal_clusterToCalo.begin() + 1, hgcal_clusterToCalo.end(), hgcal_clusterToCalo.begin())) pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==0.;})) pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
              else pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());  
           }    
     
@@ -945,20 +977,8 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
          if(pfCluster_hgcal_caloToCluster_MatchedIndex.at(iPF)>=0) caloParticle_pfCluster_hgcal_caloToCluster_MatchedIndex[pfCluster_hgcal_caloToCluster_MatchedIndex.at(iPF)].push_back(iPF);  
       for(unsigned int iPF=0; iPF<pfCluster_hgcal_clusterToCalo_MatchedIndex.size(); iPF++)
          if(pfCluster_hgcal_clusterToCalo_MatchedIndex.at(iPF)>=0) caloParticle_pfCluster_hgcal_clusterToCalo_MatchedIndex[pfCluster_hgcal_clusterToCalo_MatchedIndex.at(iPF)].push_back(iPF);    
-
-      for(int iCalo=0; iCalo<nCaloParticles; iCalo++){ 
-          if(caloParticle_pfCluster_dR_simScore_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_dR_simScore_MatchedIndex[iCalo].push_back(-1);  
-          if(caloParticle_pfCluster_n_shared_xtals_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_n_shared_xtals_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_pfCluster_sim_fraction_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_sim_fraction_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_pfCluster_sim_fraction_min1_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_sim_fraction_min1_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_pfCluster_sim_fraction_min3_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_sim_fraction_min3_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_pfCluster_sim_rechit_diff_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_sim_rechit_diff_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_pfCluster_sim_rechit_fraction_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_sim_rechit_fraction_MatchedIndex[iCalo].push_back(-1);
-          if(caloParticle_pfCluster_global_sim_rechit_fraction_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_global_sim_rechit_fraction_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_pfCluster_hgcal_caloToCluster_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_hgcal_caloToCluster_MatchedIndex[iCalo].push_back(-1);
-          if(caloParticle_pfCluster_hgcal_clusterToCalo_MatchedIndex[iCalo].empty()) caloParticle_pfCluster_hgcal_clusterToCalo_MatchedIndex[iCalo].push_back(-1);     
-      }    
    } 
+
    //Save SuperClusters 
    locCov.clear();
    full5x5_locCov.clear();
@@ -982,6 +1002,9 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
+          superCluster_etaWidth.push_back(reduceFloat(iSuperCluster.etaWidth(),nBits_));
+          superCluster_phiWidth.push_back(reduceFloat(iSuperCluster.phiWidth(),nBits_));
+          superCluster_R.push_back(reduceFloat(iSuperCluster.position().R(),nBits_));
           math::XYZPoint caloPos = iSuperCluster.seed()->position();
           EBDetId eb_id(_ebGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));  
           superCluster_ieta.push_back(eb_id.ieta());
@@ -1009,13 +1032,13 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  else dR_genScore.push_back(reduceFloat(999.,nBits_));  
              }  
              if(saveScores_) superCluster_dR_genScore[iSC] = dR_genScore; 
-             if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) superCluster_dR_genScore_MatchedIndex.push_back(-1);
-             else superCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin());  
+             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==999;})) superCluster_dR_genScore_MatchedIndex.push_back(-1);
+             else superCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin()); 
           } 
           if(saveCaloParticles_){
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-                 std::vector<float> scores = getScores(&hitsAndEnergies_SuperClusterEB.at(iSC),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE);         
+                 std::vector<double> scores = getScores(&hitsAndEnergies_SuperClusterEB.at(iSC),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE);         
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
                  else dR_simScore.push_back(999.);
                  n_shared_xtals.push_back(scores[0]);  
@@ -1040,28 +1063,42 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                 superCluster_hgcal_caloToCluster[iSC] = hgcal_caloToCluster; 
                 superCluster_hgcal_clusterToCalo[iSC] = hgcal_clusterToCalo; 
              }
-             if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) superCluster_dR_simScore_MatchedIndex.push_back(-1);
-             else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());  
-             if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
+             else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0.;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) superCluster_sim_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
-             if(std::equal(sim_fraction_min1.begin() + 1, sim_fraction_min1.end(), sim_fraction_min1.begin())) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::equal(sim_fraction_min3.begin() + 1, sim_fraction_min3.end(), sim_fraction_min3.begin())) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
-             else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin());  
-             if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
-             else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin()); 
-             if(std::equal(hgcal_caloToCluster.begin() + 1, hgcal_caloToCluster.end(), hgcal_caloToCluster.begin())) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==0.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
              else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::equal(hgcal_clusterToCalo.begin() + 1, hgcal_clusterToCalo.end(), hgcal_clusterToCalo.begin())) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==0.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
              else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
           }
 
+          if(savePFCluster_){   
+             //save clusters and superClusters mutual info
+             for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
+                 reco::CaloCluster caloSCluster(*(*iBC)); 
+                 reco::CaloCluster caloSeed(*iSuperCluster.seed());  
+                 int iPF=0;   
+                 for(const auto& iPFCluster : *(pfClusters.product())){
+                     reco::CaloCluster caloPFCluster(iPFCluster);
+                     if(caloPFCluster == caloSCluster) superCluster_pfClustersIndex[iSC].push_back(iPF); 
+                     if(caloPFCluster == caloSCluster && caloSCluster == caloSeed) superCluster_seedIndex[iSC]=iPF;   
+                     iPF++;   
+                 }     
+             }      
+          }
           iSC++;  
       } 
       // The global SuperCluster indexing for EE has an offset = nSuperClusterEB
@@ -1086,6 +1123,9 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
+          superCluster_etaWidth.push_back(reduceFloat(iSuperCluster.etaWidth(),nBits_));
+          superCluster_phiWidth.push_back(reduceFloat(iSuperCluster.phiWidth(),nBits_));
+          superCluster_R.push_back(reduceFloat(iSuperCluster.position().R(),nBits_)); 
           math::XYZPoint caloPos = iSuperCluster.seed()->position(); 
           EEDetId ee_id(_eeGeom->getClosestCell(GlobalPoint(caloPos.x(),caloPos.y(),caloPos.z())));   
           superCluster_ieta.push_back(ee_id.ix());
@@ -1113,13 +1153,13 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  else dR_genScore.push_back(reduceFloat(999.,nBits_));  
              }  
              if(saveScores_) superCluster_dR_genScore[iSC] = dR_genScore; 
-             if(std::equal(dR_genScore.begin() + 1, dR_genScore.end(), dR_genScore.begin())) superCluster_dR_genScore_MatchedIndex.push_back(-1);
-             else superCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin());  
+             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==999;})) superCluster_dR_genScore_MatchedIndex.push_back(-1);
+             else superCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin()); 
           }
           if(saveCaloParticles_){
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-                 std::vector<float> scores = getScores(&hitsAndEnergies_SuperClusterEE.at(iSC_tmp),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE);         
+                 std::vector<double> scores = getScores(&hitsAndEnergies_SuperClusterEE.at(iSC_tmp),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE);         
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(reduceFloat(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi()),nBits_)); 
                  else dR_simScore.push_back(999.);
                  n_shared_xtals.push_back(scores[0]);  
@@ -1142,26 +1182,50 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                 superCluster_hgcal_caloToCluster[iSC] = hgcal_caloToCluster; 
                 superCluster_hgcal_clusterToCalo[iSC] = hgcal_clusterToCalo; 
              }
-             if(std::equal(dR_simScore.begin() + 1, dR_simScore.end(), dR_simScore.begin())) superCluster_dR_simScore_MatchedIndex.push_back(-1);
-             else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());  
-             if(std::equal(n_shared_xtals.begin() + 1, n_shared_xtals.end(), n_shared_xtals.begin())) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
+             else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0.;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::equal(sim_fraction.begin() + 1, sim_fraction.end(), sim_fraction.begin())) superCluster_sim_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
-             if(std::equal(sim_fraction_min1.begin() + 1, sim_fraction_min1.end(), sim_fraction_min1.begin())) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::equal(sim_fraction_min3.begin() + 1, sim_fraction_min3.end(), sim_fraction_min3.begin())) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
-             else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin());  
-             if(std::equal(sim_rechit_diff.begin() + 1, sim_rechit_diff.end(), sim_rechit_diff.begin())) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::equal(sim_rechit_fraction.begin() + 1, sim_rechit_fraction.end(), sim_rechit_fraction.begin())) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::equal(global_sim_rechit_fraction.begin() + 1, global_sim_rechit_fraction.end(), global_sim_rechit_fraction.begin())) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
-             else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin()); 
-             if(std::equal(hgcal_caloToCluster.begin() + 1, hgcal_caloToCluster.end(), hgcal_caloToCluster.begin())) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==0.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
              else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::equal(hgcal_clusterToCalo.begin() + 1, hgcal_clusterToCalo.end(), hgcal_clusterToCalo.begin())) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==0.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());
+          }
+
+          if(iSuperCluster.preshowerClusters().isAvailable()){
+              for(unsigned int iPC=0; iPC<iSuperCluster.preshowerClusters().size(); iPC++){
+                  if(!iSuperCluster.preshowerClusters()[iPC].isAvailable()) { continue; } 
+                  psCluster_energy[iSC_tmp].push_back(reduceFloat(iSuperCluster.preshowerClusters()[iPC]->energy(),nBits_));
+                  psCluster_eta[iSC_tmp].push_back(reduceFloat(iSuperCluster.preshowerClusters()[iPC]->eta(),nBits_));
+                  psCluster_phi[iSC_tmp].push_back(reduceFloat(iSuperCluster.preshowerClusters()[iPC]->phi(),nBits_));   
+              }
+          } 
+
+          if(savePFCluster_){   
+             //save clusters and superClusters mutual info
+             for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
+                 reco::CaloCluster caloSCluster(*(*iBC)); 
+                 reco::CaloCluster caloSeed(*iSuperCluster.seed());  
+                 int iPF=0;   
+                 for(const auto& iPFCluster : *(pfClusters.product())){
+                     reco::CaloCluster caloPFCluster(iPFCluster);
+                     if(caloPFCluster == caloSCluster) superCluster_pfClustersIndex[iSC].push_back(iPF); 
+                     if(caloPFCluster == caloSCluster && caloSCluster == caloSeed) superCluster_seedIndex[iSC]=iPF;   
+                     iPF++;   
+                 }     
+             }      
           }
 
           iSC++;  
@@ -1197,45 +1261,8 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
          if(superCluster_hgcal_caloToCluster_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_hgcal_caloToCluster_MatchedIndex[superCluster_hgcal_caloToCluster_MatchedIndex.at(iSC)].push_back(iSC);
       for(unsigned int iSC=0; iSC<superCluster_hgcal_clusterToCalo_MatchedIndex.size(); iSC++)
          if(superCluster_hgcal_clusterToCalo_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_hgcal_clusterToCalo_MatchedIndex[superCluster_hgcal_clusterToCalo_MatchedIndex.at(iSC)].push_back(iSC);   
-
-      for(int iCalo=0; iCalo<nCaloParticles; iCalo++){ 
-          if(caloParticle_superCluster_dR_simScore_MatchedIndex[iCalo].empty()) caloParticle_superCluster_dR_simScore_MatchedIndex[iCalo].push_back(-1);  
-          if(caloParticle_superCluster_n_shared_xtals_MatchedIndex[iCalo].empty()) caloParticle_superCluster_n_shared_xtals_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_superCluster_sim_fraction_MatchedIndex[iCalo].empty()) caloParticle_superCluster_sim_fraction_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_superCluster_sim_fraction_min1_MatchedIndex[iCalo].empty()) caloParticle_superCluster_sim_fraction_min1_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_superCluster_sim_fraction_min3_MatchedIndex[iCalo].empty()) caloParticle_superCluster_sim_fraction_min3_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_superCluster_sim_rechit_diff_MatchedIndex[iCalo].empty()) caloParticle_superCluster_sim_rechit_diff_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_superCluster_sim_rechit_fraction_MatchedIndex[iCalo].empty()) caloParticle_superCluster_sim_rechit_fraction_MatchedIndex[iCalo].push_back(-1);
-          if(caloParticle_superCluster_global_sim_rechit_fraction_MatchedIndex[iCalo].empty()) caloParticle_superCluster_global_sim_rechit_fraction_MatchedIndex[iCalo].push_back(-1); 
-          if(caloParticle_superCluster_hgcal_caloToCluster_MatchedIndex[iCalo].empty()) caloParticle_superCluster_hgcal_caloToCluster_MatchedIndex[iCalo].push_back(-1);
-          if(caloParticle_superCluster_hgcal_clusterToCalo_MatchedIndex[iCalo].empty()) caloParticle_superCluster_hgcal_clusterToCalo_MatchedIndex[iCalo].push_back(-1);   
-      }    
    }
    
-   //save clusters and superClusters mutual info
-   if(savePFCluster_ && saveSuperCluster_){
-      for(unsigned int iSC=0; iSC<hits_SuperCluster.size(); iSC++){
-          for(unsigned int iPF=0; iPF<hits_PFCluster.size(); iPF++){
-              bool isMatched = false; 
-              for(unsigned int i=0; i<hits_SuperCluster.at(iSC).size(); i++){
-                  std::vector<DetId>::iterator it = std::find(hits_PFCluster.at(iPF).begin(), hits_PFCluster.at(iPF).end(), hits_SuperCluster.at(iSC).at(i)); 
-                  if (it != hits_PFCluster.at(iPF).end()){
-                      isMatched = true;    
-                      break;
-                  }  
-              }
-              if(isMatched) superCluster_pfClustersIndex[iSC].push_back(iPF);
-          }
-          if(superCluster_pfClustersIndex[iSC].empty()) superCluster_pfClustersIndex[iSC].push_back(-1);    
-      }
- 
-      for(unsigned int iSC=0; iSC<superCluster_pfClustersIndex.size(); iSC++)
-          for(unsigned int iPF=0; iPF<superCluster_pfClustersIndex.at(iSC).size(); iPF++)
-              if(superCluster_pfClustersIndex[iSC].at(iPF)>=0) pfCluster_superClustersIndex[superCluster_pfClustersIndex[iSC].at(iPF)].push_back(iSC);
-      for(unsigned int iPF=0; iPF<pfCluster_superClustersIndex.size(); iPF++)
-          if(pfCluster_superClustersIndex[iPF].empty()) pfCluster_superClustersIndex[iPF].push_back(-1);
-    }
-
    //Save unClustered pfRechits 
    pfRechit_unClustered.clear();
    if(savePFRechits_ || saveRechits_){
@@ -1423,40 +1450,40 @@ std::vector<std::pair<DetId, float> >* DeepClusteringDumper::getHitsAndEnergiesS
     return HitsAndEnergies_SuperCluster_tmp;
 }
 
-std::vector<float> DeepClusteringDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
+std::vector<double> DeepClusteringDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
 {
-    std::vector<float> scores;
+    std::vector<double> scores;
     scores.resize(9);
 
-    float nSharedXtals=-1.;
-    float simFraction=-1.;
-    float sim_rechit_diff=0.;
-    float sim_rechit_fraction=0.;     
-    float global_sim_rechit_fraction=-1.;  
-    float hgcal_caloToCluster=-1.;      
-    float hgcal_clusterToCalo=-1.;       
+    int nSharedXtals=-1;
+    double simFraction=-1.;
+    double sim_rechit_diff=0.;
+    double sim_rechit_fraction=0.;     
+    double global_sim_rechit_fraction=-1.;  
+    double hgcal_caloToCluster=-1.;      
+    double hgcal_clusterToCalo=-1.;       
    
-    float rechits_tot_CaloPart = 0.;
-    float rechits_tot_CaloPart_noEnergy = 0.;
+    double rechits_tot_CaloPart = 0.;
+    double rechits_tot_CaloPart_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart) {
         rechits_tot_CaloPart+=hit_CaloPart.second;
         rechits_tot_CaloPart_noEnergy+=1.;
     }
 
-    float rechits_tot_Cluster = 0.;
-    float rechits_tot_Cluster_noEnergy = 0.;
+    double rechits_tot_Cluster = 0.;
+    double rechits_tot_Cluster_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster) {
         rechits_tot_Cluster+=hit_Cluster.second;
         rechits_tot_Cluster_noEnergy+=1.;
     }
    
-    float rechits_match_Cluster = 0.;
-    float rechits_match_CaloPart = 0.;
-    float rechits_match_CaloPart_noEnergy = 0.;
+    double rechits_match_Cluster = 0.;
+    double rechits_match_CaloPart = 0.;
+    double rechits_match_CaloPart_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster){
-        float reco_ratio=0.; 
+        double reco_ratio=0.; 
         if(rechits_tot_Cluster!=0.) reco_ratio = hit_Cluster.second/rechits_tot_Cluster;
-        float sim_ratio = 0.;        
+        double sim_ratio = 0.;        
         for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart){  
             if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
 
@@ -1471,9 +1498,9 @@ std::vector<float> DeepClusteringDumper::getScores(const std::vector<std::pair<D
         sim_rechit_fraction += fabs(sim_ratio - reco_ratio);  
     }
 
-    float hgcal_caloToCluster_Num = 0.;
-    float hgcal_clusterToCalo_Num = 0.;
-    float hgcal_caloToCluster_Denum = 0.;
+    double hgcal_caloToCluster_Num = 0.;
+    double hgcal_clusterToCalo_Num = 0.;
+    double hgcal_caloToCluster_Denum = 0.;
     
     for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart){  
 
@@ -1493,10 +1520,12 @@ std::vector<float> DeepClusteringDumper::getScores(const std::vector<std::pair<D
     }
 
     if(rechits_tot_CaloPart_noEnergy!=0.) nSharedXtals = rechits_match_CaloPart_noEnergy;
+    else if(nSharedXtals==0) nSharedXtals=-1;
 
     if(rechits_tot_CaloPart!=0.) simFraction = rechits_match_CaloPart/rechits_tot_CaloPart;
 
     if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./rechits_match_CaloPart_noEnergy)*sim_rechit_diff;
+    else if(sim_rechit_diff==0.) sim_rechit_diff=-1.;
     else sim_rechit_diff=-1.; 
 
     if(sim_rechit_fraction!=0.) sim_rechit_fraction = 1-sim_rechit_fraction;

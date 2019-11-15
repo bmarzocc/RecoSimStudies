@@ -43,6 +43,8 @@
 
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
@@ -121,10 +123,11 @@ class DeepClusteringDumper : public edm::EDAnalyzer
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
-      std::vector<float> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
+      std::vector<double> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
       
       // ----------collection tokens-------------------
+      edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_;
       edm::EDGetTokenT<EcalRecHitCollection> ebRechitToken_; 
@@ -165,6 +168,7 @@ class DeepClusteringDumper : public edm::EDAnalyzer
       long int eventId;
       int lumiId;
       int runId; 
+      int nVtx;
       std::vector<int> genParticle_id;
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;
@@ -247,23 +251,27 @@ class DeepClusteringDumper : public edm::EDAnalyzer
       std::vector<int> pfCluster_global_sim_rechit_fraction_MatchedIndex;
       std::vector<int> pfCluster_hgcal_caloToCluster_MatchedIndex;
       std::vector<int> pfCluster_hgcal_clusterToCalo_MatchedIndex;   
-      std::vector<std::vector<float> > pfCluster_dR_genScore;
-      std::vector<std::vector<float> > pfCluster_dR_simScore;
+      std::vector<std::vector<double> > pfCluster_dR_genScore;
+      std::vector<std::vector<double> > pfCluster_dR_simScore;
       std::vector<std::vector<int> > pfCluster_n_shared_xtals;
-      std::vector<std::vector<float> > pfCluster_sim_fraction;
-      std::vector<std::vector<float> > pfCluster_sim_fraction_min1;
-      std::vector<std::vector<float> > pfCluster_sim_fraction_min3;
-      std::vector<std::vector<float> > pfCluster_sim_rechit_diff;
-      std::vector<std::vector<float> > pfCluster_sim_rechit_fraction;
-      std::vector<std::vector<float> > pfCluster_global_sim_rechit_fraction;
-      std::vector<std::vector<float> > pfCluster_hgcal_caloToCluster;
-      std::vector<std::vector<float> > pfCluster_hgcal_clusterToCalo;
+      std::vector<std::vector<double> > pfCluster_sim_fraction;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min1;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min3;
+      std::vector<std::vector<double> > pfCluster_sim_rechit_diff;
+      std::vector<std::vector<double> > pfCluster_sim_rechit_fraction;
+      std::vector<std::vector<double> > pfCluster_global_sim_rechit_fraction;
+      std::vector<std::vector<double> > pfCluster_hgcal_caloToCluster;
+      std::vector<std::vector<double> > pfCluster_hgcal_clusterToCalo;
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
-      std::vector<float> superCluster_phi;   
+      std::vector<float> superCluster_phi;  
+      std::vector<float> superCluster_etaWidth;  
+      std::vector<float> superCluster_phiWidth;   
+      std::vector<float> superCluster_R;   
       std::vector<int> superCluster_ieta;
       std::vector<int> superCluster_iphi;    
       std::vector<int> superCluster_iz;  
+      std::vector<int> superCluster_seedIndex;
       std::vector<std::vector<int> > superCluster_pfClustersIndex;
       std::vector<int> superCluster_dR_genScore_MatchedIndex;
       std::vector<int> superCluster_dR_simScore_MatchedIndex;
@@ -276,17 +284,17 @@ class DeepClusteringDumper : public edm::EDAnalyzer
       std::vector<int> superCluster_global_sim_rechit_fraction_MatchedIndex;
       std::vector<int> superCluster_hgcal_caloToCluster_MatchedIndex;
       std::vector<int> superCluster_hgcal_clusterToCalo_MatchedIndex;
-      std::vector<std::vector<float> > superCluster_dR_genScore;
-      std::vector<std::vector<float> > superCluster_dR_simScore;
+      std::vector<std::vector<double> > superCluster_dR_genScore;
+      std::vector<std::vector<double> > superCluster_dR_simScore;
       std::vector<std::vector<int> > superCluster_n_shared_xtals;
-      std::vector<std::vector<float> > superCluster_sim_fraction;
-      std::vector<std::vector<float> > superCluster_sim_fraction_min1;
-      std::vector<std::vector<float> > superCluster_sim_fraction_min3;
-      std::vector<std::vector<float> > superCluster_sim_rechit_diff;
-      std::vector<std::vector<float> > superCluster_sim_rechit_fraction;
-      std::vector<std::vector<float> > superCluster_global_sim_rechit_fraction;
-      std::vector<std::vector<float> > superCluster_hgcal_caloToCluster;
-      std::vector<std::vector<float> > superCluster_hgcal_clusterToCalo;
+      std::vector<std::vector<double> > superCluster_sim_fraction;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min1;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min3;
+      std::vector<std::vector<double> > superCluster_sim_rechit_diff;
+      std::vector<std::vector<double> > superCluster_sim_rechit_fraction;
+      std::vector<std::vector<double> > superCluster_global_sim_rechit_fraction;
+      std::vector<std::vector<double> > superCluster_hgcal_caloToCluster;
+      std::vector<std::vector<double> > superCluster_hgcal_clusterToCalo;
       std::vector<float> superCluster_r9;
       std::vector<float> superCluster_sigmaIetaIeta; 
       std::vector<float> superCluster_sigmaIetaIphi; 
@@ -295,18 +303,21 @@ class DeepClusteringDumper : public edm::EDAnalyzer
       std::vector<float> superCluster_full5x5_sigmaIetaIeta;
       std::vector<float> superCluster_full5x5_sigmaIetaIphi;
       std::vector<float> superCluster_full5x5_sigmaIphiIphi; 
+      std::vector<std::vector<float> > psCluster_energy;
+      std::vector<std::vector<float> > psCluster_eta;
+      std::vector<std::vector<float> > psCluster_phi;
 
-      std::vector<float> dR_genScore;
-      std::vector<float> dR_simScore;
+      std::vector<double> dR_genScore;
+      std::vector<double> dR_simScore;
       std::vector<int> n_shared_xtals;
-      std::vector<float> sim_fraction;
-      std::vector<float> sim_fraction_min1;
-      std::vector<float> sim_fraction_min3;
-      std::vector<float> sim_rechit_diff;
-      std::vector<float> sim_rechit_fraction;
-      std::vector<float> global_sim_rechit_fraction;
-      std::vector<float> hgcal_caloToCluster;
-      std::vector<float> hgcal_clusterToCalo;
+      std::vector<double> sim_fraction;
+      std::vector<double> sim_fraction_min1;
+      std::vector<double> sim_fraction_min3;
+      std::vector<double> sim_rechit_diff;
+      std::vector<double> sim_rechit_fraction;
+      std::vector<double> global_sim_rechit_fraction;
+      std::vector<double> hgcal_caloToCluster;
+      std::vector<double> hgcal_clusterToCalo;
       std::vector<DetId> pfRechit_unClustered;
       std::vector<std::vector<DetId>> hits_CaloPart;
       std::vector<std::vector<DetId>> hits_PFCluster;
