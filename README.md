@@ -41,19 +41,9 @@
     * cd RecoSimStudies/Dumpers/test/
     * python condor_production.py  -o /eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/TwentyGammasGunPt1-100_pythia8_withPU_withTracker_Run3_2021/ -c /afs/cern.ch/work/b/bmarzocc/Clustering/CMSSW_10_6_4/ -q tomorrow -n 100000 -s 100 -e cms
 
-7) Run general dumper to save per crystal information, on a RECO sample (produced in the previous steps):
+7) Run general dumper (per crystal, PFcluster, superCluster infos) on a RECO sample (produced in the previous steps):
     
     * cd RecoSimStudies/Dumpers/
     * cmsRun python/RecoSimDumper_cfg.py
 
-8) Run the PFCluster dumper, on a RECO sample (produced in the previous steps):
-    
-    * cd RecoSimStudies/Dumpers/
-    * cmsRun python/PFClusterDumper_cfg.py
-
-9) Run the SuperCluster dumper, on a RECO sample (produced in the previous steps):
-    
-    * cd RecoSimStudies/Dumpers/
-    * cmsRun python/SuperClusterInfoTreeMaker_cfg.py
-    
 
