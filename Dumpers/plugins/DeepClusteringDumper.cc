@@ -892,7 +892,7 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  else dR_genScore.push_back(reduceFloat(999.,nBits_));     
              }    
              if(saveScores_) pfCluster_dR_genScore[iPFCl] = dR_genScore;        
-             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==999;})) pfCluster_dR_genScore_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](double i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](double i){return i==999;})) pfCluster_dR_genScore_MatchedIndex.push_back(-1);
              else pfCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin()); 
           } 
           if(saveCaloParticles_){ 
@@ -907,9 +907,9 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  sim_rechit_fraction.push_back(scores[3]);           
                  global_sim_rechit_fraction.push_back(scores[4]);
                  sim_fraction_min1.push_back(scores[5]);  
-                 sim_fraction_min3.push_back(scores[6]);      
-                 hgcal_caloToCluster.push_back(scores[7]);      
-                 hgcal_clusterToCalo.push_back(scores[8]);                     
+                 sim_fraction_min3.push_back(scores[6]);  
+                 hgcal_caloToCluster.push_back(scores[7]);  
+                 hgcal_clusterToCalo.push_back(scores[8]);  
              } 
              if(saveScores_){
                 pfCluster_dR_simScore[iPFCl] = dR_simScore;  
@@ -919,29 +919,30 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                 pfCluster_sim_rechit_fraction[iPFCl] = sim_rechit_fraction;           
                 pfCluster_global_sim_rechit_fraction[iPFCl] = global_sim_rechit_fraction;
                 pfCluster_sim_fraction_min1[iPFCl] = sim_fraction_min1;  
+                pfCluster_sim_fraction_min3[iPFCl] = sim_fraction_min3;   
                 pfCluster_hgcal_caloToCluster[iPFCl] = hgcal_caloToCluster; 
                 pfCluster_hgcal_clusterToCalo[iPFCl] = hgcal_clusterToCalo;
              }
-             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==999;})) pfCluster_dR_simScore_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999;})) pfCluster_dR_simScore_MatchedIndex.push_back(-1);
              else pfCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
-             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0.;})) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else pfCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==0.;})) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
-             else pfCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
-             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==0.;})) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
+             else pfCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==0.;})) pfCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==0.;})) pfCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) pfCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else pfCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==0.;})) pfCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else pfCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==0.;})) pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==0.;})) pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
-             else pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==0.;})) pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());  
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==999.;})) pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             else pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::min_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==999.;})) pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::min_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());  
           }    
     
           iPFCl++;        
@@ -1032,7 +1033,7 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  else dR_genScore.push_back(reduceFloat(999.,nBits_));  
              }  
              if(saveScores_) superCluster_dR_genScore[iSC] = dR_genScore; 
-             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==999;})) superCluster_dR_genScore_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](double i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](double i){return i==999;})) superCluster_dR_genScore_MatchedIndex.push_back(-1);
              else superCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin()); 
           } 
           if(saveCaloParticles_){
@@ -1063,26 +1064,26 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                 superCluster_hgcal_caloToCluster[iSC] = hgcal_caloToCluster; 
                 superCluster_hgcal_clusterToCalo[iSC] = hgcal_clusterToCalo; 
              }
-             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
              else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
-             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0.;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
-             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==0.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==0.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==999.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::min_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==999.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::min_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
           }
 
           if(savePFCluster_){   
@@ -1101,6 +1102,7 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
           }
           iSC++;  
       } 
+
       // The global SuperCluster indexing for EE has an offset = nSuperClusterEB
       iSC = (superClusterEB.product())->size();
       int iSC_tmp=-1;
@@ -1153,7 +1155,7 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  else dR_genScore.push_back(reduceFloat(999.,nBits_));  
              }  
              if(saveScores_) superCluster_dR_genScore[iSC] = dR_genScore; 
-             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](int i){return i==999;})) superCluster_dR_genScore_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_genScore.begin(),dR_genScore.end(),[](double i){return i==-999;}) || std::all_of(dR_genScore.begin(),dR_genScore.end(),[](double i){return i==999;})) superCluster_dR_genScore_MatchedIndex.push_back(-1);
              else superCluster_dR_genScore_MatchedIndex.push_back(std::min_element(dR_genScore.begin(),dR_genScore.end()) - dR_genScore.begin()); 
           }
           if(saveCaloParticles_){
@@ -1167,6 +1169,8 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  sim_rechit_diff.push_back(scores[2]); 
                  sim_rechit_fraction.push_back(scores[3]);           
                  global_sim_rechit_fraction.push_back(scores[4]);
+                 sim_fraction_min1.push_back(scores[5]);  
+                 sim_fraction_min3.push_back(scores[6]);  
                  hgcal_caloToCluster.push_back(scores[7]);  
                  hgcal_clusterToCalo.push_back(scores[8]);  
              } 
@@ -1182,26 +1186,26 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                 superCluster_hgcal_caloToCluster[iSC] = hgcal_caloToCluster; 
                 superCluster_hgcal_clusterToCalo[iSC] = hgcal_clusterToCalo; 
              }
-             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](int i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
+             if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
              else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
-             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0.;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](int i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
-             else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
-             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
+             else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](int i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](int i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](int i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](int i){return i==0.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](int i){return i==0.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==999.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::min_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==999.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::min_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
           }
 
           if(iSuperCluster.preshowerClusters().isAvailable()){
@@ -1227,11 +1231,17 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
                  }     
              }      
           }
-
           iSC++;  
       }
    }
-   
+
+   //save pfCluster_superClustersIndex
+   if(savePFCluster_ && saveSuperCluster_){
+      for(unsigned int iSC=0; iSC<superCluster_pfClustersIndex.size(); iSC++)
+          for(unsigned int iPF=0; iPF<superCluster_pfClustersIndex.at(iSC).size(); iPF++)
+              if(superCluster_pfClustersIndex[iSC].at(iPF)>=0) pfCluster_superClustersIndex[superCluster_pfClustersIndex[iSC].at(iPF)].push_back(iSC);
+    }
+
    //save inverse of matchings
    if(saveCaloParticles_ && saveSuperCluster_){ 
       for(unsigned int iSC=0; iSC<superCluster_dR_simScore_MatchedIndex.size(); iSC++)
@@ -1241,26 +1251,26 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
    } 
    
    if(saveCaloParticles_ && saveSuperCluster_){ 
-      for(unsigned int iSC=0; iSC<superCluster_dR_simScore_MatchedIndex.size(); iSC++)
-          if(superCluster_dR_simScore_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_dR_simScore_MatchedIndex[superCluster_dR_simScore_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_n_shared_xtals_MatchedIndex.size(); iSC++)
-          if(superCluster_n_shared_xtals_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_n_shared_xtals_MatchedIndex[superCluster_n_shared_xtals_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_sim_fraction_MatchedIndex.size(); iSC++)
-          if(superCluster_sim_fraction_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_sim_fraction_MatchedIndex[superCluster_sim_fraction_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_sim_fraction_min1_MatchedIndex.size(); iSC++)
-          if(superCluster_sim_fraction_min1_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_sim_fraction_min1_MatchedIndex[superCluster_sim_fraction_min1_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_sim_fraction_min3_MatchedIndex.size(); iSC++)
-          if(superCluster_sim_fraction_min3_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_sim_fraction_min3_MatchedIndex[superCluster_sim_fraction_min3_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_sim_rechit_diff_MatchedIndex.size(); iSC++)
-          if(superCluster_sim_rechit_diff_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_sim_rechit_diff_MatchedIndex[superCluster_sim_rechit_diff_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_sim_rechit_fraction_MatchedIndex.size(); iSC++)
-          if(superCluster_sim_rechit_fraction_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_sim_rechit_fraction_MatchedIndex[superCluster_sim_rechit_fraction_MatchedIndex.at(iSC)].push_back(iSC); 
-      for(unsigned int iSC=0; iSC<superCluster_global_sim_rechit_fraction_MatchedIndex.size(); iSC++)
-         if(superCluster_global_sim_rechit_fraction_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_global_sim_rechit_fraction_MatchedIndex[superCluster_global_sim_rechit_fraction_MatchedIndex.at(iSC)].push_back(iSC);   
-      for(unsigned int iSC=0; iSC<superCluster_hgcal_caloToCluster_MatchedIndex.size(); iSC++)
-         if(superCluster_hgcal_caloToCluster_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_hgcal_caloToCluster_MatchedIndex[superCluster_hgcal_caloToCluster_MatchedIndex.at(iSC)].push_back(iSC);
-      for(unsigned int iSC=0; iSC<superCluster_hgcal_clusterToCalo_MatchedIndex.size(); iSC++)
-         if(superCluster_hgcal_clusterToCalo_MatchedIndex.at(iSC)>=0) caloParticle_superCluster_hgcal_clusterToCalo_MatchedIndex[superCluster_hgcal_clusterToCalo_MatchedIndex.at(iSC)].push_back(iSC);   
+      for(unsigned int iPF=0; iPF<superCluster_dR_simScore_MatchedIndex.size(); iPF++)
+          if(superCluster_dR_simScore_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_dR_simScore_MatchedIndex[superCluster_dR_simScore_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_n_shared_xtals_MatchedIndex.size(); iPF++)
+          if(superCluster_n_shared_xtals_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_n_shared_xtals_MatchedIndex[superCluster_n_shared_xtals_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_sim_fraction_MatchedIndex.size(); iPF++)
+          if(superCluster_sim_fraction_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_MatchedIndex[superCluster_sim_fraction_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_sim_fraction_min1_MatchedIndex.size(); iPF++)
+          if(superCluster_sim_fraction_min1_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_min1_MatchedIndex[superCluster_sim_fraction_min1_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_sim_fraction_min3_MatchedIndex.size(); iPF++)
+          if(superCluster_sim_fraction_min3_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_min3_MatchedIndex[superCluster_sim_fraction_min3_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_sim_rechit_diff_MatchedIndex.size(); iPF++)
+          if(superCluster_sim_rechit_diff_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_rechit_diff_MatchedIndex[superCluster_sim_rechit_diff_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_sim_rechit_fraction_MatchedIndex.size(); iPF++)
+          if(superCluster_sim_rechit_fraction_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_rechit_fraction_MatchedIndex[superCluster_sim_rechit_fraction_MatchedIndex.at(iPF)].push_back(iPF); 
+      for(unsigned int iPF=0; iPF<superCluster_global_sim_rechit_fraction_MatchedIndex.size(); iPF++)
+         if(superCluster_global_sim_rechit_fraction_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_global_sim_rechit_fraction_MatchedIndex[superCluster_global_sim_rechit_fraction_MatchedIndex.at(iPF)].push_back(iPF);  
+      for(unsigned int iPF=0; iPF<superCluster_hgcal_caloToCluster_MatchedIndex.size(); iPF++)
+         if(superCluster_hgcal_caloToCluster_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_hgcal_caloToCluster_MatchedIndex[superCluster_hgcal_caloToCluster_MatchedIndex.at(iPF)].push_back(iPF);  
+      for(unsigned int iPF=0; iPF<superCluster_hgcal_clusterToCalo_MatchedIndex.size(); iPF++)
+         if(superCluster_hgcal_clusterToCalo_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_hgcal_clusterToCalo_MatchedIndex[superCluster_hgcal_clusterToCalo_MatchedIndex.at(iPF)].push_back(iPF);     
    }
    
    //Save unClustered pfRechits 
@@ -1271,7 +1281,6 @@ void DeepClusteringDumper::analyze(const edm::Event& ev, const edm::EventSetup& 
           DetId pf_id(iPFRechit.detId());
           bool pfRecHit_isMatched_ = false;
           
-
           for(unsigned int iPFCl = 0; iPFCl < hitsAndEnergies_PFCluster.size(); iPFCl++){ 
               for(unsigned int i = 0; i < hitsAndEnergies_PFCluster.at(iPFCl).size(); i++){ 
                   if(iPFRechit.detId() == hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId()) pfRecHit_isMatched_ = true;
@@ -1455,13 +1464,13 @@ std::vector<double> DeepClusteringDumper::getScores(const std::vector<std::pair<
     std::vector<double> scores;
     scores.resize(9);
 
-    int nSharedXtals=-1;
-    double simFraction=-1.;
+    int nSharedXtals=-999;
+    double simFraction=-999.;
     double sim_rechit_diff=0.;
     double sim_rechit_fraction=0.;     
-    double global_sim_rechit_fraction=-1.;  
-    double hgcal_caloToCluster=-1.;      
-    double hgcal_clusterToCalo=-1.;       
+    double global_sim_rechit_fraction=-999.;  
+    double hgcal_caloToCluster=999.;      
+    double hgcal_clusterToCalo=999.;       
    
     double rechits_tot_CaloPart = 0.;
     double rechits_tot_CaloPart_noEnergy = 0.;
@@ -1492,7 +1501,7 @@ std::vector<double> DeepClusteringDumper::getScores(const std::vector<std::pair<
                rechits_match_CaloPart_noEnergy += 1.0;
 
                sim_rechit_diff += fabs(hit_CaloPart.second-hit_Cluster.second);
-               if(rechits_tot_CaloPart!=0.) sim_ratio = hit_CaloPart.second/rechits_tot_CaloPart; 
+               if(rechits_tot_CaloPart!=0.) sim_ratio = (double)hit_CaloPart.second/(double)rechits_tot_CaloPart; 
             }         
         } 
         sim_rechit_fraction += fabs(sim_ratio - reco_ratio);  
@@ -1512,29 +1521,33 @@ std::vector<double> DeepClusteringDumper::getScores(const std::vector<std::pair<
         for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster){
             if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
                recHitInCalo=1; 
-               hgcal_clusterToCalo_Num += (recHitInCalo-(hit_CaloPart.second/rechits_tot_CaloPart))*(recHitInCalo-(hit_CaloPart.second/rechits_tot_CaloPart))*rechitE*rechitE; 
+               hgcal_clusterToCalo_Num += (recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE; 
             }
         }   
-        hgcal_caloToCluster_Num += (recHitInCalo-(hit_CaloPart.second/rechits_tot_CaloPart))*(recHitInCalo-(hit_CaloPart.second/rechits_tot_CaloPart))*rechitE*rechitE*10.e5; 
-        hgcal_caloToCluster_Denum += (hit_CaloPart.second/rechits_tot_CaloPart)*(hit_CaloPart.second/rechits_tot_CaloPart)*rechitE*rechitE*10.e5;     
+        hgcal_caloToCluster_Num += (recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE; 
+        hgcal_caloToCluster_Denum += (((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE;     
     }
 
-    if(rechits_tot_CaloPart_noEnergy!=0.) nSharedXtals = rechits_match_CaloPart_noEnergy;
-    else if(nSharedXtals==0) nSharedXtals=-1;
+    nSharedXtals = (int)rechits_match_CaloPart_noEnergy;
+    if(nSharedXtals==0) nSharedXtals=-999;
 
-    if(rechits_tot_CaloPart!=0.) simFraction = rechits_match_CaloPart/rechits_tot_CaloPart;
+    if(rechits_tot_CaloPart!=0.) simFraction = (double)rechits_match_CaloPart/(double)rechits_tot_CaloPart;
+    else simFraction = -999.; 
+    if(simFraction==0.) simFraction = -999.;
 
-    if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./rechits_match_CaloPart_noEnergy)*sim_rechit_diff;
-    else if(sim_rechit_diff==0.) sim_rechit_diff=-1.;
-    else sim_rechit_diff=-1.; 
+    if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./(double)rechits_match_CaloPart_noEnergy)*(double)sim_rechit_diff;
+    else sim_rechit_diff=-999.; 
 
     if(sim_rechit_fraction!=0.) sim_rechit_fraction = 1-sim_rechit_fraction;
-    else sim_rechit_fraction=-1.;
+    else sim_rechit_fraction=-999.;
     
-    if(rechits_tot_CaloPart!=0. && rechits_tot_Cluster!=0. && rechits_match_CaloPart/rechits_tot_CaloPart!=0. && rechits_match_Cluster/rechits_tot_Cluster!=0.) global_sim_rechit_fraction = 1-fabs(rechits_match_CaloPart/rechits_tot_CaloPart - rechits_match_Cluster/rechits_tot_Cluster);
+    if(rechits_tot_CaloPart!=0. && rechits_tot_Cluster!=0. && rechits_match_CaloPart!=0. && rechits_match_Cluster!=0.) global_sim_rechit_fraction = 1-fabs((double)rechits_match_CaloPart/(double)rechits_tot_CaloPart - (double)rechits_match_Cluster/(double)rechits_tot_Cluster);
+    else global_sim_rechit_fraction=-999.;  
  
-    if(hgcal_caloToCluster_Denum!=0. && hgcal_caloToCluster_Num/hgcal_caloToCluster_Denum<1) hgcal_caloToCluster = 1. - hgcal_caloToCluster_Num/hgcal_caloToCluster_Denum; 
-    if(hgcal_caloToCluster_Denum!=0. && hgcal_clusterToCalo_Num/hgcal_caloToCluster_Denum<1) hgcal_clusterToCalo = 1. - hgcal_clusterToCalo_Num/hgcal_caloToCluster_Denum;  
+    if(hgcal_caloToCluster_Denum!=0.) hgcal_caloToCluster = (double)hgcal_caloToCluster_Num/(double)hgcal_caloToCluster_Denum; 
+    else hgcal_caloToCluster = 999.;
+    if(hgcal_caloToCluster_Denum!=0.) hgcal_clusterToCalo = (double)hgcal_clusterToCalo_Num/(double)hgcal_caloToCluster_Denum;  
+    else hgcal_caloToCluster = 999.;
     
     scores[0] = nSharedXtals;
     scores[1] = simFraction;
@@ -1542,9 +1555,9 @@ std::vector<double> DeepClusteringDumper::getScores(const std::vector<std::pair<
     scores[3] = sim_rechit_fraction;     
     scores[4] = global_sim_rechit_fraction;  
     if(simFraction>0.01) scores[5] = simFraction; 
-    else scores[5] = -1.; 
+    else scores[5] = -999.; 
     if(simFraction>0.03) scores[6] = simFraction; 
-    else scores[6] = -1.;
+    else scores[6] = -999.;
     scores[7] = hgcal_caloToCluster; 
     scores[8] = hgcal_clusterToCalo; 
 
