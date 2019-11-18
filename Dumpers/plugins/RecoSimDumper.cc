@@ -902,14 +902,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_simScore.push_back(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())); 
                  else dR_simScore.push_back(reduceFloat(999.,nBits_)); 
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]); 
+                 sim_fraction.push_back(scores[1]);  
                  sim_rechit_diff.push_back(scores[2]); 
                  sim_rechit_fraction.push_back(scores[3]);           
                  global_sim_rechit_fraction.push_back(scores[4]);
                  sim_fraction_min1.push_back(scores[5]);  
-                 sim_fraction_min3.push_back(scores[6]);      
-                 hgcal_caloToCluster.push_back(scores[7]);      
-                 hgcal_clusterToCalo.push_back(scores[8]);                     
+                 sim_fraction_min3.push_back(scores[6]);  
+                 hgcal_caloToCluster.push_back(scores[7]);  
+                 hgcal_clusterToCalo.push_back(scores[8]);  
              } 
              if(saveScores_){
                 pfCluster_dR_simScore[iPFCl] = dR_simScore;  
@@ -925,24 +925,24 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              }
              if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999;})) pfCluster_dR_simScore_MatchedIndex.push_back(-1);
              else pfCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
-             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](double i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](double i){return i==0.;})) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else pfCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
-             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) pfCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) pfCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else pfCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else pfCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else pfCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==0.;})) pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
-             else pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==0.;})) pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());  
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==999.;})) pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             else pfCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::min_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==999.;})) pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else pfCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::min_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());  
           }    
     
           iPFCl++;        
@@ -1066,24 +1066,24 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              }
              if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
              else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
-             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](double i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](double i){return i==0.;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
-             else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
-             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
+             else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==0.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==0.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==999.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::min_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==999.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::min_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
           }
 
           if(savePFCluster_){   
@@ -1169,6 +1169,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  sim_rechit_diff.push_back(scores[2]); 
                  sim_rechit_fraction.push_back(scores[3]);           
                  global_sim_rechit_fraction.push_back(scores[4]);
+                 sim_fraction_min1.push_back(scores[5]);  
+                 sim_fraction_min3.push_back(scores[6]);  
                  hgcal_caloToCluster.push_back(scores[7]);  
                  hgcal_clusterToCalo.push_back(scores[8]);  
              } 
@@ -1186,24 +1188,24 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              }
              if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999;})) superCluster_dR_simScore_MatchedIndex.push_back(-1);
              else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
-             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](double i){return i==-1.;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](double i){return i==0.;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
+             if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
-             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
-             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min1_MatchedIndex.push_back(std::max_element(sim_fraction_min1.begin(),sim_fraction_min1.end()) - sim_fraction_min1.begin());
-             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-1.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min3.begin(),sim_fraction_min3.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min3_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_min3_MatchedIndex.push_back(std::max_element(sim_fraction_min3.begin(),sim_fraction_min3.end()) - sim_fraction_min3.begin()); 
-             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-1.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_diff.begin(),sim_rechit_diff.end(),[](double i){return i==0.;})) superCluster_sim_rechit_diff_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_diff_MatchedIndex.push_back(std::max_element(sim_rechit_diff.begin(),sim_rechit_diff.end()) - sim_rechit_diff.begin());  
-             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-1.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_rechit_fraction.begin(),sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(sim_rechit_fraction.begin(),sim_rechit_fraction.end()) - sim_rechit_fraction.begin()); 
-             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-1.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
+             if(std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==-999.;}) || std::all_of(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end(),[](double i){return i==0.;})) superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(-1);
              else superCluster_global_sim_rechit_fraction_MatchedIndex.push_back(std::max_element(global_sim_rechit_fraction.begin(),global_sim_rechit_fraction.end()) - global_sim_rechit_fraction.begin());
-             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==-1.;}) || std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==0.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::max_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
-             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==-1.;}) || std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==0.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
-             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::max_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());       
+             if(std::all_of(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end(),[](double i){return i==999.;})) superCluster_hgcal_caloToCluster_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_caloToCluster_MatchedIndex.push_back(std::min_element(hgcal_caloToCluster.begin(),hgcal_caloToCluster.end()) - hgcal_caloToCluster.begin());
+             if(std::all_of(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end(),[](double i){return i==999.;})) superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(-1);
+             else superCluster_hgcal_clusterToCalo_MatchedIndex.push_back(std::min_element(hgcal_clusterToCalo.begin(),hgcal_clusterToCalo.end()) - hgcal_clusterToCalo.begin());     
           }
 
           if(iSuperCluster.preshowerClusters().isAvailable()){
@@ -1462,13 +1464,13 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     std::vector<double> scores;
     scores.resize(9);
 
-    int nSharedXtals=-1;
-    double simFraction=-1.;
+    int nSharedXtals=-999;
+    double simFraction=-999.;
     double sim_rechit_diff=0.;
     double sim_rechit_fraction=0.;     
-    double global_sim_rechit_fraction=-1.;  
-    double hgcal_caloToCluster=-1.;      
-    double hgcal_clusterToCalo=-1.;       
+    double global_sim_rechit_fraction=-999.;  
+    double hgcal_caloToCluster=999.;      
+    double hgcal_clusterToCalo=999.;       
    
     double rechits_tot_CaloPart = 0.;
     double rechits_tot_CaloPart_noEnergy = 0.;
@@ -1522,27 +1524,30 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
                hgcal_clusterToCalo_Num += (recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE; 
             }
         }   
-        hgcal_caloToCluster_Num += (recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE*10.e5; 
-        hgcal_caloToCluster_Denum += ((double)hit_CaloPart.second/(double)rechits_tot_CaloPart)*((double)hit_CaloPart.second/(double)rechits_tot_CaloPart)*rechitE*rechitE*10.e5;     
+        hgcal_caloToCluster_Num += (recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(recHitInCalo-((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE; 
+        hgcal_caloToCluster_Denum += (((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*(((double)hit_CaloPart.second/(double)rechits_tot_CaloPart))*rechitE*rechitE;     
     }
 
-    if(rechits_tot_CaloPart_noEnergy!=0.) nSharedXtals = rechits_match_CaloPart_noEnergy;
-    else if(nSharedXtals==0) nSharedXtals=-1;
+    nSharedXtals = (int)rechits_match_CaloPart_noEnergy;
+    if(nSharedXtals==0) nSharedXtals=-999;
 
     if(rechits_tot_CaloPart!=0.) simFraction = (double)rechits_match_CaloPart/(double)rechits_tot_CaloPart;
-    else if(simFraction==0.) simFraction = -1.;
+    else simFraction = -999.; 
+    if(simFraction==0.) simFraction = -999.;
 
     if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./(double)rechits_match_CaloPart_noEnergy)*(double)sim_rechit_diff;
-    else if(sim_rechit_diff==0.) sim_rechit_diff=-1.;
-    else sim_rechit_diff=-1.; 
+    else sim_rechit_diff=-999.; 
 
     if(sim_rechit_fraction!=0.) sim_rechit_fraction = 1-sim_rechit_fraction;
-    else sim_rechit_fraction=-1.;
+    else sim_rechit_fraction=-999.;
     
-    if(rechits_tot_CaloPart!=0. && rechits_tot_Cluster!=0. && (double)rechits_match_CaloPart/(double)rechits_tot_CaloPart!=0. && (double)rechits_match_Cluster/(double)rechits_tot_Cluster!=0.) global_sim_rechit_fraction = 1-fabs((double)rechits_match_CaloPart/(double)rechits_tot_CaloPart - (double)rechits_match_Cluster/(double)rechits_tot_Cluster);
+    if(rechits_tot_CaloPart!=0. && rechits_tot_Cluster!=0. && rechits_match_CaloPart!=0. && rechits_match_Cluster!=0.) global_sim_rechit_fraction = 1-fabs((double)rechits_match_CaloPart/(double)rechits_tot_CaloPart - (double)rechits_match_Cluster/(double)rechits_tot_Cluster);
+    else global_sim_rechit_fraction=-999.;  
  
-    if(hgcal_caloToCluster_Denum!=0. && (double)hgcal_caloToCluster_Num/(double)hgcal_caloToCluster_Denum<1) hgcal_caloToCluster = 1. - (double)hgcal_caloToCluster_Num/(double)hgcal_caloToCluster_Denum; 
-    if(hgcal_caloToCluster_Denum!=0. && (double)hgcal_clusterToCalo_Num/(double)hgcal_caloToCluster_Denum<1) hgcal_clusterToCalo = 1. - (double)hgcal_clusterToCalo_Num/(double)hgcal_caloToCluster_Denum;  
+    if(hgcal_caloToCluster_Denum!=0.) hgcal_caloToCluster = (double)hgcal_caloToCluster_Num/(double)hgcal_caloToCluster_Denum; 
+    else hgcal_caloToCluster = 999.;
+    if(hgcal_caloToCluster_Denum!=0.) hgcal_clusterToCalo = (double)hgcal_clusterToCalo_Num/(double)hgcal_caloToCluster_Denum;  
+    else hgcal_caloToCluster = 999.;
     
     scores[0] = nSharedXtals;
     scores[1] = simFraction;
@@ -1550,9 +1555,9 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     scores[3] = sim_rechit_fraction;     
     scores[4] = global_sim_rechit_fraction;  
     if(simFraction>0.01) scores[5] = simFraction; 
-    else scores[5] = -1.; 
+    else scores[5] = -999.; 
     if(simFraction>0.03) scores[6] = simFraction; 
-    else scores[6] = -1.;
+    else scores[6] = -999.;
     scores[7] = hgcal_caloToCluster; 
     scores[8] = hgcal_clusterToCalo; 
 
