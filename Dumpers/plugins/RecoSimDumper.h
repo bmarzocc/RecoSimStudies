@@ -120,7 +120,7 @@ class RecoSimDumper : public edm::EDAnalyzer
         
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
-      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle);
+      std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle,  float simHitEnergy_cut);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       std::vector<double> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
@@ -193,6 +193,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min1_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_1MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_5MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_10MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_50MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_100MeVCut_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_rechit_diff_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_rechit_fraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_global_sim_rechit_fraction_MatchedIndex;
@@ -203,6 +208,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min1_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_1MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_5MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_10MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_50MeVCut_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_100MeVCut_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_rechit_diff_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_rechit_fraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_global_sim_rechit_fraction_MatchedIndex;
@@ -246,6 +256,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> pfCluster_sim_fraction_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_min1_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_min3_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min3_1MeVCut_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min3_5MeVCut_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min3_10MeVCut_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min3_50MeVCut_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_min3_100MeVCut_MatchedIndex; 
       std::vector<int> pfCluster_sim_rechit_diff_MatchedIndex;
       std::vector<int> pfCluster_sim_rechit_fraction_MatchedIndex;
       std::vector<int> pfCluster_global_sim_rechit_fraction_MatchedIndex;
@@ -257,6 +272,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > pfCluster_sim_fraction;
       std::vector<std::vector<double> > pfCluster_sim_fraction_min1;
       std::vector<std::vector<double> > pfCluster_sim_fraction_min3;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min3_1MeVCut;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min3_5MeVCut;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min3_10MeVCut;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min3_50MeVCut;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_min3_100MeVCut; 
       std::vector<std::vector<double> > pfCluster_sim_rechit_diff;
       std::vector<std::vector<double> > pfCluster_sim_rechit_fraction;
       std::vector<std::vector<double> > pfCluster_global_sim_rechit_fraction;
@@ -279,6 +299,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> superCluster_sim_fraction_MatchedIndex;
       std::vector<int> superCluster_sim_fraction_min1_MatchedIndex; 
       std::vector<int> superCluster_sim_fraction_min3_MatchedIndex; 
+      std::vector<int> superCluster_sim_fraction_min3_1MeVCut_MatchedIndex; 
+      std::vector<int> superCluster_sim_fraction_min3_5MeVCut_MatchedIndex; 
+      std::vector<int> superCluster_sim_fraction_min3_10MeVCut_MatchedIndex; 
+      std::vector<int> superCluster_sim_fraction_min3_50MeVCut_MatchedIndex; 
+      std::vector<int> superCluster_sim_fraction_min3_100MeVCut_MatchedIndex; 
       std::vector<int> superCluster_sim_rechit_diff_MatchedIndex;
       std::vector<int> superCluster_sim_rechit_fraction_MatchedIndex;
       std::vector<int> superCluster_global_sim_rechit_fraction_MatchedIndex;
@@ -290,6 +315,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > superCluster_sim_fraction;
       std::vector<std::vector<double> > superCluster_sim_fraction_min1;
       std::vector<std::vector<double> > superCluster_sim_fraction_min3;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min3_1MeVCut;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min3_5MeVCut;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min3_10MeVCut;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min3_50MeVCut;
+      std::vector<std::vector<double> > superCluster_sim_fraction_min3_100MeVCut;
       std::vector<std::vector<double> > superCluster_sim_rechit_diff;
       std::vector<std::vector<double> > superCluster_sim_rechit_fraction;
       std::vector<std::vector<double> > superCluster_global_sim_rechit_fraction;
@@ -313,6 +343,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<double> sim_fraction;
       std::vector<double> sim_fraction_min1;
       std::vector<double> sim_fraction_min3;
+      std::vector<double> sim_fraction_min3_1MeVCut;
+      std::vector<double> sim_fraction_min3_5MeVCut;
+      std::vector<double> sim_fraction_min3_10MeVCut;
+      std::vector<double> sim_fraction_min3_50MeVCut;
+      std::vector<double> sim_fraction_min3_100MeVCut;
       std::vector<double> sim_rechit_diff;
       std::vector<double> sim_rechit_fraction;
       std::vector<double> global_sim_rechit_fraction;
@@ -322,7 +357,12 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<DetId>> hits_CaloPart;
       std::vector<std::vector<DetId>> hits_PFCluster;
       std::vector<std::vector<DetId>> hits_SuperCluster;
-      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart; 
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_1MeVCut;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_5MeVCut;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_10MeVCut;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_50MeVCut;
+      std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_100MeVCut;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_PFCluster;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_SuperClusterEB;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_SuperClusterEE;
