@@ -356,7 +356,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<DetId> pfRechit_unClustered;
       std::vector<std::vector<DetId>> hits_CaloPart;
       std::vector<std::vector<DetId>> hits_PFCluster;
-      std::vector<std::vector<DetId>> hits_SuperCluster;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart; 
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_1MeVCut;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart_5MeVCut;
