@@ -173,6 +173,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       if(savePFCluster_){
          tree->Branch("caloParticle_pfCluster_dR_simScore_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_dR_simScore_MatchedIndex);
          tree->Branch("caloParticle_pfCluster_n_shared_xtals_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_n_shared_xtals_MatchedIndex);
+         tree->Branch("caloParticle_pfCluster_sim_fraction_old_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_old_MatchedIndex);
          tree->Branch("caloParticle_pfCluster_sim_fraction_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_MatchedIndex);
          tree->Branch("caloParticle_pfCluster_sim_fraction_min1_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_min1_MatchedIndex);
          tree->Branch("caloParticle_pfCluster_sim_fraction_min3_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_min3_MatchedIndex);
@@ -190,6 +191,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
       if(saveSuperCluster_){
          tree->Branch("caloParticle_superCluster_dR_simScore_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_superCluster_dR_simScore_MatchedIndex);
          tree->Branch("caloParticle_superCluster_n_shared_xtals_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_superCluster_n_shared_xtals_MatchedIndex);
+         tree->Branch("caloParticle_superCluster_sim_fraction_old_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_superCluster_sim_fraction_old_MatchedIndex);
          tree->Branch("caloParticle_superCluster_sim_fraction_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_superCluster_sim_fraction_MatchedIndex);
          tree->Branch("caloParticle_superCluster_sim_fraction_min1_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_superCluster_sim_fraction_min1_MatchedIndex);
          tree->Branch("caloParticle_superCluster_sim_fraction_min3_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_superCluster_sim_fraction_min3_MatchedIndex);
@@ -241,6 +243,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          tree->Branch("pfCluster_dR_genScore_MatchedIndex","std::vector<int>",&pfCluster_dR_genScore_MatchedIndex);
          tree->Branch("pfCluster_dR_simScore_MatchedIndex","std::vector<int>",&pfCluster_dR_simScore_MatchedIndex);
          tree->Branch("pfCluster_n_shared_xtals_MatchedIndex","std::vector<int>",&pfCluster_n_shared_xtals_MatchedIndex);
+         tree->Branch("pfCluster_sim_fraction_old_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_old_MatchedIndex);
          tree->Branch("pfCluster_sim_fraction_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_MatchedIndex);
          tree->Branch("pfCluster_sim_fraction_min1_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_min1_MatchedIndex);
          tree->Branch("pfCluster_sim_fraction_min3_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_min3_MatchedIndex);
@@ -259,6 +262,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          tree->Branch("pfCluster_dR_genScore","std::vector<std::vector<double> >",&pfCluster_dR_genScore);
          tree->Branch("pfCluster_dR_simScore","std::vector<std::vector<double> >",&pfCluster_dR_simScore);
          tree->Branch("pfCluster_n_shared_xtals","std::vector<std::vector<int> >",&pfCluster_n_shared_xtals);
+         tree->Branch("pfCluster_sim_fraction_old","std::vector<std::vector<double> >",&pfCluster_sim_fraction_old);
          tree->Branch("pfCluster_sim_fraction","std::vector<std::vector<double> >",&pfCluster_sim_fraction);
          tree->Branch("pfCluster_sim_fraction_min1","std::vector<std::vector<double> >",&pfCluster_sim_fraction_min1);
          tree->Branch("pfCluster_sim_fraction_min3","std::vector<std::vector<double> >",&pfCluster_sim_fraction_min3);
@@ -303,6 +307,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          tree->Branch("superCluster_dR_genScore_MatchedIndex","std::vector<int>",&superCluster_dR_genScore_MatchedIndex);
          tree->Branch("superCluster_dR_simScore_MatchedIndex","std::vector<int>",&superCluster_dR_simScore_MatchedIndex);
          tree->Branch("superCluster_n_shared_xtals_MatchedIndex","std::vector<int>",&superCluster_n_shared_xtals_MatchedIndex);
+         tree->Branch("superCluster_sim_fraction_old_MatchedIndex","std::vector<int>",&superCluster_sim_fraction_old_MatchedIndex); 
          tree->Branch("superCluster_sim_fraction_MatchedIndex","std::vector<int>",&superCluster_sim_fraction_MatchedIndex);
          tree->Branch("superCluster_sim_fraction_min1_MatchedIndex","std::vector<int>",&superCluster_sim_fraction_min1_MatchedIndex);
          tree->Branch("superCluster_sim_fraction_min3_MatchedIndex","std::vector<int>",&superCluster_sim_fraction_min3_MatchedIndex);
@@ -321,6 +326,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          tree->Branch("superCluster_dR_genScore","std::vector<std::vector<double> >",&superCluster_dR_genScore);
          tree->Branch("superCluster_dR_simScore","std::vector<std::vector<double> >",&superCluster_dR_simScore);
          tree->Branch("superCluster_n_shared_xtals","std::vector<std::vector<int> >",&superCluster_n_shared_xtals);
+         tree->Branch("superCluster_sim_fraction_old","std::vector<std::vector<double> >",&superCluster_sim_fraction_old);
          tree->Branch("superCluster_sim_fraction","std::vector<std::vector<double> >",&superCluster_sim_fraction);
          tree->Branch("superCluster_sim_fraction_min1","std::vector<std::vector<double> >",&superCluster_sim_fraction_min1);
          tree->Branch("superCluster_sim_fraction_min3","std::vector<std::vector<double> >",&superCluster_sim_fraction_min3);
@@ -523,6 +529,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_simIz.clear();
    caloParticle_pfCluster_dR_simScore_MatchedIndex.clear();
    caloParticle_pfCluster_n_shared_xtals_MatchedIndex.clear();
+   caloParticle_pfCluster_sim_fraction_old_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_min1_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_min3_MatchedIndex.clear();
@@ -538,6 +545,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_pfCluster_hgcal_clusterToCalo_MatchedIndex.clear();
    caloParticle_superCluster_dR_simScore_MatchedIndex.clear();
    caloParticle_superCluster_n_shared_xtals_MatchedIndex.clear();
+   caloParticle_superCluster_sim_fraction_old_MatchedIndex.clear();
    caloParticle_superCluster_sim_fraction_MatchedIndex.clear();
    caloParticle_superCluster_sim_fraction_min1_MatchedIndex.clear();
    caloParticle_superCluster_sim_fraction_min3_MatchedIndex.clear();
@@ -553,6 +561,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_superCluster_hgcal_clusterToCalo_MatchedIndex.clear();
    caloParticle_pfCluster_dR_simScore_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_n_shared_xtals_MatchedIndex.resize(nCaloParticles);
+   caloParticle_pfCluster_sim_fraction_old_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_min1_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_min3_MatchedIndex.resize(nCaloParticles);
@@ -568,6 +577,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_pfCluster_hgcal_clusterToCalo_MatchedIndex.resize(nCaloParticles);
    caloParticle_superCluster_dR_simScore_MatchedIndex.resize(nCaloParticles);
    caloParticle_superCluster_n_shared_xtals_MatchedIndex.resize(nCaloParticles);
+   caloParticle_superCluster_sim_fraction_old_MatchedIndex.resize(nCaloParticles);
    caloParticle_superCluster_sim_fraction_MatchedIndex.resize(nCaloParticles);
    caloParticle_superCluster_sim_fraction_min1_MatchedIndex.resize(nCaloParticles);
    caloParticle_superCluster_sim_fraction_min3_MatchedIndex.resize(nCaloParticles);
@@ -620,6 +630,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_dR_genScore_MatchedIndex.clear();
    pfCluster_dR_simScore_MatchedIndex.clear();
    pfCluster_n_shared_xtals_MatchedIndex.clear();
+   pfCluster_sim_fraction_old_MatchedIndex.clear();
    pfCluster_sim_fraction_MatchedIndex.clear();
    pfCluster_sim_fraction_min1_MatchedIndex.clear();
    pfCluster_sim_fraction_min3_MatchedIndex.clear();
@@ -636,6 +647,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_dR_genScore.clear();
    pfCluster_dR_simScore.clear();
    pfCluster_n_shared_xtals.clear();
+   pfCluster_sim_fraction_old.clear();
    pfCluster_sim_fraction.clear();
    pfCluster_sim_fraction_min1.clear();
    pfCluster_sim_fraction_min3.clear();
@@ -652,6 +664,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_dR_genScore.resize(nPFClusters);
    pfCluster_dR_simScore.resize(nPFClusters);
    pfCluster_n_shared_xtals.resize(nPFClusters);
+   pfCluster_sim_fraction_old.resize(nPFClusters);
    pfCluster_sim_fraction.resize(nPFClusters);
    pfCluster_sim_fraction_min1.resize(nPFClusters);
    pfCluster_sim_fraction_min3.resize(nPFClusters);
@@ -706,6 +719,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    superCluster_dR_genScore_MatchedIndex.clear();  
    superCluster_dR_simScore_MatchedIndex.clear();  
    superCluster_n_shared_xtals_MatchedIndex.clear();  
+   superCluster_sim_fraction_old_MatchedIndex.clear();  
    superCluster_sim_fraction_MatchedIndex.clear();  
    superCluster_sim_fraction_min1_MatchedIndex.clear();  
    superCluster_sim_fraction_min3_MatchedIndex.clear();  
@@ -722,6 +736,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    superCluster_dR_genScore.clear();
    superCluster_dR_simScore.clear();
    superCluster_n_shared_xtals.clear();
+   superCluster_sim_fraction_old.clear();
    superCluster_sim_fraction.clear();
    superCluster_sim_fraction_min1.clear();
    superCluster_sim_fraction_min3.clear();
@@ -742,6 +757,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    superCluster_dR_genScore.resize(nSuperClusters);
    superCluster_dR_simScore.resize(nSuperClusters);
    superCluster_n_shared_xtals.resize(nSuperClusters);
+   superCluster_sim_fraction_old.resize(nSuperClusters);
    superCluster_sim_fraction.resize(nSuperClusters);
    superCluster_sim_fraction_min1.resize(nSuperClusters);
    superCluster_sim_fraction_min3.resize(nSuperClusters);
@@ -912,6 +928,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           dR_genScore.clear();
           dR_simScore.clear();
           n_shared_xtals.clear();
+          sim_fraction_old.clear();
           sim_fraction.clear();
           sim_fraction_min1.clear();
           sim_fraction_min3.clear();
@@ -995,6 +1012,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())<0.1) dR_simScore.push_back(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iPFCluster.eta(),iPFCluster.phi())); 
                  else dR_simScore.push_back(999.); 
                  n_shared_xtals.push_back(scores[0]);  
+                 sim_fraction_old.push_back(scores[9]);   
                  sim_fraction.push_back(scores[1]);  
                  sim_rechit_diff.push_back(scores[2]); 
                  sim_rechit_fraction.push_back(scores[3]);           
@@ -1011,8 +1029,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              } 
              if(saveScores_){
                 pfCluster_dR_simScore[iPFCl] = dR_simScore;  
-                pfCluster_n_shared_xtals[iPFCl] = n_shared_xtals;  
-                pfCluster_sim_fraction[iPFCl] = sim_fraction;  
+                pfCluster_n_shared_xtals[iPFCl] = n_shared_xtals;
+                pfCluster_sim_fraction_old[iPFCl] = sim_fraction_old;     
+                pfCluster_sim_fraction[iPFCl] = sim_fraction; 
                 pfCluster_sim_rechit_diff[iPFCl] = sim_rechit_diff; 
                 pfCluster_sim_rechit_fraction[iPFCl] = sim_rechit_fraction;           
                 pfCluster_global_sim_rechit_fraction[iPFCl] = global_sim_rechit_fraction;
@@ -1029,7 +1048,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              if(std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==-999.;}) || std::all_of(dR_simScore.begin(),dR_simScore.end(),[](double i){return i==999.;})) pfCluster_dR_simScore_MatchedIndex.push_back(-1);
              else pfCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
              if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) pfCluster_n_shared_xtals_MatchedIndex.push_back(-1);
-             else pfCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
+             else pfCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin()); 
+             if(std::all_of(sim_fraction_old.begin(),sim_fraction_old.end(),[](double i){return i==999.;}) || std::all_of(sim_fraction_old.begin(),sim_fraction_old.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_old_MatchedIndex.push_back(-1);
+             else pfCluster_sim_fraction_old_MatchedIndex.push_back(std::min_element(sim_fraction_old.begin(),sim_fraction_old.end()) - sim_fraction_old.begin());  
              if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_MatchedIndex.push_back(-1);
              else pfCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
              if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) pfCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
@@ -1073,6 +1094,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           if(pfCluster_dR_simScore_MatchedIndex.at(iPF)>=0) caloParticle_pfCluster_dR_simScore_MatchedIndex[pfCluster_dR_simScore_MatchedIndex.at(iPF)].push_back(iPF);
       for(unsigned int iPF=0; iPF<pfCluster_n_shared_xtals_MatchedIndex.size(); iPF++)
           if(pfCluster_n_shared_xtals_MatchedIndex.at(iPF)>=0) caloParticle_pfCluster_n_shared_xtals_MatchedIndex[pfCluster_n_shared_xtals_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<pfCluster_sim_fraction_old_MatchedIndex.size(); iPF++)
+          if(pfCluster_sim_fraction_old_MatchedIndex.at(iPF)>=0) caloParticle_pfCluster_sim_fraction_old_MatchedIndex[pfCluster_sim_fraction_old_MatchedIndex.at(iPF)].push_back(iPF);  
       for(unsigned int iPF=0; iPF<pfCluster_sim_fraction_MatchedIndex.size(); iPF++)
           if(pfCluster_sim_fraction_MatchedIndex.at(iPF)>=0) caloParticle_pfCluster_sim_fraction_MatchedIndex[pfCluster_sim_fraction_MatchedIndex.at(iPF)].push_back(iPF);
       for(unsigned int iPF=0; iPF<pfCluster_sim_fraction_min1_MatchedIndex.size(); iPF++)
@@ -1112,6 +1135,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           dR_genScore.clear();
           dR_simScore.clear();
           n_shared_xtals.clear();
+          sim_fraction_old.clear();
           sim_fraction.clear();
           sim_fraction_min1.clear();
           sim_fraction_min3.clear();  
@@ -1174,7 +1198,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())); 
                  else dR_simScore.push_back(999.);
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction_old.push_back(scores[9]);  
+                 sim_fraction.push_back(scores[1]);     
                  sim_rechit_diff.push_back(scores[2]); 
                  sim_rechit_fraction.push_back(scores[3]);           
                  global_sim_rechit_fraction.push_back(scores[4]);
@@ -1191,6 +1216,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              if(saveScores_){
                 superCluster_dR_simScore[iSC] = dR_simScore;  
                 superCluster_n_shared_xtals[iSC] = n_shared_xtals;  
+                superCluster_sim_fraction_old[iSC] = sim_fraction_old;   
                 superCluster_sim_fraction[iSC] = sim_fraction;  
                 superCluster_sim_rechit_diff[iSC] = sim_rechit_diff; 
                 superCluster_sim_rechit_fraction[iSC] = sim_rechit_fraction;           
@@ -1209,6 +1235,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
              if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
+             if(std::all_of(sim_fraction_old.begin(),sim_fraction_old.end(),[](double i){return i==999.;}) || std::all_of(sim_fraction_old.begin(),sim_fraction_old.end(),[](double i){return i==0.;})) superCluster_sim_fraction_old_MatchedIndex.push_back(-1);
+             else superCluster_sim_fraction_old_MatchedIndex.push_back(std::min_element(sim_fraction_old.begin(),sim_fraction_old.end()) - sim_fraction_old.begin());  
              if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin()); 
              if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
@@ -1263,7 +1291,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           dR_genScore.clear();
           dR_simScore.clear();
           n_shared_xtals.clear();
-          sim_fraction.clear();
+          sim_fraction_old.clear();
+          sim_fraction.clear(); 
           sim_fraction_min1.clear();
           sim_fraction_min3.clear();  
           sim_fraction_min3_1MeVCut.clear();   
@@ -1326,6 +1355,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  if(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())<0.1) dR_simScore.push_back(deltaR(caloParticle_position.eta(),caloParticle_position.phi(),iSuperCluster.eta(),iSuperCluster.phi())); 
                  else dR_simScore.push_back(999.);
                  n_shared_xtals.push_back(scores[0]);  
+                 sim_fraction_old.push_back(scores[9]); 
                  sim_fraction.push_back(scores[1]);  
                  sim_rechit_diff.push_back(scores[2]); 
                  sim_rechit_fraction.push_back(scores[3]);           
@@ -1343,6 +1373,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              if(saveScores_){
                 superCluster_dR_simScore[iSC] = dR_simScore;  
                 superCluster_n_shared_xtals[iSC] = n_shared_xtals;  
+                superCluster_sim_fraction_old[iSC] = sim_fraction_old; 
                 superCluster_sim_fraction[iSC] = sim_fraction;  
                 superCluster_sim_rechit_diff[iSC] = sim_rechit_diff; 
                 superCluster_sim_rechit_fraction[iSC] = sim_rechit_fraction;           
@@ -1361,6 +1392,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              else superCluster_dR_simScore_MatchedIndex.push_back(std::min_element(dR_simScore.begin(),dR_simScore.end()) - dR_simScore.begin());
              if(std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==-999;}) || std::all_of(n_shared_xtals.begin(),n_shared_xtals.end(),[](int i){return i==0;})) superCluster_n_shared_xtals_MatchedIndex.push_back(-1);
              else superCluster_n_shared_xtals_MatchedIndex.push_back(std::max_element(n_shared_xtals.begin(),n_shared_xtals.end()) - n_shared_xtals.begin());  
+             if(std::all_of(sim_fraction_old.begin(),sim_fraction_old.end(),[](double i){return i==999.;}) || std::all_of(sim_fraction_old.begin(),sim_fraction_old.end(),[](double i){return i==0.;})) superCluster_sim_fraction_old_MatchedIndex.push_back(-1);
+             else superCluster_sim_fraction_old_MatchedIndex.push_back(std::min_element(sim_fraction_old.begin(),sim_fraction_old.end()) - sim_fraction_old.begin()); 
              if(std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction.begin(),sim_fraction.end(),[](double i){return i==0.;})) superCluster_sim_fraction_MatchedIndex.push_back(-1);
              else superCluster_sim_fraction_MatchedIndex.push_back(std::max_element(sim_fraction.begin(),sim_fraction.end()) - sim_fraction.begin());
              if(std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==-999.;}) || std::all_of(sim_fraction_min1.begin(),sim_fraction_min1.end(),[](double i){return i==0.;})) superCluster_sim_fraction_min1_MatchedIndex.push_back(-1);
@@ -1434,8 +1467,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           if(superCluster_dR_simScore_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_dR_simScore_MatchedIndex[superCluster_dR_simScore_MatchedIndex.at(iPF)].push_back(iPF);
       for(unsigned int iPF=0; iPF<superCluster_n_shared_xtals_MatchedIndex.size(); iPF++)
           if(superCluster_n_shared_xtals_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_n_shared_xtals_MatchedIndex[superCluster_n_shared_xtals_MatchedIndex.at(iPF)].push_back(iPF);
+      for(unsigned int iPF=0; iPF<superCluster_sim_fraction_old_MatchedIndex.size(); iPF++)
+          if(superCluster_sim_fraction_old_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_old_MatchedIndex[superCluster_sim_fraction_old_MatchedIndex.at(iPF)].push_back(iPF);
       for(unsigned int iPF=0; iPF<superCluster_sim_fraction_MatchedIndex.size(); iPF++)
-          if(superCluster_sim_fraction_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_MatchedIndex[superCluster_sim_fraction_MatchedIndex.at(iPF)].push_back(iPF);
+          if(superCluster_sim_fraction_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_MatchedIndex[superCluster_sim_fraction_MatchedIndex.at(iPF)].push_back(iPF);   
       for(unsigned int iPF=0; iPF<superCluster_sim_fraction_min1_MatchedIndex.size(); iPF++)
           if(superCluster_sim_fraction_min1_MatchedIndex.at(iPF)>=0) caloParticle_superCluster_sim_fraction_min1_MatchedIndex[superCluster_sim_fraction_min1_MatchedIndex.at(iPF)].push_back(iPF);
       for(unsigned int iPF=0; iPF<superCluster_sim_fraction_min3_MatchedIndex.size(); iPF++)
@@ -1652,10 +1687,11 @@ std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesSC(const
 std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
 {
     std::vector<double> scores;
-    scores.resize(9);
+    scores.resize(10);
 
     int nSharedXtals=-999;
     double simFraction=-999.;
+    double simFraction_old=999.;
     double sim_rechit_diff=0.;
     double sim_rechit_fraction=0.;     
     double global_sim_rechit_fraction=-999.;  
@@ -1725,6 +1761,10 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     else simFraction = -999.; 
     if(simFraction==0.) simFraction = -999.;
 
+    if(rechits_match_CaloPart!=0.) simFraction_old = fabs(1.-(double)rechits_match_Cluster/(double)rechits_match_CaloPart);
+    else simFraction_old = 999.; 
+    if(simFraction_old==1.) simFraction_old = 999.;
+
     if(rechits_match_CaloPart_noEnergy!=0.) sim_rechit_diff = 1-(1./(double)rechits_match_CaloPart_noEnergy)*(double)sim_rechit_diff;
     else sim_rechit_diff=-999.; 
 
@@ -1750,6 +1790,8 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     else scores[6] = -999.;
     scores[7] = hgcal_caloToCluster; 
     scores[8] = hgcal_clusterToCalo; 
+    if(((double)rechits_match_Cluster/(double)rechits_match_CaloPart)>0.8) scores[9] = simFraction_old; 
+    else scores[9] = 999.; 
 
     return scores;
 }

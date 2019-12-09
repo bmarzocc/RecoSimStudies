@@ -190,6 +190,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> caloParticle_simIz;
       std::vector<std::vector<int> > caloParticle_pfCluster_dR_simScore_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_n_shared_xtals_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_old_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min1_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_min3_MatchedIndex;
@@ -205,6 +206,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > caloParticle_pfCluster_hgcal_clusterToCalo_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_dR_simScore_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_n_shared_xtals_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_old_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min1_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_superCluster_sim_fraction_min3_MatchedIndex;
@@ -253,6 +255,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> pfCluster_dR_genScore_MatchedIndex;
       std::vector<int> pfCluster_dR_simScore_MatchedIndex;
       std::vector<int> pfCluster_n_shared_xtals_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_old_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_min1_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_min3_MatchedIndex;
@@ -269,6 +272,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > pfCluster_dR_genScore;
       std::vector<std::vector<double> > pfCluster_dR_simScore;
       std::vector<std::vector<int> > pfCluster_n_shared_xtals;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_old;
       std::vector<std::vector<double> > pfCluster_sim_fraction;
       std::vector<std::vector<double> > pfCluster_sim_fraction_min1;
       std::vector<std::vector<double> > pfCluster_sim_fraction_min3;
@@ -296,6 +300,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> superCluster_dR_genScore_MatchedIndex;
       std::vector<int> superCluster_dR_simScore_MatchedIndex;
       std::vector<int> superCluster_n_shared_xtals_MatchedIndex;
+      std::vector<int> superCluster_sim_fraction_old_MatchedIndex; 
       std::vector<int> superCluster_sim_fraction_MatchedIndex;
       std::vector<int> superCluster_sim_fraction_min1_MatchedIndex; 
       std::vector<int> superCluster_sim_fraction_min3_MatchedIndex; 
@@ -312,6 +317,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > superCluster_dR_genScore;
       std::vector<std::vector<double> > superCluster_dR_simScore;
       std::vector<std::vector<int> > superCluster_n_shared_xtals;
+      std::vector<std::vector<double> > superCluster_sim_fraction_old;
       std::vector<std::vector<double> > superCluster_sim_fraction;
       std::vector<std::vector<double> > superCluster_sim_fraction_min1;
       std::vector<std::vector<double> > superCluster_sim_fraction_min3;
@@ -340,6 +346,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<double> dR_genScore;
       std::vector<double> dR_simScore;
       std::vector<int> n_shared_xtals;
+      std::vector<double> sim_fraction_old;
       std::vector<double> sim_fraction;
       std::vector<double> sim_fraction_min1;
       std::vector<double> sim_fraction_min3;
