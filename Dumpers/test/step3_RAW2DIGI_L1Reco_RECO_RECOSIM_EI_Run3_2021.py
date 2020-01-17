@@ -4,6 +4,23 @@
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: step3 --filein file:step2.root --fileout file:step3.root --mc --eventcontent AODSIM,RECOSIM --runUnscheduled --datatier AODSIM,RECOSIM --conditions 106X_mcRun3_2021_realistic_v3 --customise_commands process.PixelCPEGenericESProducer.IrradiationBiasCorrection = True --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI --procModifiers premix_stage2 --nThreads 8 --geometry DB:Extended --era Run3
 import FWCore.ParameterSet.Config as cms
+import FWCore.Utilities.FileUtils as FileUtils
+import FWCore.ParameterSet.VarParsing as VarParsing
+
+options = VarParsing.VarParsing('standard')
+options.register('inputFile',
+                 'step2.root',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                "inputFile")
+options.register('outputFile',
+                 'step3.root',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                "outputFile")
+                
+options.parseArguments()
+
 
 from Configuration.Eras.Era_Run3_cff import Run3
 from Configuration.ProcessModifiers.premix_stage2_cff import premix_stage2
@@ -32,7 +49,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:step2.root'),
+    fileNames = cms.untracked.vstring("file:"+options.inputFile),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -54,7 +71,7 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string('RECOSIM'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:step3.root'),
+    fileName = cms.untracked.string(options.outputFile),
     outputCommands = process.RECOSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -62,6 +79,7 @@ process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *_mix_MergedCaloTruth_*',
                                              'keep *_genParticles_*_*',
                                              'keep *_offlinePrimaryVertices_*_*',  
+                                             'keep *_*Rho*_*_*',    
                                              'keep *Ecal*_*_*_*',
                                              'keep *_*Ecal*_*_*',
                                              'keep *ECAL*_*_*_*',  
