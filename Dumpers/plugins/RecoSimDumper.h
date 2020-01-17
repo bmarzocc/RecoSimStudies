@@ -127,6 +127,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
       
       // ----------collection tokens-------------------
+      edm::EDGetTokenT<double> rhoToken_;
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_;
@@ -174,6 +175,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       int lumiId;
       int runId; 
       int nVtx;
+      float rho;  
       std::vector<int> genParticle_id;
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;
@@ -270,7 +272,17 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> pfCluster_ieta;
       std::vector<int> pfCluster_iphi;
       std::vector<int> pfCluster_iz;
+      std::vector<int> pfCluster_nXtals;
       std::vector<std::vector<int> > pfCluster_superClustersIndex;
+      std::vector<float> pfCluster_swissCross;
+      std::vector<float> pfCluster_r9;
+      std::vector<float> pfCluster_sigmaIetaIeta; 
+      std::vector<float> pfCluster_sigmaIetaIphi; 
+      std::vector<float> pfCluster_sigmaIphiIphi; 
+      std::vector<float> pfCluster_full5x5_r9; 
+      std::vector<float> pfCluster_full5x5_sigmaIetaIeta;
+      std::vector<float> pfCluster_full5x5_sigmaIetaIphi;
+      std::vector<float> pfCluster_full5x5_sigmaIphiIphi; 
       std::vector<int> pfCluster_dR_genScore_MatchedIndex;
       std::vector<int> pfCluster_dR_simScore_MatchedIndex;
       std::vector<int> pfCluster_n_shared_xtals_MatchedIndex;
@@ -324,7 +336,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> superCluster_phi;  
       std::vector<float> superCluster_etaWidth;  
       std::vector<float> superCluster_phiWidth;   
-      std::vector<float> superCluster_R;   
+      std::vector<float> superCluster_R; 
+      std::vector<int> superCluster_nPFClusters;    
       std::vector<int> superCluster_ieta;
       std::vector<int> superCluster_iphi;    
       std::vector<int> superCluster_iz;  
@@ -378,6 +391,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > superCluster_global_sim_rechit_fraction;
       std::vector<std::vector<double> > superCluster_hgcal_caloToCluster;
       std::vector<std::vector<double> > superCluster_hgcal_clusterToCalo;
+      std::vector<float> superCluster_swissCross;
       std::vector<float> superCluster_r9;
       std::vector<float> superCluster_sigmaIetaIeta; 
       std::vector<float> superCluster_sigmaIetaIphi; 
