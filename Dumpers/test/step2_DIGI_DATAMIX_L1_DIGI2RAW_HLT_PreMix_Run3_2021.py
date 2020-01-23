@@ -7,6 +7,16 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 
 options = VarParsing.VarParsing('standard')
+options.register('inputFile',
+                 'step1.root',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                "inputFile")
+options.register('outputFile',
+                 'step2.root',
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.string,
+                "outputFile")
 options.register('jobid',
                  1,
                  VarParsing.VarParsing.multiplicity.singleton,
@@ -54,7 +64,7 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
-    fileNames = cms.untracked.vstring('file:step1.root'),
+    fileNames = cms.untracked.vstring("file:"+options.inputFile),
     inputCommands = cms.untracked.vstring(
         'keep *', 
         'drop *_genParticles_*_*', 
@@ -95,7 +105,7 @@ process.PREMIXRAWoutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string('GEN-SIM-RAW'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:step2.root'),
+    fileName = cms.untracked.string(options.outputFile),
     outputCommands = process.PREMIXRAWEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -5132,7 +5142,7 @@ process.PREMIXRAWoutput_step = cms.EndPath(process.PREMIXRAWoutput)
 
 # Schedule definition
 process.schedule = cms.Schedule(process.digitisation_step,process.datamixing_step,process.L1simulation_step,process.digi2raw_step)
-process.schedule.extend(process.HLTSchedule)
+#process.schedule.extend(process.HLTSchedule)
 process.schedule.extend([process.endjob_step,process.PREMIXRAWoutput_step])
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)

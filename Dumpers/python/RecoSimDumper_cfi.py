@@ -14,8 +14,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     eeSuperClusterCollection     = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
 
     useDeepSC                    = cms.bool(True),  #run on new DeepSCs
-    ebDeepSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALFromDeepSC","particleFlowDeepSuperClusterECALBarrel","RECO"), 
-    eeDeepSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALFromDeepSC","particleFlowDeepSuperClusterECALEndcapWithPreshower","RECO"),
+    ebDeepSuperClusterCollection = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALBarrel","RECO"), 
+    eeDeepSuperClusterCollection = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALEndcapWithPreshower","RECO"),
     
     doCompression                = cms.bool(True),  #do the compression of floats
     nBits                        = cms.int32(23),   #nbits for float compression (<=23)

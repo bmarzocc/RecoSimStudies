@@ -1202,16 +1202,16 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           if(saveShowerShapes_){ 
              reco::CaloCluster caloBC(*iSuperCluster.seed());  
-             locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
-             full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
-             float e1 = EcalClusterTools::eMax(caloBC, &(*(recHitsEB.product())));
-             float e4 = EcalClusterTools::eTop(caloBC, &(*(recHitsEB.product())), &(*topology)) +
-                        EcalClusterTools::eRight(caloBC, &(*(recHitsEB.product())), &(*topology)) +
-                        EcalClusterTools::eBottom(caloBC, &(*(recHitsEB.product())), &(*topology)) +
-                        EcalClusterTools::eLeft(caloBC, &(*(recHitsEB.product())), &(*topology));
+             locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEE.product())), &(*topology));
+             full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEE.product())), &(*topology));
+             float e1 = EcalClusterTools::eMax(caloBC, &(*(recHitsEE.product())));
+             float e4 = EcalClusterTools::eTop(caloBC, &(*(recHitsEE.product())), &(*topology)) +
+                        EcalClusterTools::eRight(caloBC, &(*(recHitsEE.product())), &(*topology)) +
+                        EcalClusterTools::eBottom(caloBC, &(*(recHitsEE.product())), &(*topology)) +
+                        EcalClusterTools::eLeft(caloBC, &(*(recHitsEE.product())), &(*topology));
              superCluster_swissCross.push_back(reduceFloat(1.-e4/e1,nBits_));
-             superCluster_r9.push_back(reduceFloat(EcalClusterTools::e3x3(caloBC, &(*(recHitsEB.product())), &(*topology))/iSuperCluster.energy(),nBits_));
-             superCluster_full5x5_r9.push_back(reduceFloat(noZS::EcalClusterTools::e3x3(caloBC, &(*(recHitsEB.product())), &(*topology))/iSuperCluster.energy(),nBits_));
+             superCluster_r9.push_back(reduceFloat(EcalClusterTools::e3x3(caloBC, &(*(recHitsEE.product())), &(*topology))/iSuperCluster.energy(),nBits_));
+             superCluster_full5x5_r9.push_back(reduceFloat(noZS::EcalClusterTools::e3x3(caloBC, &(*(recHitsEE.product())), &(*topology))/iSuperCluster.energy(),nBits_));
              superCluster_sigmaIetaIeta.push_back(reduceFloat(sqrt(locCov[0]),nBits_));
              superCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(sqrt(full5x5_locCov[0]),nBits_));
              superCluster_sigmaIetaIphi.push_back(reduceFloat(locCov[1],nBits_));
@@ -1476,16 +1476,16 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           if(saveShowerShapes_){ 
              reco::CaloCluster caloBC(*iDeepSuperCluster.seed());  
-             locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
-             full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEB.product())), &(*topology));
-             float e1 = EcalClusterTools::eMax(caloBC, &(*(recHitsEB.product())));
-             float e4 = EcalClusterTools::eTop(caloBC, &(*(recHitsEB.product())), &(*topology)) +
-                        EcalClusterTools::eRight(caloBC, &(*(recHitsEB.product())), &(*topology)) +
-                        EcalClusterTools::eBottom(caloBC, &(*(recHitsEB.product())), &(*topology)) +
-                        EcalClusterTools::eLeft(caloBC, &(*(recHitsEB.product())), &(*topology));
+             locCov = EcalClusterTools::localCovariances(caloBC, &(*(recHitsEE.product())), &(*topology));
+             full5x5_locCov = noZS::EcalClusterTools::localCovariances(caloBC, &(*(recHitsEE.product())), &(*topology));
+             float e1 = EcalClusterTools::eMax(caloBC, &(*(recHitsEE.product())));
+             float e4 = EcalClusterTools::eTop(caloBC, &(*(recHitsEE.product())), &(*topology)) +
+                        EcalClusterTools::eRight(caloBC, &(*(recHitsEE.product())), &(*topology)) +
+                        EcalClusterTools::eBottom(caloBC, &(*(recHitsEE.product())), &(*topology)) +
+                        EcalClusterTools::eLeft(caloBC, &(*(recHitsEE.product())), &(*topology));
              deepSuperCluster_swissCross.push_back(reduceFloat(1.-e4/e1,nBits_));
-             deepSuperCluster_r9.push_back(reduceFloat(EcalClusterTools::e3x3(caloBC, &(*(recHitsEB.product())), &(*topology))/iDeepSuperCluster.energy(),nBits_));
-             deepSuperCluster_full5x5_r9.push_back(reduceFloat(noZS::EcalClusterTools::e3x3(caloBC, &(*(recHitsEB.product())), &(*topology))/iDeepSuperCluster.energy(),nBits_));
+             deepSuperCluster_r9.push_back(reduceFloat(EcalClusterTools::e3x3(caloBC, &(*(recHitsEE.product())), &(*topology))/iDeepSuperCluster.energy(),nBits_));
+             deepSuperCluster_full5x5_r9.push_back(reduceFloat(noZS::EcalClusterTools::e3x3(caloBC, &(*(recHitsEE.product())), &(*topology))/iDeepSuperCluster.energy(),nBits_));
              deepSuperCluster_sigmaIetaIeta.push_back(reduceFloat(sqrt(locCov[0]),nBits_));
              deepSuperCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(sqrt(full5x5_locCov[0]),nBits_));
              deepSuperCluster_sigmaIetaIphi.push_back(reduceFloat(locCov[1],nBits_));
@@ -1695,10 +1695,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           recHit_noPF_iz.push_back(iz);    
       }   
    }  
-   std::cout << "SONO QUI 5" << std::endl;
    //fill tree for each event
    tree->Fill();
-   std::cout << "SONO QUI 6" << std::endl;
 }
 
 void RecoSimDumper::beginJob()
