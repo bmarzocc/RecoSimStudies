@@ -1688,6 +1688,16 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       for(const auto& iRechit : *(recHitsEE.product())){
 
           DetId rechit_id(iRechit.detid());
+
+          bool rechit_isMatched_;
+          for(unsigned int iPFCl = 0; iPFCl < hitsAndEnergies_PFCluster.size(); iPFCl++){ 
+              for(unsigned int i = 0; i < hitsAndEnergies_PFCluster.at(iPFCl).size(); i++){ 
+                  if(rechit_id.rawId() == hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId()) rechit_isMatched_ = true;
+                  break;   
+              }
+          }
+          if(rechit_isMatched_) continue; 
+          
           std::vector<DetId>::iterator it = std::find(pfRechit_unClustered.begin(), pfRechit_unClustered.end(), rechit_id);   
           if (it != pfRechit_unClustered.end()) continue;  
           
