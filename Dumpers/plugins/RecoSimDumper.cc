@@ -1660,8 +1660,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    //Save noPF rechits 
    if(saveRechits_){
       for(const auto& iRechit : *(recHitsEB.product())){
-
+          
           DetId rechit_id(iRechit.detid());
+
+          bool rechit_isMatched_;
+          for(unsigned int iPFCl = 0; iPFCl < hitsAndEnergies_PFCluster.size(); iPFCl++){ 
+              for(unsigned int i = 0; i < hitsAndEnergies_PFCluster.at(iPFCl).size(); i++){ 
+                  if(rechit_id.rawId() == hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId()) rechit_isMatched_ = true;
+                  break;   
+              }
+          }
+          if(rechit_isMatched_) continue;  
+           
           std::vector<DetId>::iterator it = std::find(pfRechit_unClustered.begin(), pfRechit_unClustered.end(), rechit_id);   
           if (it != pfRechit_unClustered.end()) continue;  
           
@@ -1783,7 +1793,7 @@ std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesSC(const
     } 
 
     for(auto const& hit : HitsAndEnergies_map) 
-         HitsAndEnergies_SuperCluster_tmp->push_back(make_pair(hit.first,hit.second));
+        HitsAndEnergies_SuperCluster_tmp->push_back(make_pair(hit.first,hit.second));
 
     return HitsAndEnergies_SuperCluster_tmp;
 }
