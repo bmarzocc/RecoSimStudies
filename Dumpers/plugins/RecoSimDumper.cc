@@ -1020,6 +1020,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  if(scoreType_=="sim_fraction_min3_100MeVCut") simScore.push_back(scores_100MeVCut[6]);    
                  if(scoreType_=="hgcal_caloToCluster") simScore.push_back(scores[7]);  
                  if(scoreType_=="hgcal_clusterToCalo") simScore.push_back(scores[8]);  
+                 if(scoreType_=="sim_rechit_combined_fraction10") simScore.push_back(scores[17]); 
+                 if(scoreType_=="sim_rechit_combined_fraction30") simScore.push_back(scores[18]); 
+                 if(scoreType_=="sim_rechit_combined_fraction50") simScore.push_back(scores[19]); 
              } 
              if(saveScores_){
                 pfCluster_dR_simScore[iPFCl] = dR_simScore;  
@@ -1142,7 +1145,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  if(scoreType_=="sim_fraction_min3_50MeVCut") simScore.push_back(scores_50MeVCut[6]);
                  if(scoreType_=="sim_fraction_min3_100MeVCut") simScore.push_back(scores_100MeVCut[6]);    
                  if(scoreType_=="hgcal_caloToCluster") simScore.push_back(scores[7]);  
-                 if(scoreType_=="hgcal_clusterToCalo") simScore.push_back(scores[8]);  
+                 if(scoreType_=="hgcal_clusterToCalo") simScore.push_back(scores[8]); 
+                 if(scoreType_=="sim_rechit_combined_fraction10") simScore.push_back(scores[17]); 
+                 if(scoreType_=="sim_rechit_combined_fraction30") simScore.push_back(scores[18]); 
+                 if(scoreType_=="sim_rechit_combined_fraction50") simScore.push_back(scores[19]); 
              } 
              if(saveScores_){
                 superCluster_dR_simScore[iSC] = dR_simScore;  
@@ -1811,29 +1817,26 @@ std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesSC(const
 std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
 {
     std::vector<double> scores;
-    scores.resize(17);
+    scores.resize(20);
 
     int nSharedXtals=-999;
     double simFraction=-999.;
     double simFraction_old=999.;
     double sim_rechit_diff=0.;
-    double sim_rechit_fraction=0.;     
+    double sim_rechit_fraction=0.;  
+    double sim_rechit_combined_fraction=0.; 
     double global_sim_rechit_fraction=-999.;  
     double hgcal_caloToCluster=999.;      
     double hgcal_clusterToCalo=999.;       
    
     double rechits_tot_CaloPart = 0.;
-    double rechits_tot_CaloPart_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart) {
         rechits_tot_CaloPart+=hit_CaloPart.second;
-        rechits_tot_CaloPart_noEnergy+=1.;
     }
 
     double rechits_tot_Cluster = 0.;
-    double rechits_tot_Cluster_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster) {
         rechits_tot_Cluster+=hit_Cluster.second;
-        rechits_tot_Cluster_noEnergy+=1.;
     }
    
     double rechits_match_Cluster = 0.;
@@ -1881,8 +1884,14 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     nSharedXtals = (int)rechits_match_CaloPart_noEnergy;
     if(nSharedXtals==0) nSharedXtals=-999;
 
-    if(rechits_tot_CaloPart!=0.) simFraction = (double)rechits_match_CaloPart/(double)rechits_tot_CaloPart;
-    else simFraction = -999.; 
+    if(rechits_tot_CaloPart!=0.){
+        simFraction = (double)rechits_match_CaloPart/(double)rechits_tot_CaloPart;
+        sim_rechit_combined_fraction = ( (double) rechits_match_CaloPart / rechits_tot_Cluster );
+    } 
+    else {
+        simFraction = -999.; 
+        sim_rechit_combined_fraction = -999.;
+    }
     if(simFraction==0.) simFraction = -999.;
 
     if(rechits_match_CaloPart!=0.) simFraction_old = fabs(1.-(double)rechits_match_Cluster/(double)rechits_match_CaloPart);
@@ -1930,6 +1939,13 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     else scores[15] = -999.;  
     if((double)rechits_match_CaloPart>1.) scores[16] = simFraction; 
     else scores[16] = -999.;  
+    
+    if (simFraction > 0.01 && sim_rechit_combined_fraction > 0.1) scores[17] = simFraction;
+    else scores[17] = -999.;
+    if (simFraction > 0.01 && sim_rechit_combined_fraction > 0.3) scores[18] = simFraction;
+    else scores[18] = -999.;
+    if (simFraction > 0.01 && sim_rechit_combined_fraction > 0.5) scores[19] = simFraction;
+    else scores[19] = -999.;
 
     return scores;
 }
