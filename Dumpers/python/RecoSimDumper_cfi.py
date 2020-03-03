@@ -22,17 +22,17 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     
     saveGenParticles             = cms.bool(True),  #save genParticles information   
     saveCaloParticles            = cms.bool(True),  #save caloParticles information
-    saveSimhits                  = cms.bool(False), #save simHits information
-    saveRechits                  = cms.bool(False), #save recHits information
-    savePFRechits                = cms.bool(False), #save pfRecHits information
+    saveSimhits                  = cms.bool(True), #save simHits information
+    saveRechits                  = cms.bool(True), #save recHits information
+    savePFRechits                = cms.bool(True), #save pfRecHits information
     savePFCluster                = cms.bool(True),  #save pfClusters information
-    savePFClusterhits            = cms.bool(False), #save pfClustershits information
+    savePFClusterhits            = cms.bool(True), #save pfClustershits information
     saveSuperCluster             = cms.bool(True),  #save superClusters information
     saveShowerShapes             = cms.bool(True),  #save showerShapes information
 
-    scoreType                    = cms.string("sim_fraction_min1"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("n_shared_xtals"),  #score to be used for caloParticle matching
+    scoreType                    = cms.string("simScore_final_combination"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_fraction"),  #score to be used for caloParticle matching
+    #scoreType                   = cms.string("n_shared_xtals"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_fraction_1MeVCut"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_fraction_5MeVCut"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_fraction_10MeVCut"),  #score to be used for caloParticle matching
@@ -40,19 +40,15 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     #scoreType                   = cms.string("sim_fraction_100MeVCut"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_fraction_500MeVCut"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_fraction_1GeVCut"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("sim_fraction_min3"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("sim_fraction_min3_1MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("sim_fraction_min3_5MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("sim_fraction_min3_10MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("sim_fraction_min3_50MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                   = cms.string("sim_fraction_min3_100MeVCut"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_rechit_diff"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("sim_rechit_fraction"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("global_sim_rechit_fraction"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("hgcal_caloToCluster"),  #score to be used for caloParticle matching
     #scoreType                   = cms.string("hgcal_clusterToCalo"),  #score to be used for caloParticle matching
+    #scoreType                   = cms.string("sim_rechit_combined_fraction"),  #score to be used for caloParticle matching
+    #scoreType                   = cms.string("rechit_sim_combined_fraction"),  #score to be used for caloParticle matching
    
-    saveScores                   = cms.bool(True),  #save scores information
+    saveScores                   = cms.bool(False),  #save scores information
     genID                        = cms.vint32(22,11, -11), #save only caloParticles with this pdgId 
     #genID                       = cms.vdouble(0),  #save only caloParticles with this pdgId 
 

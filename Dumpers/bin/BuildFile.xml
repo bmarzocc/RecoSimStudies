@@ -1,0 +1,24 @@
+<use   name="rootcore"/>
+<use   name="rootrflx"/>
+<use   name="roofit"/>
+<use   name="roofitcore"/>
+<use   name="boost_python"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="FWCore/ParameterSetReader"/>
+<use   name="PhysicsTools/Utilities"/>
+<use   name="FWCore/ServiceRegistry"/>
+<use   name="CommonTools/UtilAlgos"/>
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/Utilities"/>
+<use   name="RecoSimStudies/Dumpers">
+<flags EDM_PLUGIN="1"/>
+<environment>
+  <bin
+      name="SCAlgoValidation"
+      file="SCAlgoValidation.cpp">
+  </bin>
+  <bin
+      name="ClusterMatchingOptimization"
+      file="ClusterMatchingOptimization.cpp">
+  </bin>
+</environment>
