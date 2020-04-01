@@ -3,8 +3,8 @@
 <use   name="roofit"/>
 <use   name="roofitcore"/>
 <use   name="boost_python"/>
-<export>
-  <lib name="1"/>
+<export> 
+  <lib   name="1"/>
 </export>
 <!-- Flags CXXFLAGS="-ggdb"/ -->
 
