@@ -1286,7 +1286,7 @@ TF1* makeCruijffFit(TH1* hist, float xmin, float xmax, float meanSet=1., float s
   return Cruijff;
 }
 
-TF1* makeDoubleCBFit(TH1* hist,float xmin,float xmax)
+TF1* makeDoubleCBFit(TH1* hist,float xmin,float xmax, float meanSet=1., float sigmaSet=0.1, float alpha1Set=0.1, float n1Set=2., float alpha2Set=0.1, float n2Set=2.)
 {
   RooRealVar  res("res","E^{reco}/E^{gen}", xmin,xmax,"");
   res.setBins(10000,"cache") ;
@@ -1295,14 +1295,12 @@ TF1* makeDoubleCBFit(TH1* hist,float xmin,float xmax)
 
   float nrEntries = hist->Integral();
   RooRealVar nsig("N_{S}", "#signal events", nrEntries,nrEntries*0.5,nrEntries*2.);
-  RooRealVar mean( "#DeltaE", "mean_{cb}",hist->GetMean()-1.,hist->GetMean()+1.,""); 
-  RooRealVar cbSigma("#sigma_{CB}","CB Width", hist->GetRMS()/2., 0.0001, 0.5,"");
-  RooRealVar alpha1( "alpha_{1}", "alpha_{1}", 0.1,0.,20.);
-  //RooRealVar n1( "n_{1}", "n_{1}", 3 ,0,40);
-  RooRealVar n1( "n_{1}", "n_{1}", 2 ,1.01,5000.);
-  RooRealVar alpha2( "alpha_{2}", "alpha_{2}", 0.1,0.,20.);
-  //  RooRealVar n2( "n_{2}", "n_{2}", 0.81 ,0,40);
-  RooRealVar n2( "n_{2}", "n_{2}", 2 ,1.01,5000.);
+  RooRealVar mean( "#DeltaE", "mean_{cb}", meanSet ,meanSet-3.*hist->GetMean(),meanSet+3.*hist->GetMean(),"");
+  RooRealVar cbSigma("#sigma_{CB}","CB Width", sigmaSet, 0., 0.5);
+  RooRealVar alpha1( "alpha_{1}", "alpha_{1}", alpha1Set, 0., 20.);
+  RooRealVar alpha2( "alpha_{2}", "alpha_{2}", alpha2Set,0.,20.);
+  RooRealVar n1( "n_{1}", "n_{1}", n1Set,0.,5000.);
+  RooRealVar n2( "n_{2}", "n_{2}", n2Set,0.,5000.);
 
   DoubleCBPdf doubleCB("doubleCB","doubleCB",res,mean,cbSigma,alpha1,n1,alpha2,n2);
   RooAddPdf model("model", "model", RooArgList(doubleCB), RooArgList(nsig));
@@ -1336,7 +1334,10 @@ TF1* fitHisto(TH1* hist, std::string fitFunction_="cruijff")
    TF1* fit3; 
    std::cout << "fitHisto: " << hist->GetName() << std::endl;
    if(fitFunction_=="doubleCB"){ 
-      return makeDoubleCBFit(hist,xMAX-1.5*hist->GetRMS(),xMAX+1.5*hist->GetRMS());
+      fit1 = makeDoubleCBFit(hist,xMAX-1.5*hist->GetRMS(),xMAX+1.5*hist->GetRMS());
+      fit2 = makeDoubleCBFit(hist, fit1->GetParameter(0)-5.*fit1->GetParameter(1), fit1->GetParameter(0)+5.*fit1->GetParameter(1), fit1->GetParameter(0), fit1->GetParameter(1), fit1->GetParameter(2), fit1->GetParameter(3), fit1->GetParameter(4), fit1->GetParameter(5));
+      fit3 = makeDoubleCBFit(hist, fit2->GetParameter(0)-5.*fit2->GetParameter(1), fit2->GetParameter(0)+5.*fit2->GetParameter(1), fit2->GetParameter(0), fit2->GetParameter(1), fit2->GetParameter(2), fit2->GetParameter(3), fit2->GetParameter(4), fit2->GetParameter(5));
+      return fit3;
    }else{
       float sigma = 0;
       fit1 = makeCruijffFit(hist,xMAX-1.5*hist->GetRMS(),xMAX+1.5*hist->GetRMS(), 1., hist->GetRMS()/2., hist->GetRMS()/2., 0.1, 0.1);

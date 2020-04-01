@@ -18,10 +18,10 @@ process.ioFilesOpt = cms.PSet(
     #fitFunction = cms.string('doubleCB'),   
  
     #superClusterVal = cms.string('superCluster'),
-    #superClusterVal = cms.string('retunedSuperCluster'),
+    superClusterVal = cms.string('retunedSuperCluster'),
     #superClusterVal = cms.string('deepSuperCluster'),
     #superClusterVal = cms.string('deepSuperClusterLWP'),
-    superClusterVal = cms.string('deepSuperClusterTWP'),
+    #superClusterVal = cms.string('deepSuperClusterTWP'),
 
     superClusterRef = cms.string('superCluster'),
     #superClusterRef = cms.string('retunedSuperCluster'),
