@@ -87,7 +87,8 @@ process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *ecal*_*_*_*',      
                                              'keep *_*ecal*_*_*',  
                                              'keep *EGamma*_*_*_*', 
-                                             'keep *_*EGamma*_*_*'])
+                                             'keep *_*EGamma*_*_*',
+                                             'keep *_*towerMaker*_*_*'])
 
 # Additional output definition
 
