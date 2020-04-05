@@ -17,6 +17,7 @@
 <use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="RecoEgamma/EgammaIsolationAlgos"/>
 <use   name="DataFormats/CaloTowers"/>
+<use   name="RecoCaloTools/Selectors"/>
 <use   name="rootcore"/>
 <use   name="rootrflx"/>
 <use   name="roofit"/>

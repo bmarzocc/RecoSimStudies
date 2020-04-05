@@ -67,6 +67,7 @@
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "RecoSimStudies/Dumpers/plugins/RecoSimDumper.h"
+#include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaHcalIsolation.h"
 #include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaTowerIsolation.h"
 #include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaHadTower.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
@@ -1180,8 +1181,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //hcalTowersColl = hcalTowers.product();
       towerIso1_ = new EgammaTowerIsolation(0.15, 0., 0., 1, hcalTowers.product());
       towerIso2_ = new EgammaTowerIsolation(0.15, 0., 0., 2, hcalTowers.product());
-      //egammaHadTower_ = new EgammaHadTower(iSetup);
-      //egammaHadTower_->setTowerCollection(hcalTowers.product()); 
+      egammaHadTower_ = new EgammaHadTower(iSetup);
+      egammaHadTower_->setTowerCollection(hcalTowers.product()); 
    } 
 
    runId = ev.id().run();
@@ -5247,15 +5248,14 @@ std::vector<float> RecoSimDumper::getHoE(const reco::SuperCluster* iSuperCluster
      std::vector<float> HoEs;
      HoEs.resize(2);
   
-     //std::vector<CaloTowerDetId> towersBehindCluster = egammaHadTower->towersOf(*iSuperCluster);
+     std::vector<CaloTowerDetId> towersBehindCluster = egammaHadTower->towersOf(*iSuperCluster);
      double HoEraw1 = towerIso1->getTowerESum(iSuperCluster)/iSuperCluster->rawEnergy();
      double HoEraw2 = towerIso2->getTowerESum(iSuperCluster)/iSuperCluster->rawEnergy();        
-     //float HoEraw1bc = egammaHadTower->getDepth1HcalESum(towersBehindCluster)/iSuperCluster->energy();
-     //float HoEraw2bc = egammaHadTower->getDepth2HcalESum(towersBehindCluster)/iSuperCluster->energy(); 
+     float HoEraw1bc = egammaHadTower->getDepth1HcalESum(towersBehindCluster)/iSuperCluster->energy();
+     float HoEraw2bc = egammaHadTower->getDepth2HcalESum(towersBehindCluster)/iSuperCluster->energy(); 
      HoEs[0] = HoEraw1 + HoEraw2;
-     //HoEs[1] = HoEraw1bc + HoEraw2bc;
-     HoEs[1] = -1.;
-
+     HoEs[1] = HoEraw1bc + HoEraw2bc;
+     
      return HoEs;
 }
 

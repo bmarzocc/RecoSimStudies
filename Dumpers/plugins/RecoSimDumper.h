@@ -68,9 +68,12 @@
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+#include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaHcalIsolation.h"
 #include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaTowerIsolation.h"
 #include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaHadTower.h"
+#include "RecoCaloTools/Selectors/interface/CaloConeSelector.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalTools.h"
 
 
 #include "DataFormats/Math/interface/deltaR.h"

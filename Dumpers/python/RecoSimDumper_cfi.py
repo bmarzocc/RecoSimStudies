@@ -1,5 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
+import Geometry.CaloEventSetup.caloTowerConstituents_cfi 
+CaloTowerConstituentsMapBuilder = cms.ESProducer("CaloTowerConstituentsMapBuilder",
+   MapFile = cms.untracked.string('Geometry/CaloTopology/data/CaloTowerEEGeometric.map.gz')
+   )
+
 recosimdumper = cms.EDAnalyzer("RecoSimDumper",
 
     rhoCollection                   = cms.InputTag("fixedGridRhoAll"),
