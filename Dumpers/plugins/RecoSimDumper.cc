@@ -2756,7 +2756,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_caloToCluster.clear();
           hgcal_clusterToCalo.clear();   
 
-          superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
+          superCluster_energy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
           superCluster_etaWidth.push_back(reduceFloat(iSuperCluster.etaWidth(),nBits_));
@@ -2788,7 +2788,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              superCluster_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              superCluster_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             superCluster_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             superCluster_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iSuperCluster.rawEnergy(),nBits_));
              superCluster_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              superCluster_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              superCluster_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -2807,7 +2807,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              superCluster_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              superCluster_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             superCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             superCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iSuperCluster.rawEnergy(),nBits_));
              superCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              superCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -2965,7 +2965,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_clusterToCalo.clear();   
           iSC_tmp++;
         
-          superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
+          superCluster_energy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
           superCluster_etaWidth.push_back(reduceFloat(iSuperCluster.etaWidth(),nBits_));
@@ -2997,7 +2997,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              superCluster_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              superCluster_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             superCluster_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             superCluster_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iSuperCluster.rawEnergy(),nBits_));
              superCluster_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              superCluster_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              superCluster_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -3016,7 +3016,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              superCluster_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              superCluster_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             superCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             superCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iSuperCluster.rawEnergy(),nBits_));
              superCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              superCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -3222,7 +3222,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_caloToCluster.clear();
           hgcal_clusterToCalo.clear();   
 
-          retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_));
+          retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
           retunedSuperCluster_eta.push_back(reduceFloat(iRetunedSuperCluster.eta(),nBits_));
           retunedSuperCluster_phi.push_back(reduceFloat(iRetunedSuperCluster.phi(),nBits_));
           retunedSuperCluster_etaWidth.push_back(reduceFloat(iRetunedSuperCluster.etaWidth(),nBits_));
@@ -3254,7 +3254,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              retunedSuperCluster_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              retunedSuperCluster_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             retunedSuperCluster_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             retunedSuperCluster_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iRetunedSuperCluster.rawEnergy(),nBits_));
              retunedSuperCluster_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              retunedSuperCluster_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              retunedSuperCluster_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -3273,7 +3273,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              retunedSuperCluster_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              retunedSuperCluster_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             retunedSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             retunedSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iRetunedSuperCluster.rawEnergy(),nBits_));
              retunedSuperCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              retunedSuperCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              retunedSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -3429,7 +3429,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_clusterToCalo.clear();  
           iSC_tmp++;
         
-          retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_));
+          retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
           retunedSuperCluster_eta.push_back(reduceFloat(iRetunedSuperCluster.eta(),nBits_));
           retunedSuperCluster_phi.push_back(reduceFloat(iRetunedSuperCluster.phi(),nBits_));
           retunedSuperCluster_etaWidth.push_back(reduceFloat(iRetunedSuperCluster.etaWidth(),nBits_));
@@ -3461,7 +3461,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              retunedSuperCluster_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              retunedSuperCluster_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             retunedSuperCluster_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             retunedSuperCluster_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iRetunedSuperCluster.rawEnergy(),nBits_));
              retunedSuperCluster_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              retunedSuperCluster_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              retunedSuperCluster_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -3480,7 +3480,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              retunedSuperCluster_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              retunedSuperCluster_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             retunedSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             retunedSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iRetunedSuperCluster.rawEnergy(),nBits_));
              retunedSuperCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              retunedSuperCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              retunedSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -3684,7 +3684,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_caloToCluster.clear();
           hgcal_clusterToCalo.clear();   
 
-          deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
+          deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));
           deepSuperCluster_eta.push_back(reduceFloat(iDeepSuperCluster.eta(),nBits_));
           deepSuperCluster_phi.push_back(reduceFloat(iDeepSuperCluster.phi(),nBits_));
           deepSuperCluster_etaWidth.push_back(reduceFloat(iDeepSuperCluster.etaWidth(),nBits_));
@@ -3716,7 +3716,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              deepSuperCluster_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              deepSuperCluster_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             deepSuperCluster_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             deepSuperCluster_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iDeepSuperCluster.rawEnergy(),nBits_));
              deepSuperCluster_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              deepSuperCluster_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              deepSuperCluster_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -3735,7 +3735,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              deepSuperCluster_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              deepSuperCluster_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             deepSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             deepSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iDeepSuperCluster.rawEnergy(),nBits_));
              deepSuperCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              deepSuperCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              deepSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -3891,7 +3891,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_clusterToCalo.clear();  
           iSC_tmp++;
         
-          deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
+          deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));
           deepSuperCluster_eta.push_back(reduceFloat(iDeepSuperCluster.eta(),nBits_));
           deepSuperCluster_phi.push_back(reduceFloat(iDeepSuperCluster.phi(),nBits_));
           deepSuperCluster_etaWidth.push_back(reduceFloat(iDeepSuperCluster.etaWidth(),nBits_));
@@ -3923,7 +3923,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              deepSuperCluster_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              deepSuperCluster_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             deepSuperCluster_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             deepSuperCluster_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iDeepSuperCluster.rawEnergy(),nBits_));
              deepSuperCluster_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              deepSuperCluster_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              deepSuperCluster_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -3942,7 +3942,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              deepSuperCluster_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              deepSuperCluster_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             deepSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             deepSuperCluster_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iDeepSuperCluster.rawEnergy(),nBits_));
              deepSuperCluster_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              deepSuperCluster_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              deepSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_));
@@ -4146,7 +4146,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_caloToCluster.clear();
           hgcal_clusterToCalo.clear();   
 
-          deepSuperClusterLWP_energy.push_back(reduceFloat(iDeepSuperClusterLWP.energy(),nBits_));
+          deepSuperClusterLWP_energy.push_back(reduceFloat(iDeepSuperClusterLWP.rawEnergy(),nBits_));
           deepSuperClusterLWP_eta.push_back(reduceFloat(iDeepSuperClusterLWP.eta(),nBits_));
           deepSuperClusterLWP_phi.push_back(reduceFloat(iDeepSuperClusterLWP.phi(),nBits_));
           deepSuperClusterLWP_etaWidth.push_back(reduceFloat(iDeepSuperClusterLWP.etaWidth(),nBits_));
@@ -4178,7 +4178,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterLWP_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              deepSuperClusterLWP_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              deepSuperClusterLWP_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             deepSuperClusterLWP_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             deepSuperClusterLWP_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iDeepSuperClusterLWP.rawEnergy(),nBits_));
              deepSuperClusterLWP_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              deepSuperClusterLWP_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              deepSuperClusterLWP_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -4197,7 +4197,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterLWP_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              deepSuperClusterLWP_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              deepSuperClusterLWP_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             deepSuperClusterLWP_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             deepSuperClusterLWP_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iDeepSuperClusterLWP.rawEnergy(),nBits_));
              deepSuperClusterLWP_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              deepSuperClusterLWP_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              deepSuperClusterLWP_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -4353,7 +4353,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_clusterToCalo.clear();  
           iSC_tmp++;
         
-          deepSuperClusterLWP_energy.push_back(reduceFloat(iDeepSuperClusterLWP.energy(),nBits_));
+          deepSuperClusterLWP_energy.push_back(reduceFloat(iDeepSuperClusterLWP.rawEnergy(),nBits_));
           deepSuperClusterLWP_eta.push_back(reduceFloat(iDeepSuperClusterLWP.eta(),nBits_));
           deepSuperClusterLWP_phi.push_back(reduceFloat(iDeepSuperClusterLWP.phi(),nBits_));
           deepSuperClusterLWP_etaWidth.push_back(reduceFloat(iDeepSuperClusterLWP.etaWidth(),nBits_));
@@ -4385,7 +4385,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterLWP_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              deepSuperClusterLWP_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              deepSuperClusterLWP_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             deepSuperClusterLWP_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             deepSuperClusterLWP_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iDeepSuperClusterLWP.rawEnergy(),nBits_));
              deepSuperClusterLWP_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              deepSuperClusterLWP_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              deepSuperClusterLWP_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -4404,7 +4404,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterLWP_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              deepSuperClusterLWP_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              deepSuperClusterLWP_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             deepSuperClusterLWP_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             deepSuperClusterLWP_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iDeepSuperClusterLWP.rawEnergy(),nBits_));
              deepSuperClusterLWP_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              deepSuperClusterLWP_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              deepSuperClusterLWP_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_));
@@ -4608,7 +4608,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_caloToCluster.clear();
           hgcal_clusterToCalo.clear();   
 
-          deepSuperClusterTWP_energy.push_back(reduceFloat(iDeepSuperClusterTWP.energy(),nBits_));
+          deepSuperClusterTWP_energy.push_back(reduceFloat(iDeepSuperClusterTWP.rawEnergy(),nBits_));
           deepSuperClusterTWP_eta.push_back(reduceFloat(iDeepSuperClusterTWP.eta(),nBits_));
           deepSuperClusterTWP_phi.push_back(reduceFloat(iDeepSuperClusterTWP.phi(),nBits_));
           deepSuperClusterTWP_etaWidth.push_back(reduceFloat(iDeepSuperClusterTWP.etaWidth(),nBits_));
@@ -4640,7 +4640,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterTWP_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              deepSuperClusterTWP_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              deepSuperClusterTWP_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             deepSuperClusterTWP_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             deepSuperClusterTWP_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iDeepSuperClusterTWP.rawEnergy(),nBits_));
              deepSuperClusterTWP_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              deepSuperClusterTWP_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              deepSuperClusterTWP_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -4659,7 +4659,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterTWP_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              deepSuperClusterTWP_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              deepSuperClusterTWP_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             deepSuperClusterTWP_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             deepSuperClusterTWP_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iDeepSuperClusterTWP.rawEnergy(),nBits_));
              deepSuperClusterTWP_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              deepSuperClusterTWP_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              deepSuperClusterTWP_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
@@ -4815,7 +4815,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hgcal_clusterToCalo.clear();  
           iSC_tmp++;
         
-          deepSuperClusterTWP_energy.push_back(reduceFloat(iDeepSuperClusterTWP.energy(),nBits_));
+          deepSuperClusterTWP_energy.push_back(reduceFloat(iDeepSuperClusterTWP.rawEnergy(),nBits_));
           deepSuperClusterTWP_eta.push_back(reduceFloat(iDeepSuperClusterTWP.eta(),nBits_));
           deepSuperClusterTWP_phi.push_back(reduceFloat(iDeepSuperClusterTWP.phi(),nBits_));
           deepSuperClusterTWP_etaWidth.push_back(reduceFloat(iDeepSuperClusterTWP.etaWidth(),nBits_));
@@ -4847,7 +4847,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterTWP_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[12],nBits_));
              deepSuperClusterTWP_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[13],nBits_));
              deepSuperClusterTWP_swissCross.push_back(reduceFloat(showerShapes_[14],nBits_));
-             deepSuperClusterTWP_r9.push_back(reduceFloat(showerShapes_[15],nBits_));
+             deepSuperClusterTWP_r9.push_back(reduceFloat(showerShapes_[2]*showerShapes_[0]/iDeepSuperClusterTWP.rawEnergy(),nBits_));
              deepSuperClusterTWP_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[16],nBits_)); 
              deepSuperClusterTWP_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[17],nBits_)); 
              deepSuperClusterTWP_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[18],nBits_)); 
@@ -4866,7 +4866,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperClusterTWP_full5x5_e2x5BottomRatio.push_back(reduceFloat(showerShapes_[31],nBits_));
              deepSuperClusterTWP_full5x5_e2x5LeftRatio.push_back(reduceFloat(showerShapes_[32],nBits_));
              deepSuperClusterTWP_full5x5_swissCross.push_back(reduceFloat(showerShapes_[33],nBits_));
-             deepSuperClusterTWP_full5x5_r9.push_back(reduceFloat(showerShapes_[34],nBits_));
+             deepSuperClusterTWP_full5x5_r9.push_back(reduceFloat(showerShapes_[21]*showerShapes_[19]/iDeepSuperClusterTWP.rawEnergy(),nBits_));
              deepSuperClusterTWP_full5x5_sigmaIetaIeta.push_back(reduceFloat(showerShapes_[35],nBits_)); 
              deepSuperClusterTWP_full5x5_sigmaIetaIphi.push_back(reduceFloat(showerShapes_[36],nBits_)); 
              deepSuperClusterTWP_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
