@@ -43,8 +43,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveSuperCluster                = cms.bool(True),  #save superClusters information
     saveShowerShapes                = cms.bool(True),  #save showerShapes information
 
-    scoreType                       = cms.string("simScore_final_combination"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction"),  #score to be used for caloParticle matching
+    #scoreType                       = cms.string("simScore_final_combination"),  #score to be used for caloParticle matching
+    scoreType                      = cms.string("sim_fraction"),  #score to be used for caloParticle matching
     #scoreType                      = cms.string("n_shared_xtals"),  #score to be used for caloParticle matching
     #scoreType                      = cms.string("sim_fraction_1MeVCut"),  #score to be used for caloParticle matching
     #scoreType                      = cms.string("sim_fraction_5MeVCut"),  #score to be used for caloParticle matching

@@ -299,89 +299,22 @@ int main(int argc, char** argv)
               for(unsigned int iCalo=0; iCalo<caloParticle_simEnergy->size(); iCalo++){
 
                   h_Eta_Calo_Denum->Fill(caloParticle_simEta->at(iCalo));
-                  if(fabs(caloParticle_simEta->at(iCalo))<1.479) h_Et_Calo_EB_Denum->Fill(caloParticle_simEt->at(iCalo));
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479) h_Et_Calo_EB_Denum->Fill(caloParticle_simEt->at(iCalo));
                   else h_Et_Calo_EE_Denum->Fill(caloParticle_simEt->at(iCalo)); 
   
                   int iPF=Calo_SuperCluster_index.at(iCalo); 
                   if(iPF==-1) continue; 
 
                   h_Eta_Calo_old->Fill(caloParticle_simEta->at(iCalo)); 
-                  if(fabs(caloParticle_simEta->at(iCalo))<1.479) h_Et_Calo_EB_old->Fill(caloParticle_simEt->at(iCalo)); 
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479) h_Et_Calo_EB_old->Fill(caloParticle_simEt->at(iCalo)); 
                   else h_Et_Calo_EE_old->Fill(caloParticle_simEt->at(iCalo)); 
 
                   h_Eta_caloMatched_old->Fill(superCluster_eta->at(iPF));
-                  h_nPFClusters_caloMatched_old->Fill(superCluster_nPFClusters->at(iPF));
-                  prof_EoEtrue_vs_Eta_Calo_old->Fill(caloParticle_simEta->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-   
-                  int nBins_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[0]; 
-                  float min_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[1]; 
-                  float max_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[2]; 
-                  float delta = fabs(min_Eta-max_Eta)/nBins_Eta;
-                  int iBin = int((caloParticle_simEta->at(iCalo)-min_Eta)/delta); 
-                  if(caloParticle_simEta->at(iCalo)>=min_Eta && caloParticle_simEta->at(iCalo)<max_Eta)
-                     EoEtrue_vs_Eta_Calo_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-        
-                  int nBins_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[0]; 
-                  float min_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[1]; 
-                  float max_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[2]; 
-                  delta = fabs(min_Et-max_Et)/nBins_Et;
-                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);             
-                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_Et_Calo_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                  nBins_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[0]; 
-                  min_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[1]; 
-                  max_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[2]; 
-                  delta = fabs(min_Et-max_Et)/nBins_Et;
-                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);
-                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_Et_Calo_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));      
-        
-                  int nBins_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[0]; 
-                  float min_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[1]; 
-                  float max_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[2];      
-                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
-                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
-                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_Energy_Calo_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-                  nBins_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[0]; 
-                  min_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[1]; 
-                  max_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[2];      
-                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
-                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
-                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_Energy_Calo_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
-                  int nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[0]; 
-                  float min_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[1]; 
-                  float max_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[2];      
-                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
-                  iBin = int((nVtx-min_nVtx)/delta);
-                  if(nVtx>=min_nVtx && nVtx<max_nVtx)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_nVtx_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-                  nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[0]; 
-                  min_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[1]; 
-                  max_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[2];      
-                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
-                  iBin = int((nVtx-min_nVtx)/delta);
-                  if(nVtx>=min_nVtx && nVtx<max_nVtx)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_nVtx_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
+                  h_nPFClusters_caloMatched_old->Fill(superCluster_nPFClusters->at(iPF));  
 
-                  int nBins_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[0]; 
-                  float min_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[1]; 
-                  float max_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[2];      
-                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
-                  iBin = int((rho-min_Rho)/delta);
-                  if(rho>=min_Rho && rho<max_Rho)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_Rho_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));      
-                  nBins_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[0]; 
-                  min_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[1]; 
-                  max_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[2];      
-                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
-                  iBin = int((rho-min_Rho)/delta);
-                  if(rho>=min_Rho && rho<max_Rho)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_Rho_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-
-                  if(fabs(caloParticle_simEta->at(iCalo))<1.479){
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479){
                      h_EoEtrue_EB_old->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EB_old->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
                      h_EtaWidth_EB_caloMatched_old->Fill(superCluster_etaWidth->at(iPF));  
                      h_Phi_EB_caloMatched_old->Fill(superCluster_phi->at(iPF)); 
                      h_PhiWidth_EB_caloMatched_old->Fill(superCluster_phiWidth->at(iPF));  
@@ -395,12 +328,9 @@ int main(int argc, char** argv)
                      h_full5x5_sigmaIetaIphi_EB_caloMatched_old->Fill(superCluster_full5x5_sigmaIetaIphi->at(iPF));    
                      h_sigmaIphiIphi_EB_caloMatched_old->Fill(superCluster_sigmaIphiIphi->at(iPF));    
                      h_full5x5_sigmaIphiIphi_EB_caloMatched_old->Fill(superCluster_full5x5_sigmaIphiIphi->at(iPF)); 
-                     prof_EoEtrue_vs_Et_Calo_EB_old->Fill(caloParticle_simEt->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
-                     prof_EoEtrue_vs_Energy_Calo_EB_old->Fill(caloParticle_simEnergy->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));  
-                     prof_EoEtrue_vs_nVtx_EB_old->Fill(nVtx,superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                     prof_EoEtrue_vs_Rho_EB_old->Fill(rho,superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                  }else if(fabs(caloParticle_simEta->at(iCalo))>=1.479){
+                  }else if(fabs(caloParticle_genEta->at(iCalo))>=1.479){
                      h_EoEtrue_EE_old->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EE_old->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
                      h_EtaWidth_EE_caloMatched_old->Fill(superCluster_etaWidth->at(iPF));
                      h_Phi_EE_caloMatched_old->Fill(superCluster_phi->at(iPF));
                      h_PhiWidth_EE_caloMatched_old->Fill(superCluster_phiWidth->at(iPF)); 
@@ -414,11 +344,132 @@ int main(int argc, char** argv)
                      h_full5x5_sigmaIetaIphi_EE_caloMatched_old->Fill(superCluster_full5x5_sigmaIetaIphi->at(iPF));    
                      h_sigmaIphiIphi_EE_caloMatched_old->Fill(superCluster_sigmaIphiIphi->at(iPF));    
                      h_full5x5_sigmaIphiIphi_EE_caloMatched_old->Fill(superCluster_full5x5_sigmaIphiIphi->at(iPF));          
+                  }
+
+                  bool sameSeed=false;  
+                  for(unsigned int iSeed=0; iSeed<common_seeds.size(); iSeed++)
+                     if(superCluster_seedIndex->at(iPF) == common_seeds.at(iSeed)){
+                        sameSeed=true;
+                        break;
+                     }    
+          
+                  if(sameSeed==false) continue;
+
+                  prof_EoEtrue_vs_Eta_Calo_old->Fill(caloParticle_simEta->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                  prof_EoEgen_vs_Eta_Gen_old->Fill(caloParticle_genEta->at(iCalo),superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+
+                  int nBins_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[0]; 
+                  float min_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[1]; 
+                  float max_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[2]; 
+                  float delta = fabs(min_Eta-max_Eta)/nBins_Eta;
+                  int iBin = int((caloParticle_simEta->at(iCalo)-min_Eta)/delta); 
+                  if(caloParticle_simEta->at(iCalo)>=min_Eta && caloParticle_simEta->at(iCalo)<max_Eta) EoEtrue_vs_Eta_Calo_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                  iBin = int((caloParticle_genEta->at(iCalo)-min_Eta)/delta);  
+                  if(caloParticle_genEta->at(iCalo)>=min_Eta && caloParticle_genEta->at(iCalo)<max_Eta) EoEgen_vs_Eta_Gen_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                  
+                  int nBins_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[0]; 
+                  float min_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[1]; 
+                  float max_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[2]; 
+                  delta = fabs(min_Et-max_Et)/nBins_Et;
+                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);             
+                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))<1.479)
+                     EoEtrue_vs_Et_Calo_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
+                  iBin = int((caloParticle_genEt->at(iCalo)-min_Et)/delta);     
+                  if(caloParticle_genEt->at(iCalo)>=min_Et && caloParticle_genEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))<1.479)  
+         	     EoEgen_vs_Et_Gen_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));       
+                  nBins_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[0]; 
+                  min_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[1]; 
+                  max_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[2]; 
+                  delta = fabs(min_Et-max_Et)/nBins_Et;
+                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);
+                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))>1.479)
+                     EoEtrue_vs_Et_Calo_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));   
+                  iBin = int((caloParticle_genEt->at(iCalo)-min_Et)/delta);
+                  if(caloParticle_genEt->at(iCalo)>=min_Et && caloParticle_genEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))>1.479)              
+         	     EoEgen_vs_Et_Gen_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));       
+
+                  int nBins_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[0]; 
+                  float min_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[1]; 
+                  float max_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[2];      
+                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
+                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
+                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))<1.479)
+                     EoEtrue_vs_Energy_Calo_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                  iBin = int((caloParticle_genEnergy->at(iCalo)-min_Energy)/delta);    
+                  if(caloParticle_genEnergy->at(iCalo)>=min_Energy && caloParticle_genEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))<1.479)    
+                     EoEgen_vs_Energy_Gen_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));                  
+                  nBins_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[0]; 
+                  min_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[1]; 
+                  max_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[2];      
+                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
+                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
+                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))>1.479)
+                     EoEtrue_vs_Energy_Calo_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                  iBin = int((caloParticle_genEnergy->at(iCalo)-min_Energy)/delta);
+                  if(caloParticle_genEnergy->at(iCalo)>=min_Energy && caloParticle_genEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))>1.479)  
+ 	             EoEgen_vs_Energy_Gen_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+ 
+                  int nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[0]; 
+                  float min_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[1]; 
+                  float max_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[2];      
+                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
+                  iBin = int((nVtx-min_nVtx)/delta);
+                  if(nVtx>=min_nVtx && nVtx<max_nVtx && fabs(caloParticle_genEta->at(iCalo))<1.479){
+                     EoEtrue_vs_nVtx_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     EoEgen_vs_nVtx_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));     
+                  }   
+                  nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[0]; 
+                  min_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[1]; 
+                  max_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[2];      
+                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
+                  iBin = int((nVtx-min_nVtx)/delta);
+                  if(nVtx>=min_nVtx && nVtx<max_nVtx && fabs(caloParticle_genEta->at(iCalo))>1.479){
+                     EoEtrue_vs_nVtx_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     EoEgen_vs_nVtx_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+                  }    
+
+                  int nBins_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[0]; 
+                  float min_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[1]; 
+                  float max_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[2];      
+                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
+                  iBin = int((rho-min_Rho)/delta);
+                  if(rho>=min_Rho && rho<max_Rho && fabs(caloParticle_genEta->at(iCalo))<1.479){
+                     EoEtrue_vs_Rho_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
+                     EoEgen_vs_Rho_EB_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));        
+                  }  
+                  nBins_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[0]; 
+                  min_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[1]; 
+                  max_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[2];      
+                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
+                  iBin = int((rho-min_Rho)/delta);
+                  if(rho>=min_Rho && rho<max_Rho && fabs(caloParticle_genEta->at(iCalo))>1.479){
+                     EoEtrue_vs_Rho_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     EoEgen_vs_Rho_EE_old[iBin]->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));    
+                  } 
+
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479){
+                     h_EoEtrue_EB_seedMatched_old->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EB_seedMatched_old->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                     prof_EoEtrue_vs_Et_Calo_EB_old->Fill(caloParticle_simEt->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     prof_EoEtrue_vs_Energy_Calo_EB_old->Fill(caloParticle_simEnergy->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));  
+                     prof_EoEtrue_vs_nVtx_EB_old->Fill(nVtx,superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     prof_EoEtrue_vs_Rho_EB_old->Fill(rho,superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     prof_EoEgen_vs_Et_Gen_EB_old->Fill(caloParticle_genEt->at(iCalo),superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+                     prof_EoEgen_vs_Energy_Gen_EB_old->Fill(caloParticle_genEnergy->at(iCalo),superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));  
+                     prof_EoEgen_vs_nVtx_EB_old->Fill(nVtx,superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                     prof_EoEgen_vs_Rho_EB_old->Fill(rho,superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                  }else if(fabs(caloParticle_genEta->at(iCalo))>=1.479){
+                     h_EoEtrue_EE_seedMatched_old->Fill(superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EE_seedMatched_old->Fill(superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
                      prof_EoEtrue_vs_Et_Calo_EE_old->Fill(caloParticle_simEt->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
                      prof_EoEtrue_vs_Energy_Calo_EE_old->Fill(caloParticle_simEnergy->at(iCalo),superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));  
                      prof_EoEtrue_vs_nVtx_EE_old->Fill(nVtx,superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
                      prof_EoEtrue_vs_Rho_EE_old->Fill(rho,superCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                  }
+                     prof_EoEgen_vs_Et_Gen_EE_old->Fill(caloParticle_genEt->at(iCalo),superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+                     prof_EoEgen_vs_Energy_Gen_EE_old->Fill(caloParticle_genEnergy->at(iCalo),superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));  
+                     prof_EoEgen_vs_nVtx_EE_old->Fill(nVtx,superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                     prof_EoEgen_vs_Rho_EE_old->Fill(rho,superCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                  }  
                }
 
                for(unsigned int iCalo=0; iCalo<caloParticle_simEnergy->size(); iCalo++){
@@ -427,83 +478,15 @@ int main(int argc, char** argv)
                   if(iPF==-1) continue; 
 
                   h_Eta_Calo_new->Fill(caloParticle_simEta->at(iCalo)); 
-                  if(fabs(caloParticle_simEta->at(iCalo))<1.479) h_Et_Calo_EB_new->Fill(caloParticle_simEt->at(iCalo)); 
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479) h_Et_Calo_EB_new->Fill(caloParticle_simEt->at(iCalo)); 
                   else h_Et_Calo_EE_new->Fill(caloParticle_simEt->at(iCalo)); 
 
                   h_Eta_caloMatched_new->Fill(deepSuperCluster_eta->at(iPF));
                   h_nPFClusters_caloMatched_new->Fill(deepSuperCluster_nPFClusters->at(iPF));
-                  prof_EoEtrue_vs_Eta_Calo_new->Fill(caloParticle_simEta->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-
-                  int nBins_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[0]; 
-                  float min_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[1]; 
-                  float max_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[2]; 
-                  float delta = fabs(min_Eta-max_Eta)/nBins_Eta;
-                  int iBin = int((caloParticle_simEta->at(iCalo)-min_Eta)/delta); 
-                  if(caloParticle_simEta->at(iCalo)>=min_Eta && caloParticle_simEta->at(iCalo)<max_Eta)
-                     EoEtrue_vs_Eta_Calo_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-         
-                  int nBins_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[0]; 
-                  float min_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[1]; 
-                  float max_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[2]; 
-                  delta = fabs(min_Et-max_Et)/nBins_Et;
-                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);
-                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_Et_Calo_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                  nBins_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[0]; 
-                  min_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[1]; 
-                  max_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[2]; 
-                  delta = fabs(min_Et-max_Et)/nBins_Et;
-                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);
-                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_Et_Calo_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));      
-                 
-                  int nBins_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[0]; 
-                  float min_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[1]; 
-                  float max_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[2];      
-                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
-                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
-                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_Energy_Calo_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-                  nBins_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[0]; 
-                  min_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[1]; 
-                  max_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[2];      
-                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
-                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
-                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_Energy_Calo_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
                   
-                  int nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[0]; 
-                  float min_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[1]; 
-                  float max_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[2];      
-                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
-                  iBin = int((nVtx-min_nVtx)/delta);
-                  if(nVtx>=min_nVtx && nVtx<max_nVtx)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_nVtx_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-                  nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[0]; 
-                  min_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[1]; 
-                  max_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[2];      
-                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
-                  iBin = int((nVtx-min_nVtx)/delta);
-                  if(nVtx>=min_nVtx && nVtx<max_nVtx)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_nVtx_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-
-                  int nBins_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[0]; 
-                  float min_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[1]; 
-                  float max_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[2];      
-                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
-                  iBin = int((rho-min_Rho)/delta);
-                  if(rho>=min_Rho && rho<max_Rho)
-                     if(fabs(caloParticle_simEta->at(iCalo))<1.479) EoEtrue_vs_Rho_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-                  nBins_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[0]; 
-                  min_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[1]; 
-                  max_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[2];      
-                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
-                  iBin = int((rho-min_Rho)/delta);
-                  if(rho>=min_Rho && rho<max_Rho)
-                     if(fabs(caloParticle_simEta->at(iCalo))>1.479) EoEtrue_vs_Rho_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
-
-                  if(fabs(caloParticle_simEta->at(iCalo))<1.479){
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479){
                      h_EoEtrue_EB_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EB_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
                      h_EtaWidth_EB_caloMatched_new->Fill(deepSuperCluster_etaWidth->at(iPF));  
                      h_Phi_EB_caloMatched_new->Fill(deepSuperCluster_phi->at(iPF)); 
                      h_PhiWidth_EB_caloMatched_new->Fill(deepSuperCluster_phiWidth->at(iPF));  
@@ -517,12 +500,9 @@ int main(int argc, char** argv)
                      h_full5x5_sigmaIetaIphi_EB_caloMatched_new->Fill(deepSuperCluster_full5x5_sigmaIetaIphi->at(iPF));    
                      h_sigmaIphiIphi_EB_caloMatched_new->Fill(deepSuperCluster_sigmaIphiIphi->at(iPF));    
                      h_full5x5_sigmaIphiIphi_EB_caloMatched_new->Fill(deepSuperCluster_full5x5_sigmaIphiIphi->at(iPF)); 
-                     prof_EoEtrue_vs_Et_Calo_EB_new->Fill(caloParticle_simEt->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
-                     prof_EoEtrue_vs_Energy_Calo_EB_new->Fill(caloParticle_simEnergy->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));  
-                     prof_EoEtrue_vs_nVtx_EB_new->Fill(nVtx,deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                     prof_EoEtrue_vs_Rho_EB_new->Fill(rho,deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                  }else if(fabs(caloParticle_simEta->at(iCalo))>=1.479){
+                  }else if(fabs(caloParticle_genEta->at(iCalo))>=1.479){
                      h_EoEtrue_EE_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EE_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
                      h_EtaWidth_EE_caloMatched_new->Fill(deepSuperCluster_etaWidth->at(iPF));
                      h_Phi_EE_caloMatched_new->Fill(deepSuperCluster_phi->at(iPF));
                      h_PhiWidth_EE_caloMatched_new->Fill(deepSuperCluster_phiWidth->at(iPF)); 
@@ -536,13 +516,135 @@ int main(int argc, char** argv)
                      h_full5x5_sigmaIetaIphi_EE_caloMatched_new->Fill(deepSuperCluster_full5x5_sigmaIetaIphi->at(iPF));    
                      h_sigmaIphiIphi_EE_caloMatched_new->Fill(deepSuperCluster_sigmaIphiIphi->at(iPF));    
                      h_full5x5_sigmaIphiIphi_EE_caloMatched_new->Fill(deepSuperCluster_full5x5_sigmaIphiIphi->at(iPF));   
+                  }
+
+                  bool sameSeed=false;  
+                  for(unsigned int iSeed=0; iSeed<common_seeds.size(); iSeed++)
+                     if(deepSuperCluster_seedIndex->at(iPF) == common_seeds.at(iSeed)){
+                        sameSeed=true;
+                        break;
+                     }    
+          
+                  if(sameSeed==false) continue;
+
+                  prof_EoEtrue_vs_Eta_Calo_new->Fill(caloParticle_simEta->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                  prof_EoEgen_vs_Eta_Gen_new->Fill(caloParticle_genEta->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+   
+                  int nBins_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[0]; 
+                  float min_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[1]; 
+                  float max_Eta = binOpts[findOption(std::string("EtaBins"),binOpts)].second[2]; 
+                  float delta = fabs(min_Eta-max_Eta)/nBins_Eta;
+                  int iBin = int((caloParticle_simEta->at(iCalo)-min_Eta)/delta); 
+                  if(caloParticle_simEta->at(iCalo)>=min_Eta && caloParticle_simEta->at(iCalo)<max_Eta) EoEtrue_vs_Eta_Calo_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                  iBin = int((caloParticle_genEta->at(iCalo)-min_Eta)/delta);  
+                  if(caloParticle_genEta->at(iCalo)>=min_Eta && caloParticle_genEta->at(iCalo)<max_Eta) EoEgen_vs_Eta_Gen_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                  
+                  int nBins_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[0]; 
+                  float min_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[1]; 
+                  float max_Et = binOpts[findOption(std::string("EtBins_Barrel"),binOpts)].second[2]; 
+                  delta = fabs(min_Et-max_Et)/nBins_Et;
+                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);             
+                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))<1.479)
+                     EoEtrue_vs_Et_Calo_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
+                  iBin = int((caloParticle_genEt->at(iCalo)-min_Et)/delta);     
+                  if(caloParticle_genEt->at(iCalo)>=min_Et && caloParticle_genEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))<1.479)  
+         	     EoEgen_vs_Et_Gen_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));       
+                  nBins_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[0]; 
+                  min_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[1]; 
+                  max_Et = binOpts[findOption(std::string("EtBins_Endcap"),binOpts)].second[2]; 
+                  delta = fabs(min_Et-max_Et)/nBins_Et;
+                  iBin = int((caloParticle_simEt->at(iCalo)-min_Et)/delta);
+                  if(caloParticle_simEt->at(iCalo)>=min_Et && caloParticle_simEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))>1.479)
+                     EoEtrue_vs_Et_Calo_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));   
+                  iBin = int((caloParticle_genEt->at(iCalo)-min_Et)/delta);
+                  if(caloParticle_genEt->at(iCalo)>=min_Et && caloParticle_genEt->at(iCalo)<max_Et && fabs(caloParticle_genEta->at(iCalo))>1.479)              
+         	     EoEgen_vs_Et_Gen_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));       
+
+                  int nBins_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[0]; 
+                  float min_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[1]; 
+                  float max_Energy = binOpts[findOption(std::string("EnergyBins_Barrel"),binOpts)].second[2];      
+                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
+                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
+                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))<1.479)
+                     EoEtrue_vs_Energy_Calo_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                  iBin = int((caloParticle_genEnergy->at(iCalo)-min_Energy)/delta);    
+                  if(caloParticle_genEnergy->at(iCalo)>=min_Energy && caloParticle_genEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))<1.479)    
+                     EoEgen_vs_Energy_Gen_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));                  
+                  nBins_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[0]; 
+                  min_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[1]; 
+                  max_Energy = binOpts[findOption(std::string("EnergyBins_Endcap"),binOpts)].second[2];      
+                  delta = fabs(min_Energy-max_Energy)/nBins_Energy;
+                  iBin = int((caloParticle_simEnergy->at(iCalo)-min_Energy)/delta);
+                  if(caloParticle_simEnergy->at(iCalo)>=min_Energy && caloParticle_simEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))>1.479)
+                     EoEtrue_vs_Energy_Calo_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                  iBin = int((caloParticle_genEnergy->at(iCalo)-min_Energy)/delta);
+                  if(caloParticle_genEnergy->at(iCalo)>=min_Energy && caloParticle_genEnergy->at(iCalo)<max_Energy && fabs(caloParticle_genEta->at(iCalo))>1.479)  
+ 	             EoEgen_vs_Energy_Gen_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+ 
+                  int nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[0]; 
+                  float min_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[1]; 
+                  float max_nVtx = binOpts[findOption(std::string("nVtxBins_Barrel"),binOpts)].second[2];      
+                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
+                  iBin = int((nVtx-min_nVtx)/delta);
+                  if(nVtx>=min_nVtx && nVtx<max_nVtx && fabs(caloParticle_genEta->at(iCalo))<1.479){
+                     EoEtrue_vs_nVtx_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     EoEgen_vs_nVtx_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));     
+                  }   
+                  nBins_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[0]; 
+                  min_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[1]; 
+                  max_nVtx = binOpts[findOption(std::string("nVtxBins_Endcap"),binOpts)].second[2];      
+                  delta = fabs(min_nVtx-max_nVtx)/nBins_nVtx;
+                  iBin = int((nVtx-min_nVtx)/delta);
+                  if(nVtx>=min_nVtx && nVtx<max_nVtx && fabs(caloParticle_genEta->at(iCalo))>1.479){
+                     EoEtrue_vs_nVtx_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     EoEgen_vs_nVtx_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+                  }    
+
+                  int nBins_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[0]; 
+                  float min_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[1]; 
+                  float max_Rho = binOpts[findOption(std::string("RhoBins_Barrel"),binOpts)].second[2];      
+                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
+                  iBin = int((rho-min_Rho)/delta);
+                  if(rho>=min_Rho && rho<max_Rho && fabs(caloParticle_genEta->at(iCalo))<1.479){
+                     EoEtrue_vs_Rho_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));    
+                     EoEgen_vs_Rho_EB_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));        
+                  }  
+                  nBins_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[0]; 
+                  min_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[1]; 
+                  max_Rho = binOpts[findOption(std::string("RhoBins_Endcap"),binOpts)].second[2];      
+                  delta = fabs(min_Rho-max_Rho)/nBins_Rho;
+                  iBin = int((rho-min_Rho)/delta);
+                  if(rho>=min_Rho && rho<max_Rho && fabs(caloParticle_genEta->at(iCalo))>1.479){
+                     EoEtrue_vs_Rho_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     EoEgen_vs_Rho_EE_new[iBin]->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));    
+                  } 
+
+                  if(fabs(caloParticle_genEta->at(iCalo))<1.479){
+                     h_EoEtrue_EB_seedMatched_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EB_seedMatched_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                     prof_EoEtrue_vs_Et_Calo_EB_new->Fill(caloParticle_simEt->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
+                     prof_EoEtrue_vs_Energy_Calo_EB_new->Fill(caloParticle_simEnergy->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));  
+                     prof_EoEtrue_vs_nVtx_EB_new->Fill(nVtx,deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     prof_EoEtrue_vs_Rho_EB_new->Fill(rho,deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     prof_EoEgen_vs_Et_Gen_EB_new->Fill(caloParticle_genEt->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+                     prof_EoEgen_vs_Energy_Gen_EB_new->Fill(caloParticle_genEnergy->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));  
+                     prof_EoEgen_vs_nVtx_EB_new->Fill(nVtx,deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                     prof_EoEgen_vs_Rho_EB_new->Fill(rho,deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                  }else if(fabs(caloParticle_genEta->at(iCalo))>=1.479){
+                     h_EoEtrue_EE_seedMatched_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
+                     h_EoEgen_EE_seedMatched_new->Fill(deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
                      prof_EoEtrue_vs_Et_Calo_EE_new->Fill(caloParticle_simEt->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo)); 
                      prof_EoEtrue_vs_Energy_Calo_EE_new->Fill(caloParticle_simEnergy->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));  
                      prof_EoEtrue_vs_nVtx_EE_new->Fill(nVtx,deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
                      prof_EoEtrue_vs_Rho_EE_new->Fill(rho,deepSuperCluster_energy->at(iPF)/caloParticle_simEnergy->at(iCalo));
-                  }
+                     prof_EoEgen_vs_Et_Gen_EE_new->Fill(caloParticle_genEt->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo)); 
+                     prof_EoEgen_vs_Energy_Gen_EE_new->Fill(caloParticle_genEnergy->at(iCalo),deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));  
+                     prof_EoEgen_vs_nVtx_EE_new->Fill(nVtx,deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                     prof_EoEgen_vs_Rho_EE_new->Fill(rho,deepSuperCluster_energy->at(iPF)/caloParticle_genEnergy->at(iCalo));
+                  } 
                }
 
+               //fill caloUnmatched histos
                for(unsigned int iPF=0; iPF<superCluster_energy->size(); iPF++){
 
                    std::map<int,int>::iterator it = Calo_SuperCluster_index.find(iPF); 
@@ -628,6 +730,16 @@ int main(int argc, char** argv)
     }
    
     setEfficiencies();
+    if(superClusterRef_ == "superCluster") superClusterRef_ = "Mustache";
+    if(superClusterRef_ == "retunedSuperCluster") superClusterRef_ = "retunedMustache";
+    if(superClusterRef_ == "deepSuperCluster") superClusterRef_ = "deepSC MWP";
+    if(superClusterRef_ == "deepSuperClusterLWP") superClusterRef_ = "deepSC LWP";
+    if(superClusterRef_ == "deepSuperClusterTWP") superClusterRef_ = "deepSC TWP";
+    if(superClusterVal_ == "superCluster") superClusterRef_ = "Mustache";
+    if(superClusterVal_ == "retunedSuperCluster") superClusterVal_ = "retunedMustache";
+    if(superClusterVal_ == "deepSuperCluster") superClusterVal_ = "deepSC MWP";
+    if(superClusterVal_ == "deepSuperClusterLWP") superClusterVal_ = "deepSC LWP";
+    if(superClusterVal_ == "deepSuperClusterTWP") superClusterVal_ = "deepSC TWP";
     drawPlots(fitFunction_,superClusterRef_,superClusterVal_);
     
 }

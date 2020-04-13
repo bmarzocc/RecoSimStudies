@@ -2609,7 +2609,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);  
  
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);  
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);  
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);  
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -2628,7 +2628,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -2841,7 +2841,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -2858,7 +2858,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -3051,7 +3051,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
                  
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -3068,7 +3068,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -3307,7 +3307,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -3324,7 +3324,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -3514,7 +3514,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -3531,7 +3531,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -3769,7 +3769,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -3786,7 +3786,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -3976,7 +3976,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -3993,7 +3993,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -4231,7 +4231,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -4248,7 +4248,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -4438,7 +4438,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -4455,7 +4455,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -4693,7 +4693,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -4710,7 +4710,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -4900,7 +4900,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  else dR_simScore.push_back(999.);
           
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
-                 if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);
+                 if(scoreType_=="sim_fraction") simScore.push_back(scores[5]);
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);   
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -4917,7 +4917,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
-                 sim_fraction.push_back(scores[1]);  
+                 sim_fraction.push_back(scores[5]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
