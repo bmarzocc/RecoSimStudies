@@ -1045,8 +1045,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    }
 
    edm::Handle<EcalRecHitCollection> recHitsEB;
-   ev.getByToken(ebRechitToken_, recHitsEB);
-   if(saveRechits_) {
+   if(saveRechits_) {  
+      ev.getByToken(ebRechitToken_, recHitsEB);
       if (!recHitsEB.isValid()) {
           std::cerr << "Analyze --> recHitsEB not found" << std::endl; 
           return;
@@ -1054,8 +1054,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    }
 
    edm::Handle<EcalRecHitCollection> recHitsEE;
-   ev.getByToken(eeRechitToken_, recHitsEE);
    if(saveRechits_) {
+      ev.getByToken(eeRechitToken_, recHitsEE);
       if (!recHitsEE.isValid()) {
           std::cerr << "Analyze --> recHitsEE not found" << std::endl; 
           return;
@@ -1063,8 +1063,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::PFRecHit> > pfRecHits;
-   ev.getByToken(pfRecHitToken_, pfRecHits);
    if(savePFRechits_) {
+      ev.getByToken(pfRecHitToken_, pfRecHits);
       if (!pfRecHits.isValid()) {
           std::cerr << "Analyze --> pfRecHits not found" << std::endl; 
           return;
@@ -1072,8 +1072,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::PFCluster> > pfClusters;
-   ev.getByToken(pfClusterToken_, pfClusters);
    if(savePFCluster_) {
+      ev.getByToken(pfClusterToken_, pfClusters);
       if (!pfClusters.isValid()) {
           std::cerr << "Analyze --> pfClusters not found" << std::endl; 
           return;
@@ -1081,8 +1081,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > superClusterEB;
-   ev.getByToken(ebSuperClusterToken_, superClusterEB);
    if(saveSuperCluster_) {
+      ev.getByToken(ebSuperClusterToken_, superClusterEB);
       if (!superClusterEB.isValid()) {
           std::cerr << "Analyze --> superClusterEB not found" << std::endl; 
           return;
@@ -1090,8 +1090,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > superClusterEE;
-   ev.getByToken(eeSuperClusterToken_, superClusterEE);
    if(saveSuperCluster_) {
+      ev.getByToken(eeSuperClusterToken_, superClusterEE);
       if (!superClusterEE.isValid()) {
           std::cerr << "Analyze --> superClusterEE not found" << std::endl; 
           return;
@@ -1099,8 +1099,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    }
 
    edm::Handle<std::vector<reco::SuperCluster> > retunedSuperClusterEB;
-   ev.getByToken(ebRetunedSuperClusterToken_, retunedSuperClusterEB);
    if(saveSuperCluster_ && useRetunedSC_) {
+      ev.getByToken(ebRetunedSuperClusterToken_, retunedSuperClusterEB);
       if (!retunedSuperClusterEB.isValid()) {
           std::cerr << "Analyze --> retunedSuperClusterEB not found" << std::endl; 
           return;
@@ -1108,8 +1108,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > retunedSuperClusterEE;
-   ev.getByToken(eeRetunedSuperClusterToken_, retunedSuperClusterEE);
    if(saveSuperCluster_ && useRetunedSC_) {
+      ev.getByToken(eeRetunedSuperClusterToken_, retunedSuperClusterEE);
       if (!retunedSuperClusterEE.isValid()) {
           std::cerr << "Analyze --> retunedSuperClusterEE not found" << std::endl; 
           return;
@@ -1117,8 +1117,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterEB;
-   ev.getByToken(ebDeepSuperClusterToken_, deepSuperClusterEB);
-   if(saveSuperCluster_) {
+   if(saveSuperCluster_ && useDeepSC_) {
+      ev.getByToken(ebDeepSuperClusterToken_, deepSuperClusterEB);
       if (!deepSuperClusterEB.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterEB not found" << std::endl; 
           return;
@@ -1126,8 +1126,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterEE;
-   ev.getByToken(eeDeepSuperClusterToken_, deepSuperClusterEE);
-   if(saveSuperCluster_) {
+   if(saveSuperCluster_ && useDeepSC_) {
+      ev.getByToken(eeDeepSuperClusterToken_, deepSuperClusterEE);
       if (!deepSuperClusterEE.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterEE not found" << std::endl; 
           return;
@@ -1135,8 +1135,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    }
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterLWPEB;
-   ev.getByToken(ebDeepSuperClusterLWPToken_, deepSuperClusterLWPEB);
-   if(saveSuperCluster_) {
+   if(saveSuperCluster_ && useDeepSC_) {
+      ev.getByToken(ebDeepSuperClusterLWPToken_, deepSuperClusterLWPEB);
       if (!deepSuperClusterLWPEB.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterLWPEB not found" << std::endl; 
           return;
@@ -1144,8 +1144,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterLWPEE;
-   ev.getByToken(eeDeepSuperClusterLWPToken_, deepSuperClusterLWPEE);
-   if(saveSuperCluster_) {
+   if(saveSuperCluster_ && useDeepSC_) {
+      ev.getByToken(eeDeepSuperClusterLWPToken_, deepSuperClusterLWPEE);
       if (!deepSuperClusterLWPEE.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterLWPEE not found" << std::endl; 
           return;
@@ -1153,8 +1153,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    }
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterTWPEB;
-   ev.getByToken(ebDeepSuperClusterTWPToken_, deepSuperClusterTWPEB);
-   if(saveSuperCluster_) {
+   if(saveSuperCluster_ && useDeepSC_) {
+      ev.getByToken(ebDeepSuperClusterTWPToken_, deepSuperClusterTWPEB);
       if (!deepSuperClusterTWPEB.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterTWPEB not found" << std::endl; 
           return;
@@ -1162,8 +1162,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterTWPEE;
-   ev.getByToken(eeDeepSuperClusterTWPToken_, deepSuperClusterTWPEE);
-   if(saveSuperCluster_) {
+   if(saveSuperCluster_ && useDeepSC_) {
+      ev.getByToken(eeDeepSuperClusterTWPToken_, deepSuperClusterTWPEE);
       if (!deepSuperClusterTWPEE.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterTWPEE not found" << std::endl; 
           return;
@@ -1172,8 +1172,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    //compute EgammaTowers;
    Handle<CaloTowerCollection> hcalTowers;
-   ev.getByToken(hcalTowersToken_, hcalTowers);
    if(useHcalTowers_){
+      ev.getByToken(hcalTowersToken_, hcalTowers);
       if (!hcalTowers.isValid()) {
           std::cerr << "Analyze --> hcalTowers not found" << std::endl; 
           return;
@@ -2147,114 +2147,118 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    superCluster_psCluster_eta.resize((int)(superClusterEE.product())->size());
    superCluster_psCluster_phi.resize((int)(superClusterEE.product())->size());
 
-   int nRetunedSuperClusters = (retunedSuperClusterEB.product())->size() + (retunedSuperClusterEE.product())->size();
-   retunedSuperCluster_seedIndex.resize(nRetunedSuperClusters); 
-   retunedSuperCluster_dR_genScore.resize(nRetunedSuperClusters);
-   retunedSuperCluster_dR_simScore.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_old.resize(nRetunedSuperClusters);
-   retunedSuperCluster_simScore.resize(nRetunedSuperClusters);
-   retunedSuperCluster_n_shared_xtals.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_1MeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_5MeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_10MeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_50MeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_100MeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_500MeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_fraction_1GeVCut.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_rechit_diff.resize(nRetunedSuperClusters);
-   retunedSuperCluster_sim_rechit_fraction.resize(nRetunedSuperClusters);
-   retunedSuperCluster_global_sim_rechit_fraction.resize(nRetunedSuperClusters);  
-   retunedSuperCluster_hgcal_caloToCluster.resize(nRetunedSuperClusters);  
-   retunedSuperCluster_hgcal_clusterToCalo.resize(nRetunedSuperClusters);   
-   retunedSuperCluster_sim_rechit_combined_fraction.resize(nRetunedSuperClusters);  
-   retunedSuperCluster_rechit_sim_combined_fraction.resize(nRetunedSuperClusters);    
-   retunedSuperCluster_pfClustersIndex.resize(nRetunedSuperClusters);
-   retunedSuperCluster_psCluster_energy.resize((int)(retunedSuperClusterEE.product())->size());
-   retunedSuperCluster_psCluster_eta.resize((int)(retunedSuperClusterEE.product())->size());
-   retunedSuperCluster_psCluster_phi.resize((int)(retunedSuperClusterEE.product())->size());
+   if(useRetunedSC_){
+      int nRetunedSuperClusters = (retunedSuperClusterEB.product())->size() + (retunedSuperClusterEE.product())->size();
+      retunedSuperCluster_seedIndex.resize(nRetunedSuperClusters); 
+      retunedSuperCluster_dR_genScore.resize(nRetunedSuperClusters);
+      retunedSuperCluster_dR_simScore.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_old.resize(nRetunedSuperClusters);
+      retunedSuperCluster_simScore.resize(nRetunedSuperClusters);
+      retunedSuperCluster_n_shared_xtals.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_1MeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_5MeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_10MeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_50MeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_100MeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_500MeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_fraction_1GeVCut.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_rechit_diff.resize(nRetunedSuperClusters);
+      retunedSuperCluster_sim_rechit_fraction.resize(nRetunedSuperClusters);
+      retunedSuperCluster_global_sim_rechit_fraction.resize(nRetunedSuperClusters);  
+      retunedSuperCluster_hgcal_caloToCluster.resize(nRetunedSuperClusters);  
+      retunedSuperCluster_hgcal_clusterToCalo.resize(nRetunedSuperClusters);   
+      retunedSuperCluster_sim_rechit_combined_fraction.resize(nRetunedSuperClusters);  
+      retunedSuperCluster_rechit_sim_combined_fraction.resize(nRetunedSuperClusters);    
+      retunedSuperCluster_pfClustersIndex.resize(nRetunedSuperClusters);
+      retunedSuperCluster_psCluster_energy.resize((int)(retunedSuperClusterEE.product())->size());
+      retunedSuperCluster_psCluster_eta.resize((int)(retunedSuperClusterEE.product())->size());
+      retunedSuperCluster_psCluster_phi.resize((int)(retunedSuperClusterEE.product())->size());
+   }
+ 
+   if(useDeepSC_){ 
+      int nDeepSuperClusters = (deepSuperClusterEB.product())->size() + (deepSuperClusterEE.product())->size();
+      deepSuperCluster_seedIndex.resize(nDeepSuperClusters); 
+      deepSuperCluster_dR_genScore.resize(nDeepSuperClusters);
+      deepSuperCluster_dR_simScore.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_old.resize(nDeepSuperClusters);
+      deepSuperCluster_simScore.resize(nDeepSuperClusters);
+      deepSuperCluster_n_shared_xtals.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_1MeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_5MeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_10MeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_50MeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_100MeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_500MeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_fraction_1GeVCut.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_rechit_diff.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_rechit_fraction.resize(nDeepSuperClusters);
+      deepSuperCluster_global_sim_rechit_fraction.resize(nDeepSuperClusters);  
+      deepSuperCluster_hgcal_caloToCluster.resize(nDeepSuperClusters);  
+      deepSuperCluster_hgcal_clusterToCalo.resize(nDeepSuperClusters);
+      deepSuperCluster_sim_rechit_combined_fraction.resize(nDeepSuperClusters);  
+      deepSuperCluster_rechit_sim_combined_fraction.resize(nDeepSuperClusters);
+      deepSuperCluster_pfClustersIndex.resize(nDeepSuperClusters);
+      deepSuperCluster_psCluster_energy.resize((int)(deepSuperClusterEE.product())->size());
+      deepSuperCluster_psCluster_eta.resize((int)(deepSuperClusterEE.product())->size());
+      deepSuperCluster_psCluster_phi.resize((int)(deepSuperClusterEE.product())->size());
 
-   int nDeepSuperClusters = (deepSuperClusterEB.product())->size() + (deepSuperClusterEE.product())->size();
-   deepSuperCluster_seedIndex.resize(nDeepSuperClusters); 
-   deepSuperCluster_dR_genScore.resize(nDeepSuperClusters);
-   deepSuperCluster_dR_simScore.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_old.resize(nDeepSuperClusters);
-   deepSuperCluster_simScore.resize(nDeepSuperClusters);
-   deepSuperCluster_n_shared_xtals.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_1MeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_5MeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_10MeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_50MeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_100MeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_500MeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_fraction_1GeVCut.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_rechit_diff.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_rechit_fraction.resize(nDeepSuperClusters);
-   deepSuperCluster_global_sim_rechit_fraction.resize(nDeepSuperClusters);  
-   deepSuperCluster_hgcal_caloToCluster.resize(nDeepSuperClusters);  
-   deepSuperCluster_hgcal_clusterToCalo.resize(nDeepSuperClusters);
-   deepSuperCluster_sim_rechit_combined_fraction.resize(nDeepSuperClusters);  
-   deepSuperCluster_rechit_sim_combined_fraction.resize(nDeepSuperClusters);
-   deepSuperCluster_pfClustersIndex.resize(nDeepSuperClusters);
-   deepSuperCluster_psCluster_energy.resize((int)(deepSuperClusterEE.product())->size());
-   deepSuperCluster_psCluster_eta.resize((int)(deepSuperClusterEE.product())->size());
-   deepSuperCluster_psCluster_phi.resize((int)(deepSuperClusterEE.product())->size());
+      int nDeepSuperClusterLWPs = (deepSuperClusterLWPEB.product())->size() + (deepSuperClusterLWPEE.product())->size();
+      deepSuperClusterLWP_seedIndex.resize(nDeepSuperClusterLWPs); 
+      deepSuperClusterLWP_dR_genScore.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_dR_simScore.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_old.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_simScore.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_n_shared_xtals.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_1MeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_5MeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_10MeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_50MeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_100MeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_500MeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_fraction_1GeVCut.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_rechit_diff.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_rechit_fraction.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_global_sim_rechit_fraction.resize(nDeepSuperClusterLWPs);  
+      deepSuperClusterLWP_hgcal_caloToCluster.resize(nDeepSuperClusterLWPs);  
+      deepSuperClusterLWP_hgcal_clusterToCalo.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_sim_rechit_combined_fraction.resize(nDeepSuperClusterLWPs);  
+      deepSuperClusterLWP_rechit_sim_combined_fraction.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_pfClustersIndex.resize(nDeepSuperClusterLWPs);
+      deepSuperClusterLWP_psCluster_energy.resize((int)(deepSuperClusterLWPEE.product())->size());
+      deepSuperClusterLWP_psCluster_eta.resize((int)(deepSuperClusterLWPEE.product())->size());
+      deepSuperClusterLWP_psCluster_phi.resize((int)(deepSuperClusterLWPEE.product())->size());
 
-   int nDeepSuperClusterLWPs = (deepSuperClusterLWPEB.product())->size() + (deepSuperClusterLWPEE.product())->size();
-   deepSuperClusterLWP_seedIndex.resize(nDeepSuperClusterLWPs); 
-   deepSuperClusterLWP_dR_genScore.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_dR_simScore.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_old.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_simScore.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_n_shared_xtals.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_1MeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_5MeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_10MeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_50MeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_100MeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_500MeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_fraction_1GeVCut.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_rechit_diff.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_rechit_fraction.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_global_sim_rechit_fraction.resize(nDeepSuperClusterLWPs);  
-   deepSuperClusterLWP_hgcal_caloToCluster.resize(nDeepSuperClusterLWPs);  
-   deepSuperClusterLWP_hgcal_clusterToCalo.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_sim_rechit_combined_fraction.resize(nDeepSuperClusterLWPs);  
-   deepSuperClusterLWP_rechit_sim_combined_fraction.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_pfClustersIndex.resize(nDeepSuperClusterLWPs);
-   deepSuperClusterLWP_psCluster_energy.resize((int)(deepSuperClusterLWPEE.product())->size());
-   deepSuperClusterLWP_psCluster_eta.resize((int)(deepSuperClusterLWPEE.product())->size());
-   deepSuperClusterLWP_psCluster_phi.resize((int)(deepSuperClusterLWPEE.product())->size());
+      int nDeepSuperClusterTWPs = (deepSuperClusterTWPEB.product())->size() + (deepSuperClusterTWPEE.product())->size();
+      deepSuperClusterTWP_seedIndex.resize(nDeepSuperClusterTWPs); 
+      deepSuperClusterTWP_dR_genScore.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_dR_simScore.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_old.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_simScore.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_n_shared_xtals.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_1MeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_5MeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_10MeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_50MeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_100MeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_500MeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_fraction_1GeVCut.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_rechit_diff.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_rechit_fraction.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_global_sim_rechit_fraction.resize(nDeepSuperClusterTWPs);  
+      deepSuperClusterTWP_hgcal_caloToCluster.resize(nDeepSuperClusterTWPs);  
+      deepSuperClusterTWP_hgcal_clusterToCalo.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_sim_rechit_combined_fraction.resize(nDeepSuperClusterTWPs);  
+      deepSuperClusterTWP_rechit_sim_combined_fraction.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_pfClustersIndex.resize(nDeepSuperClusterTWPs);
+      deepSuperClusterTWP_psCluster_energy.resize((int)(deepSuperClusterTWPEE.product())->size());
+      deepSuperClusterTWP_psCluster_eta.resize((int)(deepSuperClusterTWPEE.product())->size());
+      deepSuperClusterTWP_psCluster_phi.resize((int)(deepSuperClusterTWPEE.product())->size());
+   }
 
-   int nDeepSuperClusterTWPs = (deepSuperClusterTWPEB.product())->size() + (deepSuperClusterTWPEE.product())->size();
-   deepSuperClusterTWP_seedIndex.resize(nDeepSuperClusterTWPs); 
-   deepSuperClusterTWP_dR_genScore.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_dR_simScore.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_old.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_simScore.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_n_shared_xtals.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_1MeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_5MeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_10MeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_50MeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_100MeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_500MeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_fraction_1GeVCut.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_rechit_diff.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_rechit_fraction.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_global_sim_rechit_fraction.resize(nDeepSuperClusterTWPs);  
-   deepSuperClusterTWP_hgcal_caloToCluster.resize(nDeepSuperClusterTWPs);  
-   deepSuperClusterTWP_hgcal_clusterToCalo.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_sim_rechit_combined_fraction.resize(nDeepSuperClusterTWPs);  
-   deepSuperClusterTWP_rechit_sim_combined_fraction.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_pfClustersIndex.resize(nDeepSuperClusterTWPs);
-   deepSuperClusterTWP_psCluster_energy.resize((int)(deepSuperClusterTWPEE.product())->size());
-   deepSuperClusterTWP_psCluster_eta.resize((int)(deepSuperClusterTWPEE.product())->size());
-   deepSuperClusterTWP_psCluster_phi.resize((int)(deepSuperClusterTWPEE.product())->size());
-  
    hitsAndEnergies_CaloPart.clear();
    hitsAndEnergies_CaloPart_1MeVCut.clear();
    hitsAndEnergies_CaloPart_5MeVCut.clear();
