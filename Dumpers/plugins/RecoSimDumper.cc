@@ -1217,6 +1217,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    int nGenParticles = genParts.size(); 
    //std::cout << "GenParticles size  : " << nGenParticles << std::endl;
    
+   hitsAndEnergies_CaloPart.clear();
+   hitsAndEnergies_CaloPart_1MeVCut.clear();
+   hitsAndEnergies_CaloPart_5MeVCut.clear();
+   hitsAndEnergies_CaloPart_10MeVCut.clear();
+   hitsAndEnergies_CaloPart_50MeVCut.clear();
+   hitsAndEnergies_CaloPart_100MeVCut.clear();
+   GlobalPoint caloParticle_position;
+
    std::vector<CaloParticle> caloParts;
    for(const auto& iCalo : *(caloParticles.product()))
    {
@@ -1224,8 +1232,20 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        for(unsigned int id=0; id<genID_.size(); id++) 
            if(iCalo.pdgId()==genID_.at(id) || genID_.at(id)==0) isGoodParticle=true;
 
-       if(!isGoodParticle) continue;     
+       if(!isGoodParticle) continue; 
+    
+       GlobalPoint caloParticle_position = calculateAndSetPositionActual(getHitsAndEnergiesCaloPart(&iCalo,-1.), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
+       if(caloParticle_position == GlobalPoint(-999999., -999999., -999999.)){
+          std::cout << "Invalid position for caloParticle, skipping caloParticle!" << std::endl;
+          continue;
+       }    
 
+       hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&iCalo,-1.));
+       hitsAndEnergies_CaloPart_1MeVCut.push_back(*getHitsAndEnergiesCaloPart(&iCalo,0.001)); 
+       hitsAndEnergies_CaloPart_5MeVCut.push_back(*getHitsAndEnergiesCaloPart(&iCalo,0.005));    
+       hitsAndEnergies_CaloPart_10MeVCut.push_back(*getHitsAndEnergiesCaloPart(&iCalo,0.01)); 
+       hitsAndEnergies_CaloPart_50MeVCut.push_back(*getHitsAndEnergiesCaloPart(&iCalo,0.05)); 
+       hitsAndEnergies_CaloPart_100MeVCut.push_back(*getHitsAndEnergiesCaloPart(&iCalo,0.1));   
        caloParts.push_back(iCalo); 
    }
 
@@ -2259,12 +2279,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       deepSuperClusterTWP_psCluster_phi.resize((int)(deepSuperClusterTWPEE.product())->size());
    }
 
-   hitsAndEnergies_CaloPart.clear();
-   hitsAndEnergies_CaloPart_1MeVCut.clear();
-   hitsAndEnergies_CaloPart_5MeVCut.clear();
-   hitsAndEnergies_CaloPart_10MeVCut.clear();
-   hitsAndEnergies_CaloPart_50MeVCut.clear();
-   hitsAndEnergies_CaloPart_100MeVCut.clear();
    hitsAndEnergies_PFCluster.clear();
    hitsAndEnergies_SuperClusterEB.clear();
    hitsAndEnergies_SuperClusterEE.clear();
@@ -2277,7 +2291,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    hitsAndEnergies_DeepSuperClusterTWPEB.clear();
    hitsAndEnergies_DeepSuperClusterTWPEE.clear(); 
 
-   GlobalPoint caloParticle_position;
    GlobalPoint cell;
 
    for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
@@ -2310,19 +2323,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           caloParticle_genEta.push_back(reduceFloat((*genParticles_caloPart.begin())->eta(),nBits_));
           caloParticle_genPhi.push_back(reduceFloat((*genParticles_caloPart.begin())->phi(),nBits_));
        }
-      
-       hitsAndEnergies_CaloPart.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)),-1.));
-       hitsAndEnergies_CaloPart_1MeVCut.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)),0.001)); 
-       hitsAndEnergies_CaloPart_5MeVCut.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)),0.005));    
-       hitsAndEnergies_CaloPart_10MeVCut.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)),0.01)); 
-       hitsAndEnergies_CaloPart_50MeVCut.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)),0.05)); 
-       hitsAndEnergies_CaloPart_100MeVCut.push_back(*getHitsAndEnergiesCaloPart(&(caloParts.at(iCalo)),0.1));     
-       GlobalPoint caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-       if (caloParticle_position == GlobalPoint(-999999., -999999., -999999.)) {
-          std::cout << "Invalid position for caloparticle, skipping event" << std::endl;
-          return;
-       }
 
+       GlobalPoint caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
        caloParticle_simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
        caloParticle_simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
        caloParticle_simPt.push_back(reduceFloat(sqrt(caloParts.at(iCalo).px()*caloParts.at(iCalo).px() + caloParts.at(iCalo).py()*caloParts.at(iCalo).py() + caloParts.at(iCalo).pz()*caloParts.at(iCalo).pz())/TMath::CosH(caloParticle_position.eta()),nBits_));   
@@ -5247,7 +5249,10 @@ std::vector<float> RecoSimDumper::getShowerShapes(reco::CaloCluster* caloBC, con
     shapes[34] = full5x5_e3x3/caloBC->energy(); // r9
     shapes[35] = sqrt(full5x5_locCov_[0]); // sigmaIetaIeta        
     shapes[36] = sqrt(full5x5_locCov_[1]); // sigmaIetaIphi          
-    shapes[37] = !edm::isFinite(full5x5_locCov_[2]) ? 0. : sqrt(full5x5_locCov_[2]); // sigmaIphiIphi 
+    shapes[37] = !edm::isFinite(full5x5_locCov_[2]) ? 0. : sqrt(full5x5_locCov_[2]); // sigmaIphiIphi
+
+    for(unsigned iVar=0; iVar<shapes.size(); iVar++)
+        if(std::isnan(shapes.at(iVar))) std::cout << "showerShape = " << iVar << " ---> NAN " << std::endl;  
 
     return shapes; 
 }
@@ -5268,7 +5273,7 @@ std::vector<float> RecoSimDumper::getHoE(const reco::SuperCluster* iSuperCluster
      return HoEs;
 }
 
-std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesCaloPart(CaloParticle* iCaloParticle, float simHitEnergy_cut)
+std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesCaloPart(const CaloParticle* iCaloParticle, float simHitEnergy_cut)
 {
     std::vector<std::pair<DetId, float> >* HitsAndEnergies_CaloPart_tmp = new std::vector<std::pair<DetId, float> >;
     std::vector<std::pair<DetId, float> >* HitsAndEnergies_tmp = new std::vector<std::pair<DetId, float> >;
@@ -5499,6 +5504,9 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     else scores[16] = -999.;  
     scores[17] = sim_rechit_combined_fraction;
     scores[18] = rechit_sim_combined_fraction;
+
+    for(unsigned iVar=0; iVar<scores.size(); iVar++)
+        if(std::isnan(scores.at(iVar))) std::cout << "scores = " << iVar << " ---> NAN " << std::endl; 
 
     return scores;
 }
