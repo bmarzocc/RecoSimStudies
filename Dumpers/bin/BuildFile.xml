@@ -21,4 +21,8 @@
       name="ClusterMatchingOptimization"
       file="ClusterMatchingOptimization.cpp">
   </bin>
+  <bin
+      name="NNoptimizationWP"
+      file="NNoptimizationWP.cpp">
+  </bin>
 </environment>
