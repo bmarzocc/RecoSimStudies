@@ -65,71 +65,147 @@ int main(int argc, char** argv)
     TTree* inputTreeMusEB_ = (TTree*)inFileMusEB_->Get("resolution_scan"); 
     TTree* inputTreeMusEE_ = (TTree*)inFileMusEE_->Get("resolution_scan");  
 
+    int maxEvents_         = filesOpt.getUntrackedParameter<int>( "maxEvents" );
     string fitFunction_    = filesOpt.getParameter<string>( "fitFunction" );
+    string etBinning_      = filesOpt.getParameter<string>( "etBinning" ); 
+    string etaBinning_     = filesOpt.getParameter<string>( "etaBinning" ); 
     string dnnBinning_     = filesOpt.getParameter<string>( "dnnBinning" ); 
 
-    std::vector<std::string> dnnCuts = split(dnnBinning_,' ');
+    std::vector<std::string> etCuts      = split(etBinning_,' ');
+    std::vector<std::string> etCutsName  = etCuts;
+    std::vector<std::string> etaCuts     = split(etaBinning_,' ');
+    std::vector<std::string> etaCutsName = etaCuts;
+    std::vector<std::string> dnnCuts     = split(dnnBinning_,' ');
     std::vector<std::string> dnnCutsName = dnnCuts;
-
+    
     setTreeBranches(inputTreeEB_);
     setTreeBranches(inputTreeEE_);
     setTreeBranches(inputTreeMusEB_);
     setTreeBranches(inputTreeMusEE_);
-    setHistograms(dnnCutsName);
+    setHistograms(dnnCutsName, etCutsName, etaCutsName);
 
-    std::cout << "Fill Mustache histos..." << std::endl;
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_0_10_EB","et_seed>0 && et_seed<=10");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_10_20_EB","et_seed>10 && et_seed<=20");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_20_30_EB","et_seed>20 && et_seed<=30");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_30_40_EB","et_seed>30 && et_seed<=40");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_40_50_EB","et_seed>40 && et_seed<=50");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_50_60_EB","et_seed>50 && et_seed<=60");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_60_70_EB","et_seed>60 && et_seed<=70");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_70_80_EB","et_seed>70 && et_seed<=80");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_80_90_EB","et_seed>80 && et_seed<=90");
-    inputTreeMusEB_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_90_100_EB","et_seed>90");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_0_10_EE","et_seed>0 && et_seed<=10");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_10_20_EE","et_seed>10 && et_seed<=20");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_20_30_EE","et_seed>20 && et_seed<=30");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_30_40_EE","et_seed>30 && et_seed<=40");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_40_50_EE","et_seed>40 && et_seed<=50");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_50_60_EE","et_seed>50 && et_seed<=60");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_60_70_EE","et_seed>60 && et_seed<=70");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_70_80_EE","et_seed>70 && et_seed<=80");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_80_90_EE","et_seed>80 && et_seed<=90");
-    inputTreeMusEE_->Draw("EoEtrue >> EoEtrue_Mustache_seedEt_90_100_EE","et_seed>90");
-    
-    std::cout << "Fill DeepSC histos..." << std::endl;
-    for(unsigned int iBin=0; iBin<dnnCuts.size(); iBin++)
-    {
-        dnnCutsName.at(iBin).replace(1,1,string("_")); 
-        string cut_min = std::to_string(std::stod(dnnCuts.at(iBin))-0.001);
-        string cut_max = std::to_string(std::stod(dnnCuts.at(iBin))+0.001);
+    std::cout << "Fill Mustache histos in EB..." << std::endl;
+    for(int entry = 0; entry < inputTreeMusEB_->GetEntries(); entry++){
+
+        if(entry>maxEvents_ && maxEvents_>0) continue;
+        if(entry%100000==0) std::cout << "--- Reading tree = " << entry << std::endl;
+        inputTreeMusEB_->GetEntry(entry);
         
-        std::cout << " DNN score = " << dnnCuts.at(iBin) << std::endl;
-   
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_0_10_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>0 && et_seed<=10 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_10_20_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>10 && et_seed<=20 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_20_30_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>20 && et_seed<=30 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_30_40_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>30 && et_seed<=40 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_40_50_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>40 && et_seed<=50 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_50_60_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>50 && et_seed<=60 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_60_70_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>60 && et_seed<=70 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_70_80_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>70 && et_seed<=80 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());  
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_80_90_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>80 && et_seed<=90 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEB_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_90_100_DNN_"+dnnCutsName.at(iBin)+"_EB").c_str(),string("et_seed>90 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str()); 
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_0_10_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>0 && et_seed<=10 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_10_20_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>10 && et_seed<=20 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_20_30_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>20 && et_seed<=30 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_30_40_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>30 && et_seed<=40 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_40_50_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>40 && et_seed<=50 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_50_60_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>50 && et_seed<=60 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_60_70_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>60 && et_seed<=70 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_70_80_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>70 && et_seed<=80 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());  
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_80_90_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>80 && et_seed<=90 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());
-        inputTreeEE_->Draw(string("EoEtrue >> EoEtrue_vs_DnnThreshold_seedEt_90_100_DNN_"+dnnCutsName.at(iBin)+"_EE").c_str(),string("et_seed>90 && dnn_thre>="+cut_min+" && dnn_thre<="+cut_max).c_str());   
-    }  
+        int etBin = -1;
+        for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+            float minEt = std::stof(etCuts.at(iBin));
+            float maxEt = std::stof(etCuts.at(iBin+1)); 
+            if(minEt<90. && et_seed>minEt && et_seed<=maxEt) etBin = iBin;
+            else if(minEt>=90. && et_seed>minEt) etBin = iBin;
+        }
 
-    drawPlots(fitFunction_, dnnCuts);
+        int etaBin = -1;
+        for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
+            float minEta = std::stof(etaCuts.at(iBin));
+            float maxEta = std::stof(etaCuts.at(iBin+1)); 
+            if(seed_eta>=minEta && seed_eta<=maxEta) etaBin = iBin;
+        }
+
+        if(etBin>=0) EoEtrue_Mustache_seedEt_EB[etBin]->Fill(EoEtrue);
+        if(etaBin>=0) EoEtrue_Mustache_seedEta[etaBin]->Fill(EoEtrue); 
+        if(etaBin>=0 && etBin>=0) EoEtrue_Mustache_seedEta_seedEt[etBin][etaBin]->Fill(EoEtrue); 
+    }
+    
+    std::cout << "Fill Mustache histos in EE..." << std::endl;
+    for(int entry = 0; entry < inputTreeMusEE_->GetEntries(); entry++){
+
+        if(entry>maxEvents_ && maxEvents_>0) continue;
+        if(entry%100000==0) std::cout << "--- Reading tree = " << entry << std::endl;
+        inputTreeMusEE_->GetEntry(entry);
+        
+        int etBin = -1;
+        for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+            float minEt = std::stof(etCuts.at(iBin));
+            float maxEt = std::stof(etCuts.at(iBin+1)); 
+            if(minEt<90. && et_seed>minEt && et_seed<=maxEt) etBin = iBin;
+            else if(minEt>=90. && et_seed>minEt) etBin = iBin;
+        }
+
+        int etaBin = -1;
+        for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
+            float minEta = std::stof(etaCuts.at(iBin));
+            float maxEta = std::stof(etaCuts.at(iBin+1)); 
+            if(seed_eta>=minEta && seed_eta<=maxEta) etaBin = iBin;
+        }
+
+        if(etBin>=0) EoEtrue_Mustache_seedEt_EE[etBin]->Fill(EoEtrue);
+        if(etaBin>=0) EoEtrue_Mustache_seedEta[etaBin]->Fill(EoEtrue); 
+        if(etaBin>=0 && etBin>=0) EoEtrue_Mustache_seedEta_seedEt[etBin][etaBin]->Fill(EoEtrue); 
+    } 
+    
+    std::cout << "Fill DeepSC histos in EB..." << std::endl;
+    for(int entry = 0; entry < inputTreeEB_->GetEntries(); entry++){
+
+        if(entry>maxEvents_ && maxEvents_>0) continue;
+        if(entry%1000000==0) std::cout << "--- Reading tree = " << entry << std::endl;
+        inputTreeEB_->GetEntry(entry);
+
+        int etBin = -1;
+        for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+            float minEt = std::stof(etCuts.at(iBin));
+            float maxEt = std::stof(etCuts.at(iBin+1)); 
+            if(minEt<90. && et_seed>minEt && et_seed<=maxEt) etBin = iBin;
+            else if(minEt>=90. && et_seed>minEt) etBin = iBin;
+        }
+
+        int etaBin = -1;
+        for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
+            float minEta = std::stof(etaCuts.at(iBin));
+            float maxEta = std::stof(etaCuts.at(iBin+1)); 
+            if(seed_eta>=minEta && seed_eta<=maxEta) etaBin = iBin;
+        }
+
+        int dnnBin = -1;
+        for(unsigned int iBin=0; iBin<dnnCuts.size(); iBin++){
+            float minDNN = std::stod(dnnCuts.at(iBin))-0.001;
+            float maxDNN = std::stod(dnnCuts.at(iBin))+0.001;
+            if(dnn_thre>=minDNN && dnn_thre<=maxDNN) dnnBin = iBin;
+        }
+        
+        if(etBin>=0 && dnnBin>=0) EoEtrue_vs_DnnThreshold_seedEt_EB[etBin][dnnBin]->Fill(EoEtrue);
+        if(etaBin>=0 && dnnBin>=0) EoEtrue_vs_DnnThreshold_seedEta[etaBin][dnnBin]->Fill(EoEtrue);
+        if(etaBin>=0 && etBin>=0  && dnnBin>=0) EoEtrue_vs_DnnThreshold_seedEta_seedEt[dnnBin][etBin][etaBin]->Fill(EoEtrue);
+    }
+    
+    std::cout << "Fill DeepSC histos in EE..." << std::endl;
+    for(int entry = 0; entry < inputTreeEE_->GetEntries(); entry++){
+
+        if(entry>maxEvents_ && maxEvents_>0) continue;
+        if(entry%1000000==0) std::cout << "--- Reading tree = " << entry << std::endl;
+        inputTreeEE_->GetEntry(entry);
+        
+        int etBin = -1;
+        for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+            float minEt = std::stof(etCuts.at(iBin));
+            float maxEt = std::stof(etCuts.at(iBin+1)); 
+            if(minEt<90. && et_seed>minEt && et_seed<=maxEt) etBin = iBin;
+            else if(minEt>=90. && et_seed>minEt) etBin = iBin;
+        }
+
+        int etaBin = -1;
+        for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
+            float minEta = std::stof(etaCuts.at(iBin));
+            float maxEta = std::stof(etaCuts.at(iBin+1)); 
+            if(seed_eta>=minEta && seed_eta<=maxEta) etaBin = iBin;
+        }
+
+        int dnnBin = -1;
+        for(unsigned int iBin=0; iBin<dnnCuts.size(); iBin++){
+            float minDNN = std::stod(dnnCuts.at(iBin))-0.001;
+            float maxDNN = std::stod(dnnCuts.at(iBin))+0.001;
+            if(dnn_thre>=minDNN && dnn_thre<=maxDNN) dnnBin = iBin;
+        }
+        
+        if(etBin>=0 && dnnBin>=0) EoEtrue_vs_DnnThreshold_seedEt_EE[etBin][dnnBin]->Fill(EoEtrue);
+        if(etaBin>=0 && dnnBin>=0) EoEtrue_vs_DnnThreshold_seedEta[etaBin][dnnBin]->Fill(EoEtrue);
+        if(etaBin>=0 && etBin>=0  && dnnBin>=0) EoEtrue_vs_DnnThreshold_seedEta_seedEt[dnnBin][etBin][etaBin]->Fill(EoEtrue);
+    } 
+
+    drawPlots(fitFunction_, etCuts, etaCuts, dnnCuts);
    
 }

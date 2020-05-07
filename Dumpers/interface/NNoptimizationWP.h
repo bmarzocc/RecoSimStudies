@@ -19,6 +19,7 @@
 #include <iostream>
 #include <utility>
 #include <string>
+#include <vector>
 
 #include "RooAddPdf.h"
 #include "RooConstVar.h"
@@ -39,52 +40,21 @@
 #include "RecoSimStudies/Dumpers/interface/CruijffPdf.h"
 #include "RecoSimStudies/Dumpers/interface/DoubleCBPdf.h"
 
+#include <boost/algorithm/string/replace.hpp>
+
 using namespace std;
 using namespace edm;
 
 //DEFINE HISTOGRAMS 
-TH1F* EoEtrue_Mustache_seedEt_0_10_EB;
-TH1F* EoEtrue_Mustache_seedEt_10_20_EB;
-TH1F* EoEtrue_Mustache_seedEt_20_30_EB;
-TH1F* EoEtrue_Mustache_seedEt_30_40_EB;
-TH1F* EoEtrue_Mustache_seedEt_40_50_EB;
-TH1F* EoEtrue_Mustache_seedEt_50_60_EB;
-TH1F* EoEtrue_Mustache_seedEt_60_70_EB;
-TH1F* EoEtrue_Mustache_seedEt_70_80_EB;
-TH1F* EoEtrue_Mustache_seedEt_80_90_EB;
-TH1F* EoEtrue_Mustache_seedEt_90_100_EB;
-TH1F* EoEtrue_Mustache_seedEt_0_10_EE;
-TH1F* EoEtrue_Mustache_seedEt_10_20_EE;
-TH1F* EoEtrue_Mustache_seedEt_20_30_EE;
-TH1F* EoEtrue_Mustache_seedEt_30_40_EE;
-TH1F* EoEtrue_Mustache_seedEt_40_50_EE;
-TH1F* EoEtrue_Mustache_seedEt_50_60_EE;
-TH1F* EoEtrue_Mustache_seedEt_60_70_EE;
-TH1F* EoEtrue_Mustache_seedEt_70_80_EE;
-TH1F* EoEtrue_Mustache_seedEt_80_90_EE;
-TH1F* EoEtrue_Mustache_seedEt_90_100_EE;
+std::vector<TH1F*> EoEtrue_Mustache_seedEt_EB;
+std::vector<TH1F*> EoEtrue_Mustache_seedEt_EE;
+std::vector<TH1F*> EoEtrue_Mustache_seedEta;
+std::vector<std::vector<TH1F*>> EoEtrue_Mustache_seedEta_seedEt;
 
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_0_10_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_10_20_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_20_30_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_30_40_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_40_50_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_50_60_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_60_70_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_70_80_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_80_90_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_90_100_EB;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_0_10_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_10_20_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_20_30_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_30_40_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_40_50_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_50_60_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_60_70_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_70_80_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_80_90_EE;
-std::vector<TH1F*> EoEtrue_vs_DnnThreshold_seedEt_90_100_EE;
-
+std::vector<std::vector<TH1F*>> EoEtrue_vs_DnnThreshold_seedEt_EB;
+std::vector<std::vector<TH1F*>> EoEtrue_vs_DnnThreshold_seedEt_EE;
+std::vector<std::vector<TH1F*>> EoEtrue_vs_DnnThreshold_seedEta;
+std::vector<std::vector<std::vector<TH1F*>>> EoEtrue_vs_DnnThreshold_seedEta_seedEt;
 
 //DEFINE BRANCHES
 double en_cluster;
@@ -129,74 +99,71 @@ std::vector<std::string> split(const string &text, char sep)
 }
 
 //set histograms
-void setHistograms(std::vector<std::string> dnnCuts)
+void setHistograms(std::vector<std::string> dnnCuts, std::vector<std::string> etCuts, std::vector<std::string> etaCuts)
 {
-   EoEtrue_Mustache_seedEt_0_10_EB = new TH1F("EoEtrue_Mustache_seedEt_0_10_EB","EoEtrue_Mustache_seedEt_0_10_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_10_20_EB = new TH1F("EoEtrue_Mustache_seedEt_10_20_EB","EoEtrue_Mustache_seedEt_10_20_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_20_30_EB = new TH1F("EoEtrue_Mustache_seedEt_20_30_EB","EoEtrue_Mustache_seedEt_20_30_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_30_40_EB = new TH1F("EoEtrue_Mustache_seedEt_30_40_EB","EoEtrue_Mustache_seedEt_30_40_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_40_50_EB = new TH1F("EoEtrue_Mustache_seedEt_40_50_EB","EoEtrue_Mustache_seedEt_40_50_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_50_60_EB = new TH1F("EoEtrue_Mustache_seedEt_50_60_EB","EoEtrue_Mustache_seedEt_50_60_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_60_70_EB = new TH1F("EoEtrue_Mustache_seedEt_60_70_EB","EoEtrue_Mustache_seedEt_60_70_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_70_80_EB = new TH1F("EoEtrue_Mustache_seedEt_70_80_EB","EoEtrue_Mustache_seedEt_70_80_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_80_90_EB = new TH1F("EoEtrue_Mustache_seedEt_80_90_EB","EoEtrue_Mustache_seedEt_80_90_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_90_100_EB = new TH1F("EoEtrue_Mustache_seedEt_90_100_EB","EoEtrue_Mustache_seedEt_90_100_EB",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_0_10_EE = new TH1F("EoEtrue_Mustache_seedEt_0_10_EE","EoEtrue_Mustache_seedEt_0_10_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_10_20_EE = new TH1F("EoEtrue_Mustache_seedEt_10_20_EE","EoEtrue_Mustache_seedEt_10_20_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_20_30_EE = new TH1F("EoEtrue_Mustache_seedEt_20_30_EE","EoEtrue_Mustache_seedEt_20_30_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_30_40_EE = new TH1F("EoEtrue_Mustache_seedEt_30_40_EE","EoEtrue_Mustache_seedEt_30_40_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_40_50_EE = new TH1F("EoEtrue_Mustache_seedEt_40_50_EE","EoEtrue_Mustache_seedEt_40_50_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_50_60_EE = new TH1F("EoEtrue_Mustache_seedEt_50_60_EE","EoEtrue_Mustache_seedEt_50_60_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_60_70_EE = new TH1F("EoEtrue_Mustache_seedEt_60_70_EE","EoEtrue_Mustache_seedEt_60_70_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_70_80_EE = new TH1F("EoEtrue_Mustache_seedEt_70_80_EE","EoEtrue_Mustache_seedEt_70_80_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_80_90_EE = new TH1F("EoEtrue_Mustache_seedEt_80_90_EE","EoEtrue_Mustache_seedEt_80_90_EE",10000, 0., 10.);
-   EoEtrue_Mustache_seedEt_90_100_EE = new TH1F("EoEtrue_Mustache_seedEt_90_100_EE","EoEtrue_Mustache_seedEt_90_100_EE",10000, 0., 10.);
-   
-   EoEtrue_vs_DnnThreshold_seedEt_0_10_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_10_20_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_20_30_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_30_40_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_40_50_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_50_60_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_60_70_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_70_80_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_80_90_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_90_100_EB.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_0_10_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_10_20_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_20_30_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_30_40_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_40_50_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_50_60_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_60_70_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_70_80_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_80_90_EE.resize(dnnCuts.size());
-   EoEtrue_vs_DnnThreshold_seedEt_90_100_EE.resize(dnnCuts.size());
+   EoEtrue_Mustache_seedEt_EB.resize(etCuts.size()-1);
+   EoEtrue_Mustache_seedEt_EE.resize(etCuts.size()-1);
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+       boost::replace_all(etCuts.at(iBin), ".", "_");
+       boost::replace_all(etCuts.at(iBin+1), ".", "_");   
+       EoEtrue_Mustache_seedEt_EB[iBin] = new TH1F(string("EoEtrue_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_EB").c_str(), string("EoEtrue_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_EB").c_str(),10000, 0., 10.);
+       EoEtrue_Mustache_seedEt_EE[iBin] = new TH1F(string("EoEtrue_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_EE").c_str(), string("EoEtrue_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_EE").c_str(),10000, 0., 10.); 
+   }   
 
+   EoEtrue_Mustache_seedEta.resize(etaCuts.size()-1);
+   for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
+       boost::replace_all(etaCuts.at(iBin), ".", "_");
+       boost::replace_all(etaCuts.at(iBin+1), ".", "_");   
+       EoEtrue_Mustache_seedEta[iBin] = new TH1F(string("EoEtrue_Mustache_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)).c_str(), string("EoEtrue_Mustache_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)).c_str(),10000, 0., 10.);
+   } 
+
+   EoEtrue_Mustache_seedEta_seedEt.resize(etCuts.size()-1);
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
+   {
+       EoEtrue_Mustache_seedEta_seedEt[iBin].resize(etaCuts.size()-1);
+       for(unsigned int jBin=0; jBin<etaCuts.size()-1; jBin++)
+       {
+           EoEtrue_Mustache_seedEta_seedEt[iBin][jBin] = new TH1F(std::string("EoEtrue_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_seedEta_"+etaCuts.at(jBin)+"_"+etaCuts.at(iBin+1)).c_str(), std::string("EoEtrue_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_seedEta_"+etaCuts.at(jBin)+"_"+etaCuts.at(iBin+1)).c_str(), 10000, 0., 10.);  
+       }    
+   }
+ 
+   EoEtrue_vs_DnnThreshold_seedEt_EB.resize(etCuts.size()-1); 
+   EoEtrue_vs_DnnThreshold_seedEt_EE.resize(etCuts.size()-1);      
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
+   {
+       EoEtrue_vs_DnnThreshold_seedEt_EB[iBin].resize(dnnCuts.size());
+       EoEtrue_vs_DnnThreshold_seedEt_EE[iBin].resize(dnnCuts.size());
+       for(unsigned int jBin=0; jBin<dnnCuts.size(); jBin++)
+       {
+           boost::replace_all(dnnCuts.at(jBin), ".", "_");
+           EoEtrue_vs_DnnThreshold_seedEt_EB[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_DNN_"+dnnCuts.at(jBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_DNN_"+dnnCuts.at(jBin)+"_EB").c_str(), 10000, 0., 10.);
+           EoEtrue_vs_DnnThreshold_seedEt_EE[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_DNN_"+dnnCuts.at(jBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_DNN_"+dnnCuts.at(jBin)+"_EE").c_str(), 10000, 0., 10.);    
+       }     
+   }
+
+   EoEtrue_vs_DnnThreshold_seedEta.resize(etaCuts.size()-1);      
+   for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++)
+   {    
+       EoEtrue_vs_DnnThreshold_seedEta[iBin].resize(dnnCuts.size());
+       for(unsigned int jBin=0; jBin<dnnCuts.size(); jBin++)
+       { 
+           EoEtrue_vs_DnnThreshold_seedEta[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_DNN_"+dnnCuts.at(jBin)).c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_DNN_"+dnnCuts.at(jBin)).c_str(), 10000, 0., 10.);
+       }     
+   }
+
+   EoEtrue_vs_DnnThreshold_seedEta_seedEt.resize(dnnCuts.size());
    for(unsigned int iBin=0; iBin<dnnCuts.size(); iBin++)
    {
-      dnnCuts.at(iBin).replace(1,1,string("_"));
-      EoEtrue_vs_DnnThreshold_seedEt_0_10_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_0_10_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_0_10_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.);    
-      EoEtrue_vs_DnnThreshold_seedEt_10_20_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_10_20_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_10_20_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_20_30_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_20_30_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_20_30_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_30_40_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_30_40_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_30_40_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_40_50_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_40_50_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_40_50_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_50_60_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_50_60_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_50_60_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_60_70_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_60_70_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_60_70_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_70_80_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_70_80_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_70_80_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_80_90_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_80_90_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_80_90_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_90_100_EB[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_90_100_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_90_100_DNN_"+dnnCuts.at(iBin)+"_EB").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_0_10_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_0_10_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_0_10_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.);    
-      EoEtrue_vs_DnnThreshold_seedEt_10_20_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_10_20_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_10_20_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_20_30_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_20_30_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_20_30_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_30_40_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_30_40_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_30_40_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_40_50_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_40_50_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_40_50_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_50_60_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_50_60_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_50_60_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_60_70_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_60_70_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_60_70_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_70_80_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_70_80_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_70_80_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_80_90_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_80_90_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_80_90_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.); 
-      EoEtrue_vs_DnnThreshold_seedEt_90_100_EE[iBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_90_100_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_90_100_DNN_"+dnnCuts.at(iBin)+"_EE").c_str(), 10000, 0., 10.);    
-   }
+       EoEtrue_vs_DnnThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           EoEtrue_vs_DnnThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               EoEtrue_vs_DnnThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH1F(std::string("EoEtrue_vs_DnnThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_DNN_"+dnnCuts.at(iBin)).c_str(), std::string("EoEtrue_vs_DnnThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_DNN_"+dnnCuts.at(iBin)).c_str(), 10000, 0., 10.);
+           }
+       }
+   } 
 }
 
 double my2sideCrystalBall(double* x, double* par) {
@@ -585,6 +552,36 @@ std::pair<TGraphErrors*,TGraphErrors*> makeFitProfile(std::vector<TH1F*>* vecHis
    
 }
 
+std::pair<TH2F*,TH2F*> makeFitHist2D(int bin, std::vector<std::vector<TH1F*>> vecHist, std::vector<float> etCuts, std::vector<float> etaCuts, std::string fitFunction_="cruijff", bool doEffective = false)
+{
+   TF1* doubleCB;
+   TH2F* h2_mean = new TH2F(std::string("h2_mean_"+std::to_string(bin)).c_str(), std::string("h2_mean_"+std::to_string(bin)).c_str(), etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]);  
+   TH2F* h2_res = new TH2F(std::string("h2_res_"+std::to_string(bin)).c_str(), std::string("h2_res_"+std::to_string(bin)).c_str(), etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+       for(unsigned int jBin=0; jBin<etaCuts.size()-1; jBin++){
+           if(vecHist[iBin][jBin]->Integral()<=20) continue;
+           if(!doEffective){
+              doubleCB = fitHisto(vecHist[iBin][jBin], fitFunction_);
+              float mean_error = doubleCB->GetParError(0);
+              float sigma_error = sqrt(doubleCB->GetParError(1)*doubleCB->GetParError(1)+doubleCB->GetParError(2)*doubleCB->GetParError(2))/2.;
+              if(mean_error<=0.1 && sigma_error<=0.03){
+                 h2_mean->SetBinContent(iBin+1,jBin+1,doubleCB->GetParameter(0)); 
+                 h2_res->SetBinContent(iBin+1,jBin+1,(doubleCB->GetParameter(1)+doubleCB->GetParameter(2))/2.); 
+              } 
+           }else{
+              std::pair<double,double> effective = computeEffectiveSigma(vecHist[iBin][jBin]);
+              if(effective.first<=10. && effective.second<=10.){
+                 h2_mean->SetBinContent(iBin+1,jBin+1,effective.first); 
+                 h2_res->SetBinContent(iBin+1,jBin+1,effective.second); 
+              } 
+           }
+       }
+   } 
+ 
+   return std::make_pair(h2_mean,h2_res); 
+}
+
 TGraphErrors* scaledGraph(TGraphErrors* gr_SuperCluster, float Mustache_val)
 {
    TGraphErrors* gr = new TGraphErrors();
@@ -616,7 +613,7 @@ void drawGraph(TGraphErrors* gr_SuperCluster_tmp, float Mustache_val, std::strin
    gr_SuperCluster->GetXaxis()->SetTitle(xtitle.c_str()); 
    gr_SuperCluster->GetYaxis()->SetTitle(ytitle.c_str()); 
 
-   TLine* Mustache_line = new TLine(0.5,1., 1.,1.);
+   TLine* Mustache_line = new TLine(0.3,1., 1.,1.);
    Mustache_line->SetLineWidth(2);
    Mustache_line->SetLineColor(kGreen+1); 
    
@@ -626,6 +623,8 @@ void drawGraph(TGraphErrors* gr_SuperCluster_tmp, float Mustache_val, std::strin
       min = 0.98*computeRange(gr_SuperCluster).first; 
       max = 1.02*computeRange(gr_SuperCluster).second;
    }
+   if(min>1.) min = 0.99;
+   if(max<1.) max = 1.01;
    gr_SuperCluster->GetYaxis()->SetRangeUser(min,max);  
 
    TLegend* legend = new TLegend(0.799, 0.77, 0.999, 0.95);
@@ -640,7 +639,7 @@ void drawGraph(TGraphErrors* gr_SuperCluster_tmp, float Mustache_val, std::strin
 
    TCanvas* c = new TCanvas();
    gr_SuperCluster->Draw("AL");
-   if(1.>=min && 1.<=max) Mustache_line->Draw("L, same");
+   Mustache_line->Draw("L, same");
    legend -> Draw("same");
    c->SaveAs(std::string(Name+".png").c_str(),"png");
    c->SaveAs(std::string(Name+".pdf").c_str(),"pdf");	
@@ -648,75 +647,91 @@ void drawGraph(TGraphErrors* gr_SuperCluster_tmp, float Mustache_val, std::strin
    gStyle->SetOptStat(1110);
 }
 
+void drawH2(TH2F* h2, std::string xtitle, std::string ytitle, string ztitle, std::string Name)
+{
+   gStyle->SetOptStat(0000); 
+
+   h2->GetXaxis()->SetTitle(xtitle.c_str()); 
+   h2->GetYaxis()->SetTitle(ytitle.c_str()); 
+   h2->GetZaxis()->SetTitle(ztitle.c_str());
+
+   TCanvas* c = new TCanvas();
+   h2->Draw("COLZ");
+   c->SaveAs(std::string(Name+".png").c_str(),"png");
+   c->SaveAs(std::string(Name+".pdf").c_str(),"pdf");
+
+   TH2F* h2_clone = (TH2F*)h2->Clone();
+   h2_clone->Reset(); 
+   for(int binx=1; binx<=h2->GetNbinsX(); binx++){ 
+       for(int biny=1; biny<=h2->GetNbinsY(); biny++){
+           if(h2->GetBinContent(binx,biny)<=1.){ 
+              h2_clone->SetBinContent(binx,biny,fabs(1.-h2->GetBinContent(binx,biny))*100.);
+           } 
+       }
+   }
+
+   //std::sort(vals.begin(),vals.begin()); 
+   //h2_clone->GetZaxis()->SetRangeUser(0.99*vals.at(0),1.);
+
+   c->cd();
+   h2_clone->Draw("COLZ");
+   c->SaveAs(std::string(Name+"_Gain.png").c_str(),"png");
+   c->SaveAs(std::string(Name+"_Gain.pdf").c_str(),"pdf");
+
+   gStyle->SetOptStat(1110); 
+}
+
 //draw plots
-void drawPlots(std::string fitFunction_, std::vector<std::string> dnnCuts)
+void drawPlots(std::string fitFunction_, std::vector<std::string> etCuts, std::vector<std::string> etaCuts, std::vector<std::string> dnnCuts)
 {
    
    //68% Quantile
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_0_10_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_0_10_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_10_20_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_10_20_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_20_30_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_20_30_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_30_40_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_30_40_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_40_50_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_40_50_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_50_60_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_50_60_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_60_70_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_60_70_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_70_80_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_70_80_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_80_90_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_80_90_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_90_100_eff_EB = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_90_100_EB,dnnCuts,std::string("DNN Score"),fitFunction_,true); 
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_DNN_seedEt_eff_EB;
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_DNN_seedEt_eff_EE; 
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_DNN_seedEta_eff; 
+   gr_EoEtrue_vs_DNN_seedEt_eff_EB.resize(etCuts.size()-1);
+   gr_EoEtrue_vs_DNN_seedEt_eff_EE.resize(etCuts.size()-1); 
+   gr_EoEtrue_vs_DNN_seedEta_eff.resize(etaCuts.size()-1);  
 
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_0_10_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_0_10_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_0_10_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_0_10_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_0_10_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_0_10_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_10_20_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_10_20_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_10_20_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_10_20_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_10_20_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_10_20_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_20_30_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_20_30_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_20_30_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_20_30_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_20_30_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_20_30_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_30_40_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_30_40_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_30_40_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_30_40_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_30_40_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_30_40_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_40_50_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_40_50_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_40_50_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_40_50_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_40_50_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_40_50_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_50_60_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_50_60_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_50_60_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_50_60_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_50_60_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_50_60_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_60_70_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_60_70_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_60_70_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_60_70_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_60_70_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_60_70_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_70_80_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_70_80_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_70_80_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_70_80_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_70_80_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_70_80_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_80_90_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_80_90_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_80_90_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_80_90_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_80_90_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_80_90_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_90_100_eff_EB.first,evaluateHisto(EoEtrue_Mustache_seedEt_90_100_EB,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_90_100_Effective_EB"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_90_100_eff_EB.second,evaluateHisto(EoEtrue_Mustache_seedEt_90_100_EB,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_90_100_Effective_EB"));
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
+       gr_EoEtrue_vs_DNN_seedEt_eff_EB[iBin] = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_EB[iBin],dnnCuts,std::string("DNN Score"),fitFunction_,true); 
+       drawGraph(gr_EoEtrue_vs_DNN_seedEt_eff_EB[iBin].first,evaluateHisto(EoEtrue_Mustache_seedEt_EB[iBin],fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EB")); 
+       drawGraph(gr_EoEtrue_vs_DNN_seedEt_eff_EB[iBin].second,evaluateHisto(EoEtrue_Mustache_seedEt_EB[iBin],fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EB"));
 
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_0_10_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_0_10_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_10_20_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_10_20_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_20_30_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_20_30_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_30_40_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_30_40_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_40_50_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_40_50_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_50_60_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_50_60_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_60_70_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_60_70_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_70_80_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_70_80_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_80_90_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_80_90_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true);
-   std::pair<TGraphErrors*,TGraphErrors*> gr_EoEtrue_vs_DNN_seedEt_90_100_eff_EE = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_90_100_EE,dnnCuts,std::string("DNN Score"),fitFunction_,true); 
+       gr_EoEtrue_vs_DNN_seedEt_eff_EE[iBin] = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEt_EE[iBin],dnnCuts,std::string("DNN Score"),fitFunction_,true); 
+       drawGraph(gr_EoEtrue_vs_DNN_seedEt_eff_EE[iBin].first,evaluateHisto(EoEtrue_Mustache_seedEt_EE[iBin],fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EE")); 
+       drawGraph(gr_EoEtrue_vs_DNN_seedEt_eff_EE[iBin].second,evaluateHisto(EoEtrue_Mustache_seedEt_EE[iBin],fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EE")); 
+   }
 
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_0_10_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_0_10_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_0_10_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_0_10_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_0_10_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_0_10_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_10_20_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_10_20_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_10_20_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_10_20_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_10_20_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_10_20_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_20_30_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_20_30_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_20_30_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_20_30_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_20_30_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_20_30_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_30_40_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_30_40_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_30_40_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_30_40_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_30_40_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_30_40_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_40_50_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_40_50_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_40_50_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_40_50_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_40_50_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_40_50_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_50_60_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_50_60_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_50_60_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_50_60_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_50_60_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_50_60_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_60_70_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_60_70_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_60_70_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_60_70_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_60_70_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_60_70_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_70_80_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_70_80_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_70_80_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_70_80_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_70_80_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_70_80_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_80_90_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_80_90_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_80_90_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_80_90_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_80_90_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_80_90_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_90_100_eff_EE.first,evaluateHisto(EoEtrue_Mustache_seedEt_90_100_EE,fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_90_100_Effective_EE"));
-   drawGraph(gr_EoEtrue_vs_DNN_seedEt_90_100_eff_EE.second,evaluateHisto(EoEtrue_Mustache_seedEt_90_100_EE,fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEt_90_100_Effective_EE"));
+   for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
+       gr_EoEtrue_vs_DNN_seedEta_eff[iBin] = makeFitProfile(&EoEtrue_vs_DnnThreshold_seedEta[iBin],dnnCuts,std::string("DNN Score"),fitFunction_,true); 
+       drawGraph(gr_EoEtrue_vs_DNN_seedEta_eff[iBin].first,evaluateHisto(EoEtrue_Mustache_seedEta[iBin],fitFunction_,true)[0], std::string("DNN Score"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("EoEtrue_vs_DNN_Mean_seedEt_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_Effective")); 
+       drawGraph(gr_EoEtrue_vs_DNN_seedEta_eff[iBin].second,evaluateHisto(EoEtrue_Mustache_seedEta[iBin],fitFunction_,true)[2], std::string("DNN Score"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("EoEtrue_vs_DNN_Resolution_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_Effective"));
+   }
+ 
+   TH2F* Ratio_deepMust;
+   std::vector<float> vecEtCuts;
+   std::vector<float> vecEtaCuts;
 
-
+   for(unsigned int iBin=0; iBin<etCuts.size(); iBin++){
+       boost::replace_all(etCuts.at(iBin), "_", ".");
+       vecEtCuts.push_back(std::stof(etCuts.at(iBin)));
+   } 
+   for(unsigned int iBin=0; iBin<etaCuts.size(); iBin++){
+       boost::replace_all(etaCuts.at(iBin), "_", ".");
+       vecEtaCuts.push_back(std::stof(etaCuts.at(iBin)));
+   } 
+  
+   std::pair<TH2F*,TH2F*> h2_must = makeFitHist2D(-1,EoEtrue_Mustache_seedEta_seedEt,vecEtCuts,vecEtaCuts,fitFunction_,true);
+   for(unsigned int iBin=0; iBin<dnnCuts.size(); iBin++){
+       std::pair<TH2F*,TH2F*> h2_deepSC = makeFitHist2D(iBin,EoEtrue_vs_DnnThreshold_seedEta_seedEt[iBin],vecEtCuts,vecEtaCuts,fitFunction_,true);
+       Ratio_deepMust = (TH2F*)(h2_deepSC.first)->Clone();
+       Ratio_deepMust->Divide(h2_must.first);
+       drawH2(Ratio_deepMust, std::string("Et (GeV)"), std::string("#eta"), std::string("#mu_DeepSC/#mu_Mustache"), std::string("h2_EoEtrue_Mean_DNN_"+dnnCuts.at(iBin)));
+       Ratio_deepMust = (TH2F*)(h2_deepSC.second)->Clone();
+       Ratio_deepMust->Divide(h2_must.second);
+       drawH2(Ratio_deepMust, std::string("Et (GeV)"), std::string("#eta"), std::string("#sigma_DeepSC/#sigma_Mustache"), std::string("h2_EoEtrue_Resolution_DNN_"+dnnCuts.at(iBin))); 
+   }
+   
 }
 
