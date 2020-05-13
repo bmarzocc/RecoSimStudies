@@ -5218,8 +5218,10 @@ std::vector<float> RecoSimDumper::getShowerShapes(reco::CaloCluster* caloBC, con
     shapes[14] = 1.-e4/eMax; // swissCross 
     shapes[15] = e3x3/caloBC->energy(); // r9     
     shapes[16] = sqrt(locCov_[0]); // sigmaIetaIeta 
-    shapes[17] = sqrt(locCov_[1]); // sigmaIetaIphi
+    shapes[17] = locCov_[1]; // sigmaIetaIphi
     shapes[18] = !edm::isFinite(locCov_[2]) ? 0. : sqrt(locCov_[2]); // sigmaIphiIphi 
+
+    //if(std::isnan(shapes.at(17))) std::cout << shapes[0] << " - " << shapes[1] << " - " << shapes[2] << " - " << shapes[3] << " - " << shapes[4] << " - " << shapes[5]  << " - " << shapes[6] << " - " << shapes[7] << " - " << shapes[8] << " - " << shapes[9] << " - " << shapes[10] << " - " << shapes[11] << " - " << shapes[12] << " - " << shapes[13] << " - " << shapes[14] << " - " << shapes[15]  << " - " << shapes[16] << " - " << shapes[17] << " - " << shapes[18] << std::endl;
 
     // full_5x5 variables
     float full5x5_e5x5 = noZS::EcalClusterTools::e5x5(*caloBC, recHits, topology); // e5x5
@@ -5248,7 +5250,7 @@ std::vector<float> RecoSimDumper::getShowerShapes(reco::CaloCluster* caloBC, con
     shapes[33] = 1.-full5x5_e4/full5x5_eMax; // swissCross 
     shapes[34] = full5x5_e3x3/caloBC->energy(); // r9
     shapes[35] = sqrt(full5x5_locCov_[0]); // sigmaIetaIeta        
-    shapes[36] = sqrt(full5x5_locCov_[1]); // sigmaIetaIphi          
+    shapes[36] = full5x5_locCov_[1]; // sigmaIetaIphi          
     shapes[37] = !edm::isFinite(full5x5_locCov_[2]) ? 0. : sqrt(full5x5_locCov_[2]); // sigmaIphiIphi
 
     for(unsigned iVar=0; iVar<shapes.size(); iVar++)
@@ -5505,8 +5507,8 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     scores[17] = sim_rechit_combined_fraction;
     scores[18] = rechit_sim_combined_fraction;
 
-    for(unsigned iVar=0; iVar<scores.size(); iVar++)
-        if(std::isnan(scores.at(iVar))) std::cout << "scores = " << iVar << " ---> NAN " << std::endl; 
+    //for(unsigned iVar=0; iVar<scores.size(); iVar++)
+    //    if(std::isnan(scores.at(iVar))) std::cout << "score = " << iVar << " ---> NAN " << std::endl; 
 
     return scores;
 }
