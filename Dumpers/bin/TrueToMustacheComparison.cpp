@@ -80,8 +80,8 @@ int main(int argc, char** argv)
 
         for(unsigned int iSeed=0; iSeed<superCluster_seedIndex->size(); iSeed++)
         {
-            float seed_eta = pfCluster_eta->at(iSeed);  
-            float et_seed = pfCluster_energy->at(iSeed)/TMath::CosH(pfCluster_eta->at(iSeed)); 
+            float seed_eta = pfCluster_eta->at(superCluster_seedIndex->at(iSeed));  
+            float et_seed = pfCluster_energy->at(superCluster_seedIndex->at(iSeed))/TMath::CosH(pfCluster_eta->at(superCluster_seedIndex->at(iSeed))); 
             int etBin = -1;
             for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
                 float minEt = std::stof(etCuts.at(iBin));
