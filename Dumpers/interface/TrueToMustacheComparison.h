@@ -13,6 +13,7 @@
 #include "TLegend.h"
 #include "TEfficiency.h"
 #include "TProfile.h"
+#include "TProfile2D.h"
 #include "TStyle.h"
 #include "TTreeReader.h"
 #include <algorithm> 
@@ -40,23 +41,42 @@
 #include "RecoSimStudies/Dumpers/interface/CruijffPdf.h"
 #include "RecoSimStudies/Dumpers/interface/DoubleCBPdf.h"
 
+#include "RecoEcal/EgammaCoreTools/interface/Mustache.h"
+
 #include <boost/algorithm/string/replace.hpp>
 
 using namespace std;
 using namespace edm;
 
 //DEFINE HISTOGRAMS 
-std::vector<std::vector<TH1F*>> EoEtrue_vs_Mustache_seedEt_EB;
-std::vector<std::vector<TH1F*>> EoEtrue_vs_Mustache_seedEt_EE;
-std::vector<std::vector<TH1F*>> EoEtrue_vs_Mustache_seedEta;
-std::vector<std::vector<std::vector<TH1F*>>> EoEtrue_vs_Mustache_seedEta_seedEt;
+std::vector<std::vector<TH1F*>> MustOEtrue_vs_scoreThreshold_seedEt_EB;
+std::vector<std::vector<TH1F*>> MustOEtrue_vs_scoreThreshold_seedEt_EE;
+std::vector<std::vector<TH1F*>> MustOEtrue_vs_scoreThreshold_seedEta;
+std::vector<std::vector<std::vector<TH1F*>>> MustOEtrue_vs_scoreThreshold_seedEta_seedEt;
 
-std::vector<std::vector<TH1F*>> EoEtrue_vs_scoreThreshold_seedEt_EB;
-std::vector<std::vector<TH1F*>> EoEtrue_vs_scoreThreshold_seedEt_EE;
-std::vector<std::vector<TH1F*>> EoEtrue_vs_scoreThreshold_seedEta;
-std::vector<std::vector<std::vector<TH1F*>>> EoEtrue_vs_scoreThreshold_seedEta_seedEt;
+std::vector<std::vector<TH1F*>> EtrueOEtrue_vs_scoreThreshold_seedEt_EB;
+std::vector<std::vector<TH1F*>> EtrueOEtrue_vs_scoreThreshold_seedEt_EE;
+std::vector<std::vector<TH1F*>> EtrueOEtrue_vs_scoreThreshold_seedEta;
+std::vector<std::vector<std::vector<TH1F*>>> EtrueOEtrue_vs_scoreThreshold_seedEta_seedEt;
 
-std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_vs_scoreThreshold_seedEta_seedEt;
+std::vector<std::vector<TH1F*>> ErecoOEtrue_vs_scoreThreshold_seedEt_EB;
+std::vector<std::vector<TH1F*>> ErecoOEtrue_vs_scoreThreshold_seedEt_EE;
+std::vector<std::vector<TH1F*>> ErecoOEtrue_vs_scoreThreshold_seedEta;
+std::vector<std::vector<std::vector<TH1F*>>> ErecoOEtrue_vs_scoreThreshold_seedEta_seedEt;
+
+std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt;
+std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache;
+std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache;
+std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt;
+std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo;
+std::vector<std::vector<std::vector<TH2F*>>> dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo;
+
+std::vector<std::vector<std::vector<TProfile2D*>>> TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt;
+std::vector<std::vector<std::vector<TProfile2D*>>> TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache;
+std::vector<std::vector<std::vector<TProfile2D*>>> TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache;
+std::vector<std::vector<std::vector<TProfile2D*>>> RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt;
+std::vector<std::vector<std::vector<TProfile2D*>>> RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache;
+std::vector<std::vector<std::vector<TProfile2D*>>> RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache;
 
 //DEFINE BRANCHES
 vector<float> *caloParticle_simEnergy;
@@ -181,92 +201,284 @@ std::vector<std::string> split(const string &text, char sep)
 void setHistograms(std::vector<std::string> scoreCuts, std::vector<std::string> etCuts, std::vector<std::string> etaCuts)
 {
    
-   EoEtrue_vs_Mustache_seedEt_EB.resize(etCuts.size()-1); 
-   EoEtrue_vs_Mustache_seedEt_EE.resize(etCuts.size()-1);      
+   MustOEtrue_vs_scoreThreshold_seedEt_EB.resize(etCuts.size()-1); 
+   MustOEtrue_vs_scoreThreshold_seedEt_EE.resize(etCuts.size()-1);      
    for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
    {
-       EoEtrue_vs_Mustache_seedEt_EB[iBin].resize(scoreCuts.size());
-       EoEtrue_vs_Mustache_seedEt_EE[iBin].resize(scoreCuts.size());
+       MustOEtrue_vs_scoreThreshold_seedEt_EB[iBin].resize(scoreCuts.size());
+       MustOEtrue_vs_scoreThreshold_seedEt_EE[iBin].resize(scoreCuts.size());
        for(unsigned int jBin=0; jBin<scoreCuts.size(); jBin++)
        {
            boost::replace_all(scoreCuts.at(jBin), ".", "_");
-           EoEtrue_vs_Mustache_seedEt_EB[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), std::string("EoEtrue_vs_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), 10000, 0., 10.);
-           EoEtrue_vs_Mustache_seedEt_EE[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), std::string("EoEtrue_vs_Mustache_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), 10000, 0., 10.);    
+           MustOEtrue_vs_scoreThreshold_seedEt_EB[iBin][jBin] = new TH1F(std::string("MustOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), std::string("MustOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), 10000, 0., 10.);
+           MustOEtrue_vs_scoreThreshold_seedEt_EE[iBin][jBin] = new TH1F(std::string("MustOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), std::string("MustOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), 10000, 0., 10.);    
        }     
    }
 
-   EoEtrue_vs_Mustache_seedEta.resize(etaCuts.size()-1);      
+   MustOEtrue_vs_scoreThreshold_seedEta.resize(etaCuts.size()-1);      
    for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++)
    {    
-       EoEtrue_vs_Mustache_seedEta[iBin].resize(scoreCuts.size());
+       MustOEtrue_vs_scoreThreshold_seedEta[iBin].resize(scoreCuts.size());
        for(unsigned int jBin=0; jBin<scoreCuts.size(); jBin++)
        { 
-           EoEtrue_vs_Mustache_seedEta[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_Mustache_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), std::string("EoEtrue_vs_Mustache_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), 10000, 0., 10.);
+           MustOEtrue_vs_scoreThreshold_seedEta[iBin][jBin] = new TH1F(std::string("MustOEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), std::string("MustOEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), 10000, 0., 10.);
        }     
    }
 
-   EoEtrue_vs_Mustache_seedEta_seedEt.resize(scoreCuts.size());
+   MustOEtrue_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
    for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
    {
-       EoEtrue_vs_Mustache_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       MustOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
        for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
        {
-           EoEtrue_vs_Mustache_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           MustOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
            for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
            {
-               EoEtrue_vs_Mustache_seedEta_seedEt[iBin][jBin][kBin] = new TH1F(std::string("EoEtrue_vs_Mustache_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("EoEtrue_vs_Mustache_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 10000, 0., 10.);
+               MustOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH1F(std::string("MustOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("MustOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 10000, 0., 10.);
            }
        }
    }
 
-   EoEtrue_vs_scoreThreshold_seedEt_EB.resize(etCuts.size()-1); 
-   EoEtrue_vs_scoreThreshold_seedEt_EE.resize(etCuts.size()-1);      
+   ErecoOEtrue_vs_scoreThreshold_seedEt_EB.resize(etCuts.size()-1); 
+   ErecoOEtrue_vs_scoreThreshold_seedEt_EE.resize(etCuts.size()-1);      
    for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
    {
-       EoEtrue_vs_scoreThreshold_seedEt_EB[iBin].resize(scoreCuts.size());
-       EoEtrue_vs_scoreThreshold_seedEt_EE[iBin].resize(scoreCuts.size());
+       ErecoOEtrue_vs_scoreThreshold_seedEt_EB[iBin].resize(scoreCuts.size());
+       ErecoOEtrue_vs_scoreThreshold_seedEt_EE[iBin].resize(scoreCuts.size());
        for(unsigned int jBin=0; jBin<scoreCuts.size(); jBin++)
        {
            boost::replace_all(scoreCuts.at(jBin), ".", "_");
-           EoEtrue_vs_scoreThreshold_seedEt_EB[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), 10000, 0., 10.);
-           EoEtrue_vs_scoreThreshold_seedEt_EE[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), 10000, 0., 10.);    
+           ErecoOEtrue_vs_scoreThreshold_seedEt_EB[iBin][jBin] = new TH1F(std::string("ErecoOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), std::string("ErecoOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), 10000, 0., 10.);
+           ErecoOEtrue_vs_scoreThreshold_seedEt_EE[iBin][jBin] = new TH1F(std::string("ErecoOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), std::string("ErecoOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), 10000, 0., 10.);    
        }     
    }
 
-   EoEtrue_vs_scoreThreshold_seedEta.resize(etaCuts.size()-1);      
+   ErecoOEtrue_vs_scoreThreshold_seedEta.resize(etaCuts.size()-1);      
    for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++)
    {    
-       EoEtrue_vs_scoreThreshold_seedEta[iBin].resize(scoreCuts.size());
+       ErecoOEtrue_vs_scoreThreshold_seedEta[iBin].resize(scoreCuts.size());
        for(unsigned int jBin=0; jBin<scoreCuts.size(); jBin++)
        { 
-           EoEtrue_vs_scoreThreshold_seedEta[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), std::string("EoEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), 10000, 0., 10.);
+           ErecoOEtrue_vs_scoreThreshold_seedEta[iBin][jBin] = new TH1F(std::string("ErecoOEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), std::string("ErecoOEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), 10000, 0., 10.);
        }     
    }
 
-   EoEtrue_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
+   ErecoOEtrue_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
    for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
    {
-       EoEtrue_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       ErecoOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
        for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
        {
-           EoEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           ErecoOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
            for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
            {
-               EoEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH1F(std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 10000, 0., 10.);
+               ErecoOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH1F(std::string("ErecoOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("ErecoOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 10000, 0., 10.);
            }
        }
    }
 
-   dEtadPhi_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
+   EtrueOEtrue_vs_scoreThreshold_seedEt_EB.resize(etCuts.size()-1); 
+   EtrueOEtrue_vs_scoreThreshold_seedEt_EE.resize(etCuts.size()-1);      
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
+   {
+       EtrueOEtrue_vs_scoreThreshold_seedEt_EB[iBin].resize(scoreCuts.size());
+       EtrueOEtrue_vs_scoreThreshold_seedEt_EE[iBin].resize(scoreCuts.size());
+       for(unsigned int jBin=0; jBin<scoreCuts.size(); jBin++)
+       {
+           boost::replace_all(scoreCuts.at(jBin), ".", "_");
+           EtrueOEtrue_vs_scoreThreshold_seedEt_EB[iBin][jBin] = new TH1F(std::string("EtrueOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), std::string("EtrueOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EB").c_str(), 10000, 0., 10.);
+           EtrueOEtrue_vs_scoreThreshold_seedEt_EE[iBin][jBin] = new TH1F(std::string("EtrueOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), std::string("EtrueOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)+"_EE").c_str(), 10000, 0., 10.);    
+       }     
+   }
+
+   EtrueOEtrue_vs_scoreThreshold_seedEta.resize(etaCuts.size()-1);      
+   for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++)
+   {    
+       EtrueOEtrue_vs_scoreThreshold_seedEta[iBin].resize(scoreCuts.size());
+       for(unsigned int jBin=0; jBin<scoreCuts.size(); jBin++)
+       { 
+           EtrueOEtrue_vs_scoreThreshold_seedEta[iBin][jBin] = new TH1F(std::string("EtrueOEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), std::string("EtrueOEtrue_vs_scoreThreshold_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_simScore_"+scoreCuts.at(jBin)).c_str(), 10000, 0., 10.);
+       }     
+   }
+
+   EtrueOEtrue_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
    for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
    {
-       dEtadPhi_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       EtrueOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
        for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
        {
-           dEtadPhi_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           EtrueOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
            for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
            {
-               dEtadPhi_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("EoEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+               EtrueOEtrue_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH1F(std::string("EtrueOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("EtrueOEtrue_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 10000, 0., 10.);
+           }
+       }
+   }
+
+   dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+           }
+       }
+   } 
+
+   dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inMustache").c_str(), std::string("dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inMustache").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+           }
+       }
+   }
+
+   dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notMustache").c_str(), std::string("dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notMustache").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+           }
+       }
+   }
+
+   dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_Mustache_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("dEtadPhi_Mustache_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+           }
+       }
+   }
+
+   dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_Mustache_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inCalo").c_str(), std::string("dEtadPhi_Mustache_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inCalo").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+           }
+       }
+   }
+
+   dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo[iBin][jBin][kBin] = new TH2F(std::string("dEtadPhi_Mustache_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notCalo").c_str(), std::string("dEtadPhi_Mustache_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notCalo").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2);
+           }
+       }
+   } 
+
+   TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TProfile2D(std::string("TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 100,-0.6,0.6, 100, -0.2, 0.2, 0., 1.);
+           }
+       }
+   }
+
+   TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin][jBin][kBin] = new TProfile2D(std::string("TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inMustache").c_str(), std::string("TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inMustache").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2, 0., 1.);
+           }
+       }
+   }
+
+   TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin][jBin][kBin] = new TProfile2D(std::string("TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notMustache").c_str(), std::string("TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notMustache").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2, 0., 1.);
+           }
+       }
+   }
+
+   RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[iBin][jBin][kBin] = new TProfile2D(std::string("RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), std::string("RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)).c_str(), 100,-0.6,0.6, 100, -0.2, 0.2, 0., 10000.);
+           }
+       }
+   }
+
+   RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[iBin][jBin][kBin] = new TProfile2D(std::string("RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inMustache").c_str(), std::string("RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_inMustache").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2, 0., 10000.);
+           }
+       }
+   }
+
+   RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache.resize(scoreCuts.size());
+   for(unsigned int iBin=0; iBin<scoreCuts.size(); iBin++)
+   {
+       RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin].resize(etCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etCuts.size()-1; jBin++)
+       {
+           RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin][jBin].resize(etaCuts.size()-1); 
+           for(unsigned int kBin=0; kBin<etaCuts.size()-1; kBin++)
+           {
+               RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[iBin][jBin][kBin] = new TProfile2D(std::string("RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notMustache").c_str(), std::string("RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEt_"+etCuts.at(jBin)+"_"+etCuts.at(jBin+1)+"_seedEta_"+etaCuts.at(kBin)+"_"+etaCuts.at(kBin+1)+"_simScore_"+scoreCuts.at(iBin)+"_notMustache").c_str(), 100,-0.6,0.6, 100, -0.2, 0.2, 0., 10000.);
            }
        }
    } 
@@ -740,88 +952,93 @@ std::pair<TH2F*,TH2F*> makeFitHist2D(int bin, std::vector<std::vector<TH1F*>> ve
    return std::make_pair(h2_mean,h2_res); 
 }
 
-TGraphErrors* scaledGraph(TGraphErrors* gr_SuperCluster_true, TGraphErrors* gr_SuperCluster_must)
+TGraphErrors* scaledGraph(TGraphErrors* gr_SuperCluster_ErecoOEtrue, TGraphErrors* gr_SuperCluster_MustOEtrue)
 {
    TGraphErrors* gr = new TGraphErrors();
    double x_true,y_true;
    double x_must,y_must;
-   for(int i=0; i<gr_SuperCluster_true->GetN(); i++)
+   for(int i=0; i<gr_SuperCluster_ErecoOEtrue->GetN(); i++)
    {
-       gr_SuperCluster_true->GetPoint(i,x_true,y_true);
-       gr_SuperCluster_must->GetPoint(i,x_must,y_must);
+       gr_SuperCluster_ErecoOEtrue->GetPoint(i,x_true,y_true);
+       gr_SuperCluster_MustOEtrue->GetPoint(i,x_must,y_must);
        gr->SetPoint(i,x_true,y_true/y_must);
        gr->SetPointError(i,0.,0.);
    }  
    return gr;
 }
 
-void drawGraph(TGraphErrors* gr_SuperCluster_true, TGraphErrors* gr_SuperCluster_must, std::string xtitle, std::string ytitle, std::string Name, std::string refLegend="True", std::string valLegend="Mustache", bool log = false)
+void drawGraph(TGraphErrors* gr_SuperCluster_ErecoOEtrue, TGraphErrors* gr_SuperCluster_MustOEtrue, TGraphErrors* gr_SuperCluster_EtrueOEtrue, std::string xtitle, std::string ytitle, std::string Name, bool log = false, std::string outDir = "")
 { 
    gStyle->SetOptStat(0000);  
 
-   gr_SuperCluster_true->SetTitle(Name.c_str());
-   gr_SuperCluster_true->SetLineColor(kBlue+1);
-   gr_SuperCluster_true->SetMarkerStyle(20);
-   gr_SuperCluster_true->SetMarkerSize(0.5);
-   gr_SuperCluster_true->SetMarkerColor(kBlue+1);
-   gr_SuperCluster_true->SetLineWidth(2);
-   gr_SuperCluster_true->GetXaxis()->SetTitle(xtitle.c_str()); 
-   gr_SuperCluster_true->GetYaxis()->SetTitle(ytitle.c_str());
+   gr_SuperCluster_ErecoOEtrue->SetTitle(Name.c_str());
+   gr_SuperCluster_ErecoOEtrue->SetLineColor(kBlue+1);
+   gr_SuperCluster_ErecoOEtrue->SetMarkerStyle(20);
+   gr_SuperCluster_ErecoOEtrue->SetMarkerSize(0.5);
+   gr_SuperCluster_ErecoOEtrue->SetMarkerColor(kBlue+1);
+   gr_SuperCluster_ErecoOEtrue->SetLineWidth(2);
+   gr_SuperCluster_ErecoOEtrue->GetXaxis()->SetTitle(xtitle.c_str()); 
+   gr_SuperCluster_ErecoOEtrue->GetYaxis()->SetTitle(ytitle.c_str());
 
-   gr_SuperCluster_must->SetLineColor(kRed+1);
-   gr_SuperCluster_must->SetMarkerStyle(20);
-   gr_SuperCluster_must->SetMarkerSize(0.5);
-   gr_SuperCluster_must->SetMarkerColor(kRed+1);
-   gr_SuperCluster_must->SetLineWidth(2); 
-
-   TGraphErrors* gr_SuperCluster_ratio = scaledGraph(gr_SuperCluster_true, gr_SuperCluster_must);
+   gr_SuperCluster_MustOEtrue->SetLineColor(kRed+1);
+   gr_SuperCluster_MustOEtrue->SetMarkerStyle(20);
+   gr_SuperCluster_MustOEtrue->SetMarkerSize(0.5);
+   gr_SuperCluster_MustOEtrue->SetMarkerColor(kRed+1);
+   gr_SuperCluster_MustOEtrue->SetLineWidth(2);   
+  
+   gr_SuperCluster_EtrueOEtrue->SetLineColor(kGreen+1);
+   gr_SuperCluster_EtrueOEtrue->SetMarkerStyle(20);
+   gr_SuperCluster_EtrueOEtrue->SetMarkerSize(0.5);
+   gr_SuperCluster_EtrueOEtrue->SetMarkerColor(kGreen+1);
+   gr_SuperCluster_EtrueOEtrue->SetLineWidth(2); 
+  
+   TGraphErrors* gr_SuperCluster_ratio = scaledGraph(gr_SuperCluster_ErecoOEtrue, gr_SuperCluster_MustOEtrue);
    gr_SuperCluster_ratio->SetLineColor(kGreen+1);
    gr_SuperCluster_ratio->SetMarkerStyle(20);
    gr_SuperCluster_ratio->SetMarkerSize(0.5);
    gr_SuperCluster_ratio->SetMarkerColor(kGreen+1);
    gr_SuperCluster_ratio->SetLineWidth(2); 
    gr_SuperCluster_ratio->GetXaxis()->SetTitle(xtitle.c_str()); 
-   gr_SuperCluster_ratio->GetYaxis()->SetTitle((ytitle+"_"+refLegend+"/"+ytitle+"_"+valLegend).c_str());
+   gr_SuperCluster_ratio->GetYaxis()->SetTitle("Reco/Mustache");
 
-   float min_true = 0.;
-   float max_true = 0.;
-   min_true = 0.99*computeRange(gr_SuperCluster_true).first; 
-   max_true = 1.01*computeRange(gr_SuperCluster_true).second;  
-   
-   float min_must = 0.;
-   float max_must = 0.;
-   min_must = 0.99*computeRange(gr_SuperCluster_must).first; 
-   max_must = 1.01*computeRange(gr_SuperCluster_must).second;  
+   std::vector<float> ranges;
+   ranges.push_back(0.99*computeRange(gr_SuperCluster_ErecoOEtrue).first); 
+   ranges.push_back(1.01*computeRange(gr_SuperCluster_ErecoOEtrue).second);  
+   ranges.push_back(0.99*computeRange(gr_SuperCluster_MustOEtrue).first); 
+   ranges.push_back(1.01*computeRange(gr_SuperCluster_MustOEtrue).second);  
+   //ranges.push_back(0.99*computeRange(gr_SuperCluster_EtrueOEtrue).first); 
+   //ranges.push_back(1.01*computeRange(gr_SuperCluster_EtrueOEtrue).second); 
+   std::sort(ranges.begin(), ranges.end());
 
-   float max = max_true;
-   if(max_must>max_true) max = max_must;
-   float min = min_true;
-   if(min_must<min_true) min = min_must;  
-   gr_SuperCluster_true->GetYaxis()->SetRangeUser(min,max);    
+   float max = ranges.at(ranges.size()-1);
+   float min = ranges.at(0);
+   gr_SuperCluster_ErecoOEtrue->GetYaxis()->SetRangeUser(min,max);    
 
-   TLegend* legend = new TLegend(0.799, 0.77, 0.999, 0.95);
+   TLegend* legend = new TLegend(0.799, 0.73, 0.999, 0.95);
    legend -> SetFillColor(kWhite);
    legend -> SetFillStyle(1000);
    legend -> SetLineWidth(0);
    legend -> SetLineColor(kWhite);
    legend -> SetTextFont(42);  
    legend -> SetTextSize(0.03);
-   legend -> AddEntry(gr_SuperCluster_true,refLegend.c_str(),"L");
-   legend -> AddEntry(gr_SuperCluster_must,valLegend.c_str(),"L");
+   legend -> AddEntry(gr_SuperCluster_ErecoOEtrue,"Reco/True","L");
+   legend -> AddEntry(gr_SuperCluster_MustOEtrue,"Mustache/True","L");
+   //legend -> AddEntry(gr_SuperCluster_EtrueOEtrue,"True/True","L");
 
    TCanvas* c = new TCanvas();
    if(log) c->SetLogx();
-   gr_SuperCluster_true->Draw("APL");
-   gr_SuperCluster_must->Draw("PL, same");
+   gr_SuperCluster_ErecoOEtrue->Draw("APL");
+   gr_SuperCluster_MustOEtrue->Draw("PL, same");
+   //gr_SuperCluster_EtrueOEtrue->Draw("PL, same");
    legend -> Draw("same");
-   c->SaveAs(std::string(Name+".png").c_str(),"png");
-   c->SaveAs(std::string(Name+".pdf").c_str(),"pdf");
+   c->SaveAs(std::string(outDir+Name+".png").c_str(),"png");
+   c->SaveAs(std::string(outDir+Name+".pdf").c_str(),"pdf");
 
    c->cd();
    if(log) c->SetLogx();
    gr_SuperCluster_ratio->Draw("APL");
-   c->SaveAs(std::string(Name+"_ratio.png").c_str(),"png");
-   c->SaveAs(std::string(Name+"_ratio.pdf").c_str(),"pdf");	
+   c->SaveAs(std::string(outDir+Name+"_ratio.png").c_str(),"png");
+   c->SaveAs(std::string(outDir+Name+"_ratio.pdf").c_str(),"pdf");	
 
    gStyle->SetOptStat(1110);
 }
@@ -842,47 +1059,96 @@ void drawH2(TH2F* h2, std::string xtitle, std::string ytitle, string ztitle, std
    gStyle->SetOptStat(1110); 
 }
 
+void drawProfile2(TProfile2D* h2, std::string xtitle, std::string ytitle, string ztitle, std::string Name, float z_min=0., float z_max=1.)
+{
+   gStyle->SetOptStat(0000); 
+
+   h2->GetXaxis()->SetTitle(xtitle.c_str()); 
+   h2->GetYaxis()->SetTitle(ytitle.c_str()); 
+   h2->GetZaxis()->SetTitle(ztitle.c_str());
+   if(z_min!=-1. && z_max!=-1.) h2->GetZaxis()->SetRangeUser(z_min,z_max);
+
+   TCanvas* c = new TCanvas();
+   c->SetLogz(); 
+   h2->Draw("PROFCOLZ");
+   c->SaveAs(std::string(Name+".png").c_str(),"png");
+   c->SaveAs(std::string(Name+".pdf").c_str(),"pdf");
+
+   gStyle->SetOptStat(1110); 
+}
+
 //draw plots
-void drawPlots(std::string fitFunction_, std::vector<std::string> etCuts, std::vector<std::string> etaCuts, std::vector<std::string> scoreCuts, std::string matching_)
+void drawPlots(std::string fitFunction_, std::vector<std::string> etCuts, std::vector<std::string> etaCuts, std::vector<std::string> scoreCuts, std::string matching_, std::string outDir_)
 {
    
    //68% Quantile
-   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_Mustache_seedEt_eff_EB;
-   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_Mustache_seedEt_eff_EE; 
-   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_Mustache_seedEta_eff; 
-   gr_EoEtrue_vs_Mustache_seedEt_eff_EB.resize(etCuts.size()-1);
-   gr_EoEtrue_vs_Mustache_seedEt_eff_EE.resize(etCuts.size()-1); 
-   gr_EoEtrue_vs_Mustache_seedEta_eff.resize(etaCuts.size()-1); 
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_MustOEtrue_vs_simScore_seedEt_eff_EB;
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_MustOEtrue_vs_simScore_seedEt_eff_EE; 
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_MustOEtrue_vs_simScore_seedEta_eff; 
+   gr_MustOEtrue_vs_simScore_seedEt_eff_EB.resize(etCuts.size()-1);
+   gr_MustOEtrue_vs_simScore_seedEt_eff_EE.resize(etCuts.size()-1); 
+   gr_MustOEtrue_vs_simScore_seedEta_eff.resize(etaCuts.size()-1); 
  
-   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_simScore_seedEt_eff_EB;
-   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_simScore_seedEt_eff_EE; 
-   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EoEtrue_vs_simScore_seedEta_eff; 
-   gr_EoEtrue_vs_simScore_seedEt_eff_EB.resize(etCuts.size()-1);
-   gr_EoEtrue_vs_simScore_seedEt_eff_EE.resize(etCuts.size()-1); 
-   gr_EoEtrue_vs_simScore_seedEta_eff.resize(etaCuts.size()-1);  
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_ErecoOEtrue_vs_simScore_seedEt_eff_EB;
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_ErecoOEtrue_vs_simScore_seedEt_eff_EE; 
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_ErecoOEtrue_vs_simScore_seedEta_eff; 
+   gr_ErecoOEtrue_vs_simScore_seedEt_eff_EB.resize(etCuts.size()-1);
+   gr_ErecoOEtrue_vs_simScore_seedEt_eff_EE.resize(etCuts.size()-1); 
+   gr_ErecoOEtrue_vs_simScore_seedEta_eff.resize(etaCuts.size()-1); 
+
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EtrueOEtrue_vs_simScore_seedEt_eff_EB;
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EtrueOEtrue_vs_simScore_seedEt_eff_EE; 
+   std::vector<std::pair<TGraphErrors*,TGraphErrors*>> gr_EtrueOEtrue_vs_simScore_seedEta_eff; 
+   gr_EtrueOEtrue_vs_simScore_seedEt_eff_EB.resize(etCuts.size()-1);
+   gr_EtrueOEtrue_vs_simScore_seedEt_eff_EE.resize(etCuts.size()-1); 
+   gr_EtrueOEtrue_vs_simScore_seedEta_eff.resize(etaCuts.size()-1);  
+
+   system(string("mkdir -p "+outDir_).c_str()); 
+   system(string("cp index.php "+outDir_).c_str()); 
 
    for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++){
-       gr_EoEtrue_vs_simScore_seedEt_eff_EB[iBin] = makeFitProfile(&EoEtrue_vs_scoreThreshold_seedEt_EB[iBin],scoreCuts,matching_,fitFunction_,true); 
-       gr_EoEtrue_vs_Mustache_seedEt_eff_EB[iBin] = makeFitProfile(&EoEtrue_vs_Mustache_seedEt_EB[iBin],scoreCuts,matching_,fitFunction_,true); 
-       drawGraph(gr_EoEtrue_vs_simScore_seedEt_eff_EB[iBin].first,gr_EoEtrue_vs_Mustache_seedEt_eff_EB[iBin].first, matching_, std::string("#mu"), std::string("EoEtrue_vs_simScore_Mean_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EB"), std::string("True"), std::string("Mustache"), true); 
-       drawGraph(gr_EoEtrue_vs_simScore_seedEt_eff_EB[iBin].second, gr_EoEtrue_vs_Mustache_seedEt_eff_EB[iBin].second, matching_, std::string("#sigma"), std::string("EoEtrue_vs_simScore_Resolution_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EB"), std::string("True"), std::string("Mustache"), true);
+       gr_ErecoOEtrue_vs_simScore_seedEt_eff_EB[iBin] = makeFitProfile(&ErecoOEtrue_vs_scoreThreshold_seedEt_EB[iBin],scoreCuts,matching_,fitFunction_,true); 
+       gr_EtrueOEtrue_vs_simScore_seedEt_eff_EB[iBin] = makeFitProfile(&EtrueOEtrue_vs_scoreThreshold_seedEt_EB[iBin],scoreCuts,matching_,fitFunction_,true);    
+       gr_MustOEtrue_vs_simScore_seedEt_eff_EB[iBin] = makeFitProfile(&MustOEtrue_vs_scoreThreshold_seedEt_EB[iBin],scoreCuts,matching_,fitFunction_,true); 
+       drawGraph(gr_ErecoOEtrue_vs_simScore_seedEt_eff_EB[iBin].first, gr_MustOEtrue_vs_simScore_seedEt_eff_EB[iBin].first, gr_EtrueOEtrue_vs_simScore_seedEt_eff_EB[iBin].first, matching_, std::string("#mu"), std::string("EoEtrue_vs_simScore_Mean_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EB"), true, outDir_); 
+       drawGraph(gr_ErecoOEtrue_vs_simScore_seedEt_eff_EB[iBin].second, gr_MustOEtrue_vs_simScore_seedEt_eff_EB[iBin].second, gr_EtrueOEtrue_vs_simScore_seedEt_eff_EB[iBin].second, matching_, std::string("#sigma"), std::string("EoEtrue_vs_simScore_Resolution_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EB"), true, outDir_);
 
-       gr_EoEtrue_vs_simScore_seedEt_eff_EE[iBin] = makeFitProfile(&EoEtrue_vs_scoreThreshold_seedEt_EE[iBin],scoreCuts,matching_,fitFunction_,true); 
-       gr_EoEtrue_vs_Mustache_seedEt_eff_EE[iBin] = makeFitProfile(&EoEtrue_vs_Mustache_seedEt_EE[iBin],scoreCuts,matching_,fitFunction_,true); 
-       drawGraph(gr_EoEtrue_vs_simScore_seedEt_eff_EE[iBin].first,gr_EoEtrue_vs_Mustache_seedEt_eff_EE[iBin].first, matching_, std::string("#mu"), std::string("EoEtrue_vs_simScore_Mean_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EE"), std::string("True"), std::string("Mustache"), true); 
-       drawGraph(gr_EoEtrue_vs_simScore_seedEt_eff_EE[iBin].second,gr_EoEtrue_vs_Mustache_seedEt_eff_EE[iBin].second, matching_, std::string("#sigma"), std::string("EoEtrue_vs_simScore_Resolution_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EE"), std::string("True"), std::string("Mustache"), true); 
+       gr_ErecoOEtrue_vs_simScore_seedEt_eff_EE[iBin] = makeFitProfile(&ErecoOEtrue_vs_scoreThreshold_seedEt_EE[iBin],scoreCuts,matching_,fitFunction_,true); 
+       gr_EtrueOEtrue_vs_simScore_seedEt_eff_EE[iBin] = makeFitProfile(&EtrueOEtrue_vs_scoreThreshold_seedEt_EE[iBin],scoreCuts,matching_,fitFunction_,true); 
+       gr_MustOEtrue_vs_simScore_seedEt_eff_EE[iBin] = makeFitProfile(&MustOEtrue_vs_scoreThreshold_seedEt_EE[iBin],scoreCuts,matching_,fitFunction_,true); 
+       drawGraph(gr_ErecoOEtrue_vs_simScore_seedEt_eff_EE[iBin].first, gr_MustOEtrue_vs_simScore_seedEt_eff_EE[iBin].first, gr_EtrueOEtrue_vs_simScore_seedEt_eff_EE[iBin].first, matching_, std::string("#mu"), std::string("EoEtrue_vs_simScore_Mean_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EE"), true, outDir_); 
+       drawGraph(gr_ErecoOEtrue_vs_simScore_seedEt_eff_EE[iBin].second, gr_MustOEtrue_vs_simScore_seedEt_eff_EE[iBin].second, gr_EtrueOEtrue_vs_simScore_seedEt_eff_EE[iBin].second, matching_, std::string("#sigma"), std::string("EoEtrue_vs_simScore_Resolution_seedEt_"+etCuts.at(iBin)+"_"+etCuts.at(iBin+1)+"_Effective_EE"), true, outDir_); 
    }
 
    for(unsigned int iBin=0; iBin<etaCuts.size()-1; iBin++){
-       gr_EoEtrue_vs_simScore_seedEta_eff[iBin] = makeFitProfile(&EoEtrue_vs_scoreThreshold_seedEta[iBin],scoreCuts,matching_,fitFunction_,true); 
-       gr_EoEtrue_vs_Mustache_seedEta_eff[iBin] = makeFitProfile(&EoEtrue_vs_Mustache_seedEta[iBin],scoreCuts,matching_,fitFunction_,true); 
-       drawGraph(gr_EoEtrue_vs_simScore_seedEta_eff[iBin].first,gr_EoEtrue_vs_Mustache_seedEta_eff[iBin].first, matching_, std::string("#mu"), std::string("EoEtrue_vs_simScore_Mean_seedEt_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_Effective"), std::string("True"), std::string("Mustache"), true); 
-       drawGraph(gr_EoEtrue_vs_simScore_seedEta_eff[iBin].second,gr_EoEtrue_vs_Mustache_seedEta_eff[iBin].second, matching_, std::string("#sigma"), std::string("EoEtrue_vs_simScore_Resolution_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_Effective"), std::string("True"), std::string("Mustache"), true);
+       gr_ErecoOEtrue_vs_simScore_seedEta_eff[iBin] = makeFitProfile(&ErecoOEtrue_vs_scoreThreshold_seedEta[iBin],scoreCuts,matching_,fitFunction_,true); 
+       gr_EtrueOEtrue_vs_simScore_seedEta_eff[iBin] = makeFitProfile(&EtrueOEtrue_vs_scoreThreshold_seedEta[iBin],scoreCuts,matching_,fitFunction_,true); 
+       gr_MustOEtrue_vs_simScore_seedEta_eff[iBin] = makeFitProfile(&MustOEtrue_vs_scoreThreshold_seedEta[iBin],scoreCuts,matching_,fitFunction_,true); 
+       drawGraph(gr_ErecoOEtrue_vs_simScore_seedEta_eff[iBin].first, gr_MustOEtrue_vs_simScore_seedEta_eff[iBin].first, gr_EtrueOEtrue_vs_simScore_seedEta_eff[iBin].first, matching_, std::string("#mu"), std::string("EoEtrue_vs_simScore_Mean_seedEt_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_Effective"), true, outDir_); 
+       drawGraph(gr_ErecoOEtrue_vs_simScore_seedEta_eff[iBin].second, gr_MustOEtrue_vs_simScore_seedEta_eff[iBin].second, gr_EtrueOEtrue_vs_simScore_seedEta_eff[iBin].second, matching_, std::string("#sigma"), std::string("EoEtrue_vs_simScore_Resolution_seedEta_"+etaCuts.at(iBin)+"_"+etaCuts.at(iBin+1)+"_Effective"), true, outDir_);
    }
 
-   /*for(unsigned int scoreBin=0; scoreBin<scoreCuts.size(); scoreBin++)
-       for(unsigned int etBin=0; etBin<etCuts.size()-1; etBin++)
-           for(unsigned int etaBin=0; etaBin<etCuts.size()-1; etaBin++)
-               drawH2(dEtadPhi_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin], std::string("#Delta#phi"), std::string("#Delta#eta"), std::string(""), std::string(dEtadPhi_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->GetName()));*/
+   for(unsigned int scoreBin=0; scoreBin<scoreCuts.size(); scoreBin++){
+       if(scoreCuts.at(scoreBin)!="0.002") continue;
+       for(unsigned int etBin=0; etBin<etCuts.size()-1; etBin++){
+           for(unsigned int etaBin=0; etaBin<etaCuts.size()-1; etaBin++){
+               std::string output_dir = outDir_+"/seedEt_"+etCuts.at(etBin)+"_"+etCuts.at(etBin+1)+"_seedEta_"+etaCuts.at(etaBin)+"_"+etaCuts.at(etaBin+1)+"/";
+               system(string("mkdir -p "+output_dir).c_str()); 
+               system(string("cp index.php "+output_dir).c_str()); 
+               drawH2(dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"dEtadPhi_Calo"));
+               drawH2(dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"dEtadPhi_Calo_inMustache"));
+               drawH2(dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"dEtadPhi_Calo_notMustache"));
+               drawH2(dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"dEtadPhi_Mustache")); 
+               drawH2(dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"dEtadPhi_Mustache_inCalo")); 
+               drawH2(dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"dEtadPhi_Mustache_notCalo")); 
+               drawProfile2(TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"TrueRatio_dEtadPhi_Calo"));
+               drawProfile2(TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"TrueRatio_dEtadPhi_Calo_inMustache"));
+               drawProfile2(TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"TrueRatio_dEtadPhi_Calo_notMustache"));
+               drawProfile2(RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"RecoRatio_dEtadPhi_Calo"), -1., -1.);
+               drawProfile2(RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"RecoRatio_dEtadPhi_Calo_inMustache"), -1., 1.); 
+               drawProfile2(RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[scoreBin][etBin][etaBin], std::string("#Delta#Phi"), std::string("#Delta#eta"), std::string(""), std::string(output_dir+"RecoRatio_dEtadPhi_Calo_notMustache"), -1., 1.);
+           }
+       }  
+   } 
 }
 
