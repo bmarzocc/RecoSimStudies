@@ -127,6 +127,8 @@ class RecoSimDumper : public edm::EDAnalyzer
         
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
+      double ptFast(const double energy, const math::XYZPoint& position, const math::XYZPoint& origin);
+      std::pair<double,double> calculateCovariances(const reco::PFCluster* pfCluster, const EcalRecHitCollection* recHits, const CaloSubdetectorGeometry* geometry);
       std::vector<float> getShowerShapes(reco::CaloCluster* caloBC, const EcalRecHitCollection* recHits, const CaloTopology *topology);
       std::vector<float> getHoE(const reco::SuperCluster* iSuperCluster, EgammaTowerIsolation* towerIso1, EgammaTowerIsolation* towerIso2, const EgammaHadTower* egammaHadTower);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(const CaloParticle* iCaloParticle, float simHitEnergy_cut);
@@ -196,6 +198,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       // ----------histograms & trees & branches-------------------
       TTree* tree;
       std::vector<std::map<uint32_t,float> > caloParticleXtals_;
+      std::pair<double,double> widths_;
       std::vector<float> locCov_;
       std::vector<float> full5x5_locCov_;
       std::vector<float> showerShapes_;
@@ -368,9 +371,12 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > pfClusterHit_ieta;
       std::vector<std::vector<int> > pfClusterHit_iphi;
       std::vector<std::vector<int> > pfClusterHit_iz;
+      std::vector<float> pfCluster_rawEnergy;
       std::vector<float> pfCluster_energy;
+      std::vector<float> pfCluster_rawPt;
+      std::vector<float> pfCluster_pt;
       std::vector<float> pfCluster_eta;
-      std::vector<float> pfCluster_phi;
+      std::vector<float> pfCluster_phi; 
       std::vector<int> pfCluster_ieta;
       std::vector<int> pfCluster_iphi;
       std::vector<int> pfCluster_iz;
@@ -380,6 +386,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > pfCluster_deepSuperClustersIndex;
       std::vector<std::vector<int> > pfCluster_deepSuperClusterLWPsIndex;
       std::vector<std::vector<int> > pfCluster_deepSuperClusterTWPsIndex;
+      std::vector<float> pfCluster_etaWidth; 
+      std::vector<float> pfCluster_phiWidth; 
       std::vector<float> pfCluster_e5x5;
       std::vector<float> pfCluster_e2x2Ratio;
       std::vector<float> pfCluster_e3x3Ratio;
@@ -458,6 +466,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > pfCluster_hgcal_clusterToCalo; 
       std::vector<std::vector<double> > pfCluster_sim_rechit_combined_fraction;
       std::vector<std::vector<double> > pfCluster_rechit_sim_combined_fraction;   
+      std::vector<float> superCluster_rawEnergy;
       std::vector<float> superCluster_energy;
       std::vector<float> superCluster_eta;
       std::vector<float> superCluster_phi;  
@@ -553,6 +562,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<float> > superCluster_psCluster_energy;
       std::vector<std::vector<float> > superCluster_psCluster_eta;
       std::vector<std::vector<float> > superCluster_psCluster_phi;
+      std::vector<float> retunedSuperCluster_rawEnergy;
       std::vector<float> retunedSuperCluster_energy;
       std::vector<float> retunedSuperCluster_eta;
       std::vector<float> retunedSuperCluster_phi;  
@@ -648,7 +658,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_energy;
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_eta;
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_phi;
-      std::vector<float> deepSuperCluster_energy;
+      std::vector<float> deepSuperCluster_rawEnergy;
+      std::vector<float> deepSuperCluster_energy; 
       std::vector<float> deepSuperCluster_eta;
       std::vector<float> deepSuperCluster_phi;  
       std::vector<float> deepSuperCluster_etaWidth;  
@@ -743,6 +754,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<float> > deepSuperCluster_psCluster_energy;
       std::vector<std::vector<float> > deepSuperCluster_psCluster_eta;
       std::vector<std::vector<float> > deepSuperCluster_psCluster_phi;
+      std::vector<float> deepSuperClusterLWP_rawEnergy;
       std::vector<float> deepSuperClusterLWP_energy;
       std::vector<float> deepSuperClusterLWP_eta;
       std::vector<float> deepSuperClusterLWP_phi;  
@@ -838,6 +850,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<float> > deepSuperClusterLWP_psCluster_energy;
       std::vector<std::vector<float> > deepSuperClusterLWP_psCluster_eta;
       std::vector<std::vector<float> > deepSuperClusterLWP_psCluster_phi;
+      std::vector<float> deepSuperClusterTWP_rawEnergy;
       std::vector<float> deepSuperClusterTWP_energy;
       std::vector<float> deepSuperClusterTWP_eta;
       std::vector<float> deepSuperClusterTWP_phi;  
