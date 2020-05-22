@@ -10,7 +10,8 @@
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="FWCore/Framework"/>
 <use   name="FWCore/Utilities"/>
-<use   name="RecoSimStudies/Dumpers">
+<use   name="RecoSimStudies/Dumpers"/>
+<use   name="RecoEcal/EgammaCoreTools"/>
 <flags EDM_PLUGIN="1"/>
 <environment>
   <bin
