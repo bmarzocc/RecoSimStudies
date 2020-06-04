@@ -450,7 +450,18 @@ std::vector<TH1F*> EoEgen_vs_nVtx_EE_old;
 std::vector<TH1F*> EoEgen_vs_nVtx_EE_new;
 std::vector<TH1F*> EoEgen_vs_Rho_EE_old;
 std::vector<TH1F*> EoEgen_vs_Rho_EE_new;
+std::vector<std::vector<TH1F*>> EoEtrue_vs_seedEt_seedEta_old;
+std::vector<std::vector<TH1F*>> EoEtrue_vs_seedEt_seedEta_new;
 
+//DEFINE RESOLUTION MAPS 
+TH2F* h2_EoEtrue_Mean_old;
+TH2F* h2_EoEtrue_Mean_new;
+TH2F* h2_EoEtrue_Mean_Effective_old;
+TH2F* h2_EoEtrue_Mean_Effective_new;
+TH2F* h2_EoEtrue_Resolution_old;
+TH2F* h2_EoEtrue_Resolution_new;
+TH2F* h2_EoEtrue_Resolution_Effective_old;
+TH2F* h2_EoEtrue_Resolution_Effective_new;
 
 //DEFINE BRANCHES
 int nVtx;
@@ -460,8 +471,6 @@ vector<float>   *genParticle_eta;
 vector<float>   *genParticle_phi;
 vector<vector<int> > *genParticle_superCluster_dR_genScore_MatchedIndex;
 vector<vector<int> > *genParticle_deepSuperCluster_dR_genScore_MatchedIndex;
-vector<vector<int>> *caloParticle_superCluster_simScore_MatchedIndex;
-vector<vector<int>> *caloParticle_deepSuperCluster_simScore_MatchedIndex;
 vector<float> *caloParticle_simEnergy;
 vector<float> *caloParticle_simEta;
 vector<float> *caloParticle_simEt;
@@ -470,7 +479,7 @@ vector<float> *caloParticle_genEnergy;
 vector<float> *caloParticle_genEta;
 vector<float> *caloParticle_genEt;
 vector<float> *caloParticle_genPhi;
-vector<float> *superCluster_energy;
+vector<float> *superCluster_rawEnergy;
 vector<float> *superCluster_eta;
 vector<float> *superCluster_phi;
 vector<float> *superCluster_etaWidth;
@@ -490,7 +499,8 @@ vector<int> *superCluster_simScore_MatchedIndex;
 vector<int> *superCluster_dR_genScore_MatchedIndex;
 vector<vector<double>> *superCluster_simScore;
 vector<vector<double>> *superCluster_dR_genScore;
-vector<float> *deepSuperCluster_energy;
+vector<vector<int> > *superCluster_pfClustersIndex;
+vector<float> *deepSuperCluster_rawEnergy;
 vector<float> *deepSuperCluster_eta;
 vector<float> *deepSuperCluster_phi;
 vector<float> *deepSuperCluster_etaWidth;
@@ -506,13 +516,15 @@ vector<float> *deepSuperCluster_full5x5_r9;
 vector<float> *deepSuperCluster_full5x5_sigmaIetaIeta;
 vector<float> *deepSuperCluster_full5x5_sigmaIetaIphi;
 vector<float> *deepSuperCluster_full5x5_sigmaIphiIphi;
-vector<int> *deepSuperCluster_simScore_MatchedIndex;
 vector<int> *deepSuperCluster_dR_genScore_MatchedIndex;
 vector<vector<double>> *deepSuperCluster_dR_genScore;
 vector<vector<double>> *deepSuperCluster_simScore;
+vector<vector<int> > *deepSuperCluster_pfClustersIndex;
 vector<float> *pfCluster_eta;
+vector<float> *pfCluster_rawEnergy;
 vector<float> *pfCluster_energy;
 vector<float> *pfCluster_phi;
+vector<vector<double> > *pfCluster_simScore;
 
 TBranch *b_nVtx;
 TBranch *b_rho;
@@ -521,8 +533,6 @@ TBranch *b_genParticle_eta;
 TBranch *b_genParticle_phi;
 TBranch *b_genParticle_superCluster_dR_genScore_MatchedIndex;
 TBranch *b_genParticle_deepSuperCluster_dR_genScore_MatchedIndex;
-TBranch *b_caloParticle_superCluster_simScore_MatchedIndex;
-TBranch *b_caloParticle_deepSuperCluster_simScore_MatchedIndex;
 TBranch *b_caloParticle_simEnergy;
 TBranch *b_caloParticle_simEta;
 TBranch *b_caloParticle_simEt;
@@ -531,7 +541,7 @@ TBranch *b_caloParticle_genEnergy;
 TBranch *b_caloParticle_genEta;
 TBranch *b_caloParticle_genEt;
 TBranch *b_caloParticle_genPhi;
-TBranch *b_superCluster_energy;
+TBranch *b_superCluster_rawEnergy;
 TBranch *b_superCluster_eta;
 TBranch *b_superCluster_phi;
 TBranch *b_superCluster_etaWidth;
@@ -547,11 +557,11 @@ TBranch *b_superCluster_full5x5_r9;
 TBranch *b_superCluster_full5x5_sigmaIetaIeta;
 TBranch *b_superCluster_full5x5_sigmaIetaIphi;
 TBranch *b_superCluster_full5x5_sigmaIphiIphi;
-TBranch *b_superCluster_simScore_MatchedIndex;
-TBranch *b_superCluster_dR_genScore_MatchedIndex;
 TBranch *b_superCluster_simScore;
 TBranch *b_superCluster_dR_genScore;
-TBranch *b_deepSuperCluster_energy;
+TBranch *b_superCluster_dR_genScore_MatchedIndex;
+TBranch *b_superCluster_pfClustersIndex;
+TBranch *b_deepSuperCluster_rawEnergy;
 TBranch *b_deepSuperCluster_eta;
 TBranch *b_deepSuperCluster_phi;
 TBranch *b_deepSuperCluster_etaWidth;
@@ -567,17 +577,79 @@ TBranch *b_deepSuperCluster_full5x5_r9;
 TBranch *b_deepSuperCluster_full5x5_sigmaIetaIeta;
 TBranch *b_deepSuperCluster_full5x5_sigmaIetaIphi;
 TBranch *b_deepSuperCluster_full5x5_sigmaIphiIphi;
-TBranch *b_deepSuperCluster_simScore_MatchedIndex;
 TBranch *b_deepSuperCluster_dR_genScore_MatchedIndex;
 TBranch *b_deepSuperCluster_dR_genScore;
 TBranch *b_deepSuperCluster_simScore;
+TBranch *b_deepSuperCluster_pfClustersIndex;
 TBranch *b_pfCluster_eta;
 TBranch *b_pfCluster_energy;
 TBranch *b_pfCluster_phi;
+TBranch *b_pfCluster_simScore; 
 
 //setTreeBranches
 void setTreeBranches(TTree* tree, std::string superClusterRef, std::string superClusterVal)
 {
+   tree->SetBranchStatus("*",0);  
+   tree->SetBranchStatus("nVtx",1);
+   tree->SetBranchStatus("rho",1);
+   tree->SetBranchStatus("genParticle_energy",1);
+   tree->SetBranchStatus("genParticle_eta",1);
+   tree->SetBranchStatus("genParticle_phi",1);
+   tree->SetBranchStatus(std::string("genParticle_"+superClusterRef+"_dR_genScore_MatchedIndex").c_str(),1);
+   tree->SetBranchStatus(std::string("genParticle_"+superClusterVal+"_dR_genScore_MatchedIndex").c_str(),1);
+   tree->SetBranchStatus("caloParticle_simEnergy",1);
+   tree->SetBranchStatus("caloParticle_simPt",1);
+   tree->SetBranchStatus("caloParticle_simEta",1);
+   tree->SetBranchStatus("caloParticle_simPhi",1);
+   tree->SetBranchStatus("caloParticle_genEnergy",1);
+   tree->SetBranchStatus("caloParticle_genPt",1);
+   tree->SetBranchStatus("caloParticle_genEta",1);
+   tree->SetBranchStatus("caloParticle_genPhi",1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_rawEnergy").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_eta").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_phi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_etaWidth").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_phiWidth").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_nPFClusters").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_seedIndex").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_rawEnergy").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_eta").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_phi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_etaWidth").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_phiWidth").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_nPFClusters").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_seedIndex").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_dR_genScore_MatchedIndex").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_dR_genScore_MatchedIndex").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_dR_genScore").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_simScore").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_dR_genScore").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_simScore").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_swissCross").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_r9").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_sigmaIetaIeta").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_sigmaIetaIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_sigmaIphiIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_full5x5_r9").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_full5x5_sigmaIetaIeta").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_full5x5_sigmaIetaIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_full5x5_sigmaIphiIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_swissCross").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_r9").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_sigmaIetaIeta").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_sigmaIetaIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_sigmaIphiIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_full5x5_r9").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_full5x5_sigmaIetaIeta").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_full5x5_sigmaIetaIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterVal+"_full5x5_sigmaIphiIphi").c_str(),1);
+   tree->SetBranchStatus(std::string(superClusterRef+"_pfClustersIndex").c_str(),1);  
+   tree->SetBranchStatus(std::string(superClusterVal+"_pfClustersIndex").c_str(),1); 
+   tree->SetBranchStatus("pfCluster_phi",1);
+   tree->SetBranchStatus("pfCluster_eta",1);
+   tree->SetBranchStatus("pfCluster_energy",1);
+   tree->SetBranchStatus("pfCluster_simScore",1);  
+    
    tree->SetBranchAddress("nVtx", &nVtx, &b_nVtx);
    tree->SetBranchAddress("rho", &rho, &b_rho);
    tree->SetBranchAddress("genParticle_energy", &genParticle_energy, &b_genParticle_energy);
@@ -593,16 +665,14 @@ void setTreeBranches(TTree* tree, std::string superClusterRef, std::string super
    tree->SetBranchAddress("caloParticle_genPt", &caloParticle_genEt, &b_caloParticle_genEt);
    tree->SetBranchAddress("caloParticle_genEta", &caloParticle_genEta, &b_caloParticle_genEta);
    tree->SetBranchAddress("caloParticle_genPhi", &caloParticle_genPhi, &b_caloParticle_genPhi);
-   tree->SetBranchAddress(std::string("caloParticle_"+superClusterRef+"_simScore_MatchedIndex").c_str(), &caloParticle_superCluster_simScore_MatchedIndex, &b_caloParticle_superCluster_simScore_MatchedIndex);
-   tree->SetBranchAddress(std::string("caloParticle_"+superClusterVal+"_simScore_MatchedIndex").c_str(), &caloParticle_deepSuperCluster_simScore_MatchedIndex, &b_caloParticle_deepSuperCluster_simScore_MatchedIndex);
-   tree->SetBranchAddress(std::string(superClusterRef+"_energy").c_str(), &superCluster_energy, &b_superCluster_energy);
+   tree->SetBranchAddress(std::string(superClusterRef+"_rawEnergy").c_str(), &superCluster_rawEnergy, &b_superCluster_rawEnergy);
    tree->SetBranchAddress(std::string(superClusterRef+"_eta").c_str(), &superCluster_eta, &b_superCluster_eta);
    tree->SetBranchAddress(std::string(superClusterRef+"_phi").c_str(), &superCluster_phi, &b_superCluster_phi);
    tree->SetBranchAddress(std::string(superClusterRef+"_etaWidth").c_str(), &superCluster_etaWidth, &b_superCluster_etaWidth);
    tree->SetBranchAddress(std::string(superClusterRef+"_phiWidth").c_str(), &superCluster_phiWidth, &b_superCluster_phiWidth);
    tree->SetBranchAddress(std::string(superClusterRef+"_nPFClusters").c_str(), &superCluster_nPFClusters, &b_superCluster_nPFClusters);
    tree->SetBranchAddress(std::string(superClusterRef+"_seedIndex").c_str(), &superCluster_seedIndex, &b_superCluster_seedIndex);
-   tree->SetBranchAddress(std::string(superClusterVal+"_energy").c_str(), &deepSuperCluster_energy, &b_deepSuperCluster_energy);
+   tree->SetBranchAddress(std::string(superClusterVal+"_rawEnergy").c_str(), &deepSuperCluster_rawEnergy, &b_deepSuperCluster_rawEnergy);
    tree->SetBranchAddress(std::string(superClusterVal+"_eta").c_str(), &deepSuperCluster_eta, &b_deepSuperCluster_eta);
    tree->SetBranchAddress(std::string(superClusterVal+"_phi").c_str(), &deepSuperCluster_phi, &b_deepSuperCluster_phi);
    tree->SetBranchAddress(std::string(superClusterVal+"_etaWidth").c_str(), &deepSuperCluster_etaWidth, &b_deepSuperCluster_etaWidth);
@@ -610,9 +680,7 @@ void setTreeBranches(TTree* tree, std::string superClusterRef, std::string super
    tree->SetBranchAddress(std::string(superClusterVal+"_nPFClusters").c_str(), &deepSuperCluster_nPFClusters, &b_deepSuperCluster_nPFClusters);
    tree->SetBranchAddress(std::string(superClusterVal+"_seedIndex").c_str(), &deepSuperCluster_seedIndex, &b_deepSuperCluster_seedIndex);
    tree->SetBranchAddress(std::string(superClusterRef+"_dR_genScore_MatchedIndex").c_str(), &superCluster_dR_genScore_MatchedIndex, &b_superCluster_dR_genScore_MatchedIndex);
-   tree->SetBranchAddress(std::string(superClusterRef+"_simScore_MatchedIndex").c_str(), &superCluster_simScore_MatchedIndex, &b_superCluster_simScore_MatchedIndex);
    tree->SetBranchAddress(std::string(superClusterVal+"_dR_genScore_MatchedIndex").c_str(), &deepSuperCluster_dR_genScore_MatchedIndex, &b_deepSuperCluster_dR_genScore_MatchedIndex);
-   tree->SetBranchAddress(std::string(superClusterVal+"_simScore_MatchedIndex").c_str(), &deepSuperCluster_simScore_MatchedIndex, &b_deepSuperCluster_simScore_MatchedIndex);
    tree->SetBranchAddress(std::string(superClusterRef+"_dR_genScore").c_str(), &superCluster_dR_genScore, &b_superCluster_dR_genScore);
    tree->SetBranchAddress(std::string(superClusterRef+"_simScore").c_str(), &superCluster_simScore, &b_superCluster_simScore);
    tree->SetBranchAddress(std::string(superClusterVal+"_dR_genScore").c_str(), &deepSuperCluster_dR_genScore, &b_deepSuperCluster_dR_genScore);
@@ -635,9 +703,48 @@ void setTreeBranches(TTree* tree, std::string superClusterRef, std::string super
    tree->SetBranchAddress(std::string(superClusterVal+"_full5x5_sigmaIetaIeta").c_str(), &deepSuperCluster_full5x5_sigmaIetaIeta, &b_deepSuperCluster_full5x5_sigmaIetaIeta);
    tree->SetBranchAddress(std::string(superClusterVal+"_full5x5_sigmaIetaIphi").c_str(), &deepSuperCluster_full5x5_sigmaIetaIphi, &b_deepSuperCluster_full5x5_sigmaIetaIphi);
    tree->SetBranchAddress(std::string(superClusterVal+"_full5x5_sigmaIphiIphi").c_str(), &deepSuperCluster_full5x5_sigmaIphiIphi, &b_deepSuperCluster_full5x5_sigmaIphiIphi);
+   tree->SetBranchAddress(std::string(superClusterRef+"_pfClustersIndex").c_str(), &superCluster_pfClustersIndex, &b_superCluster_pfClustersIndex);  
+   tree->SetBranchAddress(std::string(superClusterVal+"_pfClustersIndex").c_str(), &deepSuperCluster_pfClustersIndex, &b_deepSuperCluster_pfClustersIndex);   
    tree->SetBranchAddress("pfCluster_phi", &pfCluster_phi, &b_pfCluster_phi);
    tree->SetBranchAddress("pfCluster_eta", &pfCluster_eta, &b_pfCluster_eta);
    tree->SetBranchAddress("pfCluster_energy", &pfCluster_energy, &b_pfCluster_energy);  
+   tree->SetBranchAddress("pfCluster_simScore", &pfCluster_simScore, &b_pfCluster_simScore); 
+}
+
+//match SuperClusters and CaloParticles
+int map_maxElement(std::map<int,double> m){
+   return std::distance(m.begin(),std::max_element(m.begin(), m.end(), [](const pair<int,double>& p1, const pair<int,double>& p2) {return p1.second < p2.second; }));
+}
+
+std::pair<std::vector<int>,std::vector<int>> matchParticles(std::map<int,std::map<int,double>>* Calo_SC_simScore, std::map<int,std::map<int,double>>* SC_Calo_simScore)
+{ 
+   vector<int> calo_superCluster_MatchedIndex; 
+   for(auto const& calo : *Calo_SC_simScore)
+   {
+      int max = 0; 
+      bool notZero = false;
+      for(auto const& SC : calo.second)
+          if(SC.second!=0.) notZero = true;
+      
+      if (notZero == false) max = -1;
+      else max = map_maxElement(calo.second); 
+      calo_superCluster_MatchedIndex.push_back(max);       
+   }
+
+   vector<int> superCluster_calo_MatchedIndex; 
+   for(auto const& SC : *SC_Calo_simScore)
+   {
+      int max = 0; 
+      bool notZero = false;
+      for(auto const& calo : SC.second)
+          if(calo.second!=0.) notZero = true;
+
+      if (notZero == false) max = -1;
+      else max = map_maxElement(SC.second); 
+      superCluster_calo_MatchedIndex.push_back(max);       
+   }
+   
+   return std::make_pair(calo_superCluster_MatchedIndex,superCluster_calo_MatchedIndex);
 }
 
 //split
@@ -732,7 +839,7 @@ void setEfficiencies()
 }
 
 //set histograms
-void setHistograms(std::vector<std::pair<std::string,std::vector<double>>> binOpts)
+void setHistograms(std::vector<std::pair<std::string,std::vector<double>>> binOpts, std::vector<float> etCuts, std::vector<float> etaCuts)
 {
    std::vector<std::pair<std::string,std::vector<double>>> binOpts_tmp = binOpts; 
    for(unsigned int iBin=0; iBin<binOpts.size(); iBin++)
@@ -1417,7 +1524,39 @@ void setHistograms(std::vector<std::pair<std::string,std::vector<double>>> binOp
    for(int iBin=0; iBin<nBins_Rho_EE; iBin++)
        EoEgen_vs_Rho_EE_new[iBin] = new TH1F(std::string("EoEgen_vs_Rho_EE_new_"+to_string(iBin)).c_str(), std::string("EoEgen_vs_Rho_EE_new_"+to_string(iBin)).c_str(), 10000, 0., 10.);
 
+   EoEtrue_vs_seedEt_seedEta_old.resize(etCuts.size()-1);
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
+   {
+       EoEtrue_vs_seedEt_seedEta_old[iBin].resize(etaCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etaCuts.size()-1; jBin++)
+       {
+           EoEtrue_vs_seedEt_seedEta_old[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_seedEt_"+to_string(etCuts.at(iBin))+"_"+to_string(etCuts.at(iBin+1))+"_seedEta_"+to_string(etaCuts.at(jBin))+"_"+to_string(etaCuts.at(jBin+1))+"_old").c_str(), std::string("EoEtrue_vs_seedEt_"+to_string(etCuts.at(iBin))+"_"+to_string(etCuts.at(iBin+1))+"_seedEta_"+to_string(etaCuts.at(jBin))+"_"+to_string(etaCuts.at(jBin+1))+"_old").c_str(), 10000, 0., 10.);
+       }
+   }
    
+   EoEtrue_vs_seedEt_seedEta_new.resize(etCuts.size()-1);
+   for(unsigned int iBin=0; iBin<etCuts.size()-1; iBin++)
+   {
+       EoEtrue_vs_seedEt_seedEta_new[iBin].resize(etaCuts.size()-1); 
+       for(unsigned int jBin=0; jBin<etaCuts.size()-1; jBin++)
+       {
+           EoEtrue_vs_seedEt_seedEta_new[iBin][jBin] = new TH1F(std::string("EoEtrue_vs_seedEt_"+to_string(etCuts.at(iBin))+"_"+to_string(etCuts.at(iBin+1))+"_seedEta_"+to_string(etaCuts.at(jBin))+"_"+to_string(etaCuts.at(jBin+1))+"_new").c_str(), std::string("EoEtrue_vs_seedEt_"+to_string(etCuts.at(iBin))+"_"+to_string(etCuts.at(iBin+1))+"_seedEta_"+to_string(etaCuts.at(jBin))+"_"+to_string(etaCuts.at(jBin+1))+"_new").c_str(), 10000, 0., 10.);
+       }
+   } 
+
+   h2_EoEtrue_Mean_old = new TH2F("h2_EoEtrue_Mean_old", "h2_EoEtrue_Mean_old", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   h2_EoEtrue_Mean_new = new TH2F("h2_EoEtrue_Mean_new", "h2_EoEtrue_Mean_new", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   h2_EoEtrue_Mean_Effective_old = new TH2F("h2_EoEtrue_Mean_Effective_old", "h2_EoEtrue_Mean_Effective_old", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   h2_EoEtrue_Mean_Effective_new = new TH2F("h2_EoEtrue_Mean_Effective_new", "h2_EoEtrue_Mean_Effective_new", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   h2_EoEtrue_Resolution_old = new TH2F("h2_EoEtrue_Resolution_old", "h2_EoEtrue_Resolution_old", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   h2_EoEtrue_Resolution_new = new TH2F("h2_EoEtrue_Resolution_new", "h2_EoEtrue_Resolution_new", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]);  
+   h2_EoEtrue_Resolution_Effective_old = new TH2F("h2_EoEtrue_Resolution_Effective_old", "h2_EoEtrue_Resolution_Effective_old", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]); 
+   h2_EoEtrue_Resolution_Effective_new = new TH2F("h2_EoEtrue_Resolution_Effective_new", "h2_EoEtrue_Resolution_Effective_new", etCuts.size()-1, &etCuts[0], etaCuts.size()-1, &etaCuts[0]);   
+}
+
+bool float_equals(float a, float b, float epsilon = 0.00001)
+{
+    return std::fabs(a - b) < epsilon;
 }
 
 double my2sideCrystalBall(double* x, double* par) {
@@ -1584,7 +1723,7 @@ void drawHistFunc(TH1F* hist, TF1* func, std::string x_label, std::string Name)
    hist->GetXaxis()->SetTitle(x_label.c_str());
    hist->GetXaxis()->SetRangeUser(hist->GetMean()-1.,hist->GetMean()+1.);   
 
-   func->SetLineColor(kRed+1);
+   func->SetLineColor(kBlue+1);
 
    TLegend* legend = new TLegend(0.57, 0.77, 0.72, 0.89);
    legend -> SetFillColor(kWhite);
@@ -1952,7 +2091,25 @@ void drawHisto(TH1F* h_old, TH1F* h_new, std::string x_label, std::string drawTy
    delete histo_ratio;
 }
 
-TGraphErrors makeRatioGraph(TGraphErrors* gr_SuperCluster, TGraphErrors* gr_DeepSuperCluster)
+void drawH2(TH2F* h2, std::string xtitle, std::string ytitle, string ztitle, std::string Name, bool log = false, float z_min=-1, float z_max=-1)
+{
+   gStyle->SetOptStat(0000); 
+
+   h2->GetXaxis()->SetTitle(xtitle.c_str()); 
+   h2->GetYaxis()->SetTitle(ytitle.c_str()); 
+   h2->GetZaxis()->SetTitle(ztitle.c_str());
+   if(z_min!=-1. && z_max!=-1.) h2->GetZaxis()->SetRangeUser(z_min,z_max);
+
+   TCanvas* c = new TCanvas();
+   if(log) c->SetLogz(); 
+   h2->Draw("COLZ");
+   c->SaveAs(std::string(Name+".png").c_str(),"png");
+   c->SaveAs(std::string(Name+".pdf").c_str(),"pdf");
+
+   gStyle->SetOptStat(1110); 
+}
+
+TGraphErrors* makeRatioGraph(TGraphErrors* gr_SuperCluster, TGraphErrors* gr_DeepSuperCluster)
 {
    TGraphErrors* gr_ratio = new TGraphErrors();
    double x,y_ref,y_val,yErr_ref,yErr_val;
@@ -1969,7 +2126,7 @@ TGraphErrors makeRatioGraph(TGraphErrors* gr_SuperCluster, TGraphErrors* gr_Deep
           gr_ratio->SetPointError(i,0.,0.);
        }   
    } 
-   return *gr_ratio; 
+   return gr_ratio; 
 }
 
 void drawGraph(TGraphErrors* gr_SuperCluster, TGraphErrors* gr_DeepSuperCluster, std::string xtitle, std::string ytitle, std::string Name, std::string refLegend="Mustache", std::string valLegend="DeepSC",float y_min=-1., float y_max=-1.)
@@ -2027,21 +2184,26 @@ void drawGraph(TGraphErrors* gr_SuperCluster, TGraphErrors* gr_DeepSuperCluster,
 
    cDown->cd();
     
-   TGraphErrors gr_ratio = makeRatioGraph(gr_SuperCluster,gr_DeepSuperCluster); 
-   gr_ratio.GetXaxis()->SetTitle(xtitle.c_str()); 
-   gr_ratio.GetYaxis() -> SetTitle(std::string(valLegend+"/"+refLegend).c_str());
-   gr_ratio.GetYaxis() -> SetRangeUser(0.5,1.5);
-   gr_ratio.SetMarkerColor(kBlack);
-   gr_ratio.SetMarkerStyle(20);
-   gr_ratio.SetMarkerSize(0.5);
-   gr_ratio.SetTitle("");
-   gr_ratio.GetXaxis() -> SetLabelSize(0.07);
-   gr_ratio.GetYaxis() -> SetLabelSize(0.07);
-   gr_ratio.GetXaxis() -> SetTitleSize(0.07);
-   gr_ratio.GetYaxis() -> SetTitleSize(0.07);
-   gr_ratio.GetYaxis() -> SetTitleOffset(0.7);
-   gr_ratio.Draw("AP");
-   TF1* f_const = new TF1("f_1", "[0]",gr_ratio.GetXaxis()->GetBinCenter(1)-gr_ratio.GetXaxis()->GetBinWidth(1)/2, gr_ratio.GetXaxis()->GetBinCenter(gr_ratio.GetXaxis()->GetNbins())+gr_ratio.GetXaxis()->GetBinWidth(gr_ratio.GetXaxis()->GetNbins())/2);
+   TGraphErrors* gr_ratio = makeRatioGraph(gr_SuperCluster,gr_DeepSuperCluster); 
+   std::pair<float,float> ratioRange = computeRange(gr_ratio);
+   min = 0.65; 
+   max = 1.35; 
+   if(ratioRange.first*0.9> 0.65) min = ratioRange.first*0.9; 
+   if(ratioRange.second*1.1<1.35) max = ratioRange.second*1.1; 
+   gr_ratio->GetYaxis() -> SetRangeUser(min,max);   
+   gr_ratio->GetXaxis()->SetTitle(xtitle.c_str()); 
+   gr_ratio->GetYaxis() -> SetTitle(std::string(valLegend+"/"+refLegend).c_str());
+   gr_ratio->SetMarkerColor(kBlack);
+   gr_ratio->SetMarkerStyle(20);
+   gr_ratio->SetMarkerSize(0.5);
+   gr_ratio->SetTitle("");
+   gr_ratio->GetXaxis() -> SetLabelSize(0.07);
+   gr_ratio->GetYaxis() -> SetLabelSize(0.07);
+   gr_ratio->GetXaxis() -> SetTitleSize(0.07);
+   gr_ratio->GetYaxis() -> SetTitleSize(0.07);
+   gr_ratio->GetYaxis() -> SetTitleOffset(0.7);
+   gr_ratio->Draw("AP");
+   TF1* f_const = new TF1("f_1", "[0]",gr_ratio->GetXaxis()->GetBinCenter(1)-gr_ratio->GetXaxis()->GetBinWidth(1)/2, gr_ratio->GetXaxis()->GetBinCenter(gr_ratio->GetXaxis()->GetNbins())+gr_ratio->GetXaxis()->GetBinWidth(gr_ratio->GetXaxis()->GetNbins())/2);
    f_const -> FixParameter(0,1);
    f_const -> SetLineColor(kRed);
    //f_const -> SetLineWidth(2);
@@ -2120,12 +2282,123 @@ void drawProfile(TProfile* prof_SuperCluster, TProfile* prof_DeepSuperCluster, s
    gStyle->SetOptStat(1110);
 }
 
+void drawTH2Fits(std::vector<std::vector<TH1F*>> EoEtrue_vs_seedEt_seedEta_old, std::vector<std::vector<TH1F*>> EoEtrue_vs_seedEt_seedEta_new, std::string superClusterRef_, string superClusterVal_, string fitFunction_,  bool doEffective=false)
+{
+   TF1* doubleCB;
+   for(unsigned int iBin=0; iBin<EoEtrue_vs_seedEt_seedEta_old.size(); iBin++){
+       for(unsigned int jBin=0; jBin<EoEtrue_vs_seedEt_seedEta_old[iBin].size(); jBin++) 
+       {
+           if(!doEffective){
+              doubleCB = fitHisto(EoEtrue_vs_seedEt_seedEta_old[iBin][jBin], fitFunction_);
+              float y_mean = doubleCB->GetParameter(0);
+              float y_meanError = doubleCB->GetParError(0);   
+              if(y_meanError>0.1){
+                 y_mean = -1.;
+                 y_meanError = 0.;     
+              }  
+              float y_sigma = (doubleCB->GetParameter(1)+doubleCB->GetParameter(2))/2.;
+              float y_sigmaError = sqrt(doubleCB->GetParError(1)*doubleCB->GetParError(1)+doubleCB->GetParError(2)*doubleCB->GetParError(2))/2.;
+              if(y_sigmaError>0.03){
+                 y_sigma = -1.;
+                 y_sigmaError = 0.;     
+              }    
+              if(y_meanError<0.1 && y_sigmaError<0.03) drawHistFunc(EoEtrue_vs_seedEt_seedEta_old[iBin][jBin],doubleCB, std::string(""), std::string(EoEtrue_vs_seedEt_seedEta_old[iBin][jBin]->GetName())); 
+              if(y_meanError<0.1 && y_sigmaError<0.03 && y_mean<5. && y_sigma<5. && y_mean>0. && y_sigma>0.){
+                 h2_EoEtrue_Mean_old->SetBinContent(iBin+1,jBin+1,y_mean); 
+                 h2_EoEtrue_Resolution_old->SetBinContent(iBin+1,jBin+1,y_sigma); 
+              }
+           }else{
+              std::pair<double,double> effective = computeEffectiveSigma(EoEtrue_vs_seedEt_seedEta_old[iBin][jBin]);
+              float y_mean = effective.first;
+              float y_sigma =  effective.second;
+              if(effective.first>10.) y_mean = -1.; 
+              if(effective.second>10.) y_sigma = -1.; 
+              if(y_mean>0. && y_sigma>0.  && y_mean<5. && y_sigma>5.){
+                 h2_EoEtrue_Mean_Effective_old->SetBinContent(iBin+1,jBin+1,y_mean); 
+                 h2_EoEtrue_Resolution_Effective_old->SetBinContent(iBin+1,jBin+1,y_sigma); 
+              } 
+           } 
+       }
+   }
+
+   for(unsigned int iBin=0; iBin<EoEtrue_vs_seedEt_seedEta_new.size(); iBin++){
+       for(unsigned int jBin=0; jBin<EoEtrue_vs_seedEt_seedEta_new[iBin].size(); jBin++) 
+       {
+           if(!doEffective){
+              doubleCB = fitHisto(EoEtrue_vs_seedEt_seedEta_new[iBin][jBin], fitFunction_);
+              float y_mean = doubleCB->GetParameter(0);
+              float y_meanError = doubleCB->GetParError(0);   
+              if(y_meanError>0.1){
+                 y_mean = -1.;
+                 y_meanError = 0.;     
+              }  
+              float y_sigma = (doubleCB->GetParameter(1)+doubleCB->GetParameter(2))/2.;
+              float y_sigmaError = sqrt(doubleCB->GetParError(1)*doubleCB->GetParError(1)+doubleCB->GetParError(2)*doubleCB->GetParError(2))/2.;
+              if(y_sigmaError>0.03){
+                 y_sigma = -1.;
+                 y_sigmaError = 0.;     
+              }    
+              if(y_meanError<0.1 && y_sigmaError<0.03) drawHistFunc(EoEtrue_vs_seedEt_seedEta_new[iBin][jBin],doubleCB, std::string(""), std::string(EoEtrue_vs_seedEt_seedEta_new[iBin][jBin]->GetName())); 
+              if(y_meanError<0.1 && y_sigmaError<0.03 && y_mean<5. && y_sigma<5. && y_mean>0. && y_sigma>0.){
+                 h2_EoEtrue_Mean_new->SetBinContent(iBin+1,jBin+1,y_mean); 
+                 h2_EoEtrue_Resolution_new->SetBinContent(iBin+1,jBin+1,y_sigma); 
+              }
+           }else{
+              std::pair<double,double> effective = computeEffectiveSigma(EoEtrue_vs_seedEt_seedEta_new[iBin][jBin]);
+              float y_mean = effective.first;
+              float y_sigma =  effective.second;
+              if(effective.first>10.) y_mean = -1.; 
+              if(effective.second>10.) y_sigma = -1.; 
+              if(y_mean>0. && y_sigma>0. && y_mean<5. && y_sigma>5.){
+                 h2_EoEtrue_Mean_Effective_new->SetBinContent(iBin+1,jBin+1,y_mean); 
+                 h2_EoEtrue_Resolution_Effective_new->SetBinContent(iBin+1,jBin+1,y_sigma); 
+              } 
+           } 
+       }
+   }
+
+   std::cout << "SONO QUI 1" << std::endl;
+   TH2F* h2_EoEtrue_Mean_Ratio = (TH2F*)h2_EoEtrue_Mean_old->Clone("h2_EoEtrue_Mean_Ratio"); 
+   TH2F* h2_EoEtrue_Mean_Effective_Ratio = (TH2F*)h2_EoEtrue_Mean_old->Clone("h2_EoEtrue_Mean_Effective_Ratio"); 
+   TH2F* h2_EoEtrue_Resolution_Ratio = (TH2F*)h2_EoEtrue_Mean_old->Clone("h2_EoEtrue_Resolution_Ratio"); 
+   TH2F* h2_EoEtrue_Resolution_Effective_Ratio = (TH2F*)h2_EoEtrue_Mean_old->Clone("h2_EoEtrue_Resolution_Effective_Ratio"); 
+  
+   h2_EoEtrue_Mean_Ratio->SetTitle("h2_EoEtrue_Mean_Ratio");
+   h2_EoEtrue_Mean_Effective_Ratio->SetTitle("h2_EoEtrue_Mean_Effective_Ratio");
+   h2_EoEtrue_Resolution_Ratio->SetTitle("h2_EoEtrue_Resolution_Ratio");
+   h2_EoEtrue_Resolution_Effective_Ratio->SetTitle("h2_EoEtrue_Resolution_Effective_Ratio");
+   h2_EoEtrue_Mean_Ratio->Divide(h2_EoEtrue_Mean_new,h2_EoEtrue_Mean_old);
+   h2_EoEtrue_Mean_Effective_Ratio->Divide(h2_EoEtrue_Mean_Effective_new,h2_EoEtrue_Mean_Effective_old);
+   h2_EoEtrue_Resolution_Ratio->Divide(h2_EoEtrue_Resolution_new,h2_EoEtrue_Resolution_old);
+   h2_EoEtrue_Resolution_Effective_Ratio->Divide(h2_EoEtrue_Resolution_Effective_new,h2_EoEtrue_Resolution_Effective_old);
+
+   std::cout << "SONO QUI 2" << std::endl;
+   drawH2(h2_EoEtrue_Mean_old, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Mean_"+superClusterRef_));
+   drawH2(h2_EoEtrue_Mean_new, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Mean_"+superClusterVal_));
+   drawH2(h2_EoEtrue_Mean_Effective_old, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Mean_Effective_"+superClusterRef_));
+   drawH2(h2_EoEtrue_Mean_Effective_new, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Mean_Effective_"+superClusterVal_));
+   drawH2(h2_EoEtrue_Resolution_old, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Resolution_"+superClusterRef_));
+   drawH2(h2_EoEtrue_Resolution_new, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Resolution_"+superClusterVal_));
+   drawH2(h2_EoEtrue_Resolution_Effective_old, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Resolution_Effective_"+superClusterRef_)); 
+   drawH2(h2_EoEtrue_Resolution_Effective_new, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Resolution_Effective_"+superClusterVal_));
+   std::cout << "SONO QUI 3" << std::endl;
+   drawH2(h2_EoEtrue_Mean_Ratio, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Mean_Ratio")); 
+   drawH2(h2_EoEtrue_Mean_Effective_Ratio, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Mean_Effective_Ratio")); 
+   drawH2(h2_EoEtrue_Resolution_Ratio, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Resolution_Ratio")); 
+   drawH2(h2_EoEtrue_Resolution_Effective_Ratio, std::string("seedEt (GeV)"), std::string("seedEta"), string(""), std::string("h2_EoEtrue_Resolution_Effective_Ratio"));  
+   std::cout << "SONO QUI 4" << std::endl;
+   
+}
+
 //draw plots
 void drawPlots(std::string fitFunction_, string superClusterRef_, string superClusterVal_)
 {
    drawEfficiency(eff_SuperCluster_vs_EtaCalo, eff_DeepSuperCluster_vs_EtaCalo, std::string("caloParticle_#eta"), std::string("Efficiency_vs_CaloEta"), superClusterRef_, superClusterVal_); 
    drawEfficiency(eff_SuperCluster_vs_EtCalo_EB, eff_DeepSuperCluster_vs_EtCalo_EB, std::string("caloParticle_Et (GeV)"), std::string("Efficiency_vs_CaloEt_EB"), superClusterRef_, superClusterVal_); 
    drawEfficiency(eff_SuperCluster_vs_EtCalo_EE, eff_DeepSuperCluster_vs_EtCalo_EE, std::string("caloParticle_Et (GeV)"), std::string("Efficiency_vs_CaloEt_EE"), superClusterRef_, superClusterVal_); 
+
+   drawTH2Fits(EoEtrue_vs_seedEt_seedEta_old, EoEtrue_vs_seedEt_seedEta_new, superClusterRef_, superClusterVal_, fitFunction_, true);
+   drawTH2Fits(EoEtrue_vs_seedEt_seedEta_old, EoEtrue_vs_seedEt_seedEta_new, superClusterRef_, superClusterVal_, fitFunction_, false);
    
    drawProfile(prof_EoEtrue_vs_Eta_Calo_old, prof_EoEtrue_vs_Eta_Calo_new, std::string("caloParticle_#eta"), std::string("SC_E_{Reco}/SC_E_{SIM}"), std::string("Profile_EoEtrue_vs_CaloEta"), superClusterRef_, superClusterVal_);
    drawProfile(prof_EoEtrue_vs_Eta_Seed_old, prof_EoEtrue_vs_Eta_Seed_new, std::string("seed_#eta"), std::string("SC_E_{Reco}/SC_E_{SIM}"), std::string("Profile_EoEtrue_vs_SeedEta"), superClusterRef_, superClusterVal_);

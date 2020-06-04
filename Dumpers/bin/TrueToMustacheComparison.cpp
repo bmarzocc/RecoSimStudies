@@ -56,24 +56,19 @@ int main(int argc, char** argv)
     
     string outDir_           = filesOpt.getParameter<string>( "outDir" );
     int maxEvents_           = filesOpt.getUntrackedParameter<int>( "maxEvents" );
-    string fitFunction_      = filesOpt.getParameter<string>( "fitFunction" );
-    string matching_         = filesOpt.getParameter<string>( "matching" ); 
-    bool useMustacheWindows_ = filesOpt.getParameter<bool>( "useMustacheWindows" );               
+    string fitFunction_      = filesOpt.getParameter<string>( "fitFunction" );        
     string etBinning_        = filesOpt.getParameter<string>( "etBinning" ); 
-    string etaBinning_       = filesOpt.getParameter<string>( "etaBinning" ); 
-    string scoreBinning_     = filesOpt.getParameter<string>( "scoreBinning" ); 
+    string etaBinning_       = filesOpt.getParameter<string>( "etaBinning" );
 
     std::vector<std::string> etCuts        = split(etBinning_,' ');
     std::vector<std::string> etCutsName    = etCuts;
     std::vector<std::string> etaCuts       = split(etaBinning_,' ');
     std::vector<std::string> etaCutsName   = etaCuts;
-    std::vector<std::string> scoreCuts     = split(scoreBinning_,' ');
-    std::vector<std::string> scoreCutsName = scoreCuts;
     
-    setTreeBranches(inputTree_, matching_);
-    setHistograms(scoreCutsName, etCutsName, etaCutsName);
+    setTreeBranches(inputTree_);
+    setHistograms(etCutsName, etaCutsName);
 
-    std::map<int,int> pfCluster_matchedIndex_map;
+    std::vector<int> pfCluster_caloIndex;
 
     std::cout << "Fill histos..." << std::endl;
     for(int entry = 0; entry < inputTree_->GetEntries(); entry++){
@@ -102,151 +97,93 @@ int main(int argc, char** argv)
                 if(fabs(seed_eta)>minEta && fabs(seed_eta)<=maxEta) etaBin = iBin;
             }
        
-            vector<vector<double>> pfCluster_simScore;
-            bool useMax = true;
-
-            if(matching_ == "dR_genScore"){ 
-               pfCluster_simScore = *pfCluster_dR_genScore;
-               useMax = false;  
-            }else if(matching_ == "dR_simScore"){
-               pfCluster_simScore = *pfCluster_dR_simScore;
-               useMax = false;
-            }else if(matching_ == "sim_fraction_old"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_old;
-               useMax = false;
-            }else if(matching_ == "pfCluster_n_shared_xtals"){
-               pfCluster_simScore = *pfCluster_n_shared_xtals;
-               useMax = true;
-            }else if(matching_ == "sim_fraction"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction;
-               useMax = true;
-            }else if(matching_ == "sim_fraction_1MeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_1MeVCut;
-               useMax = true;
-            }else if(matching_ == "sim_fraction_5MeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_5MeVCut;
-               useMax = true;
-            }else if(matching_ == "sim_fraction_10MeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_10MeVCut;
-               useMax = true;
-            }else if(matching_ == "sim_fraction_50MeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_50MeVCut; 
-               useMax = true;
-            }else if(matching_ == "sim_fraction_100MeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_100MeVCut;
-               useMax = true;
-            }else if(matching_ == "sim_fraction_500MeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_500MeVCut;
-               useMax = true;
-            }else if(matching_ == "sim_fraction_1GeVCut"){ 
-               pfCluster_simScore = *pfCluster_sim_fraction_1GeVCut;
-               useMax = true;
-            }else if(matching_ == "sim_rechit_diff"){
-               pfCluster_simScore = *pfCluster_sim_rechit_diff;
-               useMax = false;
-            }else if(matching_ == "sim_rechit_fraction"){
-               pfCluster_simScore = *pfCluster_sim_rechit_fraction;
-               useMax = false;
-            }else if(matching_ == "global_sim_rechit_fraction"){ 
-               pfCluster_simScore = *pfCluster_global_sim_rechit_fraction; 
-               useMax = false; 
-            }
+            pfCluster_caloIndex.clear();
+            pfCluster_caloIndex.resize(pfCluster_rawEnergy->size());
+            for(unsigned int iPF=0; iPF<pfCluster_rawEnergy->size(); iPF++){  
+                int cluster_caloIndex = getMatchedIndex(pfCluster_sim_fraction, 0.002, true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPF);  
+                pfCluster_caloIndex[iPF]= cluster_caloIndex;  
+            }  
  
-            for(unsigned int scoreBin=0; scoreBin<scoreCuts.size(); scoreBin++){  
+            int superCluster_caloIndex = superCluster_sim_fraction_MatchedIndex->at(iSC);
+            int seed_caloIndex = getMatchedIndex(pfCluster_sim_fraction, 0., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), seed_index);
+           
+            if(superCluster_caloIndex<0) continue;  
+            if(seed_caloIndex<0) continue; 
+            if(superCluster_caloIndex!=seed_caloIndex) continue;   
 
-                float minScore = std::stod(scoreCuts.at(scoreBin)); 
+            for(unsigned int iPF=0; iPF<pfCluster_rawEnergy->size(); iPF++){
 
-                int seed_matchedIndex = getMatchedIndex(&pfCluster_simScore, minScore, useMax, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), seed_index); 
-                if(seed_matchedIndex<0) continue;
+                int cluster_caloIndex = pfCluster_caloIndex[iPF];
+                if(cluster_caloIndex!=seed_caloIndex) continue;
 
-                //for(unsigned int iCalo=0; iCalo<pfCluster_simScore.at(superCluster_seedIndex->at(iSC)).size() ; iCalo++)
-                //    std::cout << superCluster_seedIndex->at(iSC) << " - " << iCalo << " - " << pfCluster_simScore.at(superCluster_seedIndex->at(iSC)).at(iCalo) << " - " << seed_matchedIndex << std::endl; 
-      
-                float energy_tot = 0.;   
-                float energy_true_tot = 0.; 
-                pfCluster_matchedIndex_map.clear();
-
-                for(unsigned int iPF=0; iPF<pfCluster_energy->size(); iPF++){
-
-                    int pfCluster_matchedIndex = getMatchedIndex(&pfCluster_simScore, minScore, useMax, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPF);
-                    pfCluster_matchedIndex_map[iPF] = pfCluster_matchedIndex;
-
-                    if(pfCluster_matchedIndex==seed_matchedIndex){
-                       float dphi = TVector2::Phi_mpi_pi(pfCluster_phi->at(seed_index)-pfCluster_phi->at(iPF)); 
-                       float deta = pfCluster_eta->at(seed_index)-pfCluster_eta->at(iPF); 
-                       if(pfCluster_eta->at(seed_index)>0.) deta = -deta; 
+                float dphi = TVector2::Phi_mpi_pi(pfCluster_phi->at(seed_index)-pfCluster_phi->at(iPF)); 
+                float deta = pfCluster_eta->at(seed_index)-pfCluster_eta->at(iPF); 
+                if(pfCluster_eta->at(seed_index)>0.) deta = -deta; 
                  
-                       bool pass_dphi_must = reco::MustacheKernel::inDynamicDPhiWindow(pfCluster_eta->at(seed_index), pfCluster_phi->at(seed_index), pfCluster_rawEnergy->at(iPF), pfCluster_eta->at(iPF), pfCluster_phi->at(iPF)); 
-                       bool pass_deta_must = reco::MustacheKernel::inMustache(pfCluster_eta->at(seed_index), pfCluster_phi->at(seed_index), pfCluster_rawEnergy->at(iPF), pfCluster_eta->at(iPF), pfCluster_phi->at(iPF)); 
+                bool pass_dphi_must = reco::MustacheKernel::inDynamicDPhiWindow(pfCluster_eta->at(seed_index), pfCluster_phi->at(seed_index), pfCluster_rawEnergy->at(iPF), pfCluster_eta->at(iPF), pfCluster_phi->at(iPF)); 
+                bool pass_deta_must = reco::MustacheKernel::inMustache(pfCluster_eta->at(seed_index), pfCluster_phi->at(seed_index), pfCluster_rawEnergy->at(iPF), pfCluster_eta->at(iPF), pfCluster_phi->at(iPF)); 
 
-                       double simScore = pfCluster_simScore.at(iPF).at(pfCluster_matchedIndex); 
-                       double recoRatio = pfCluster_rawEnergy->at(iPF)/(simScore*caloParticle_simEnergy->at(seed_matchedIndex));
-                       if(etaBin>=0 && etBin>=0 && dphi!=0. && deta!=0.){ 
-                          dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(dphi,deta);
-                          TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(dphi,deta,simScore); 
-                          RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(dphi,deta,recoRatio); 
-                          if(pass_dphi_must && pass_deta_must){ 
-                            dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[scoreBin][etBin][etaBin]->Fill(dphi,deta);
-                            TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[scoreBin][etBin][etaBin]->Fill(dphi,deta,simScore); 
-                            RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_inMustache[scoreBin][etBin][etaBin]->Fill(dphi,deta,recoRatio); 
-                          } 
-                          if(!pass_dphi_must || !pass_deta_must){ 
-                            dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[scoreBin][etBin][etaBin]->Fill(dphi,deta);
-                            TrueRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[scoreBin][etBin][etaBin]->Fill(dphi,deta,simScore);
-                            RecoRatio_dEtadPhi_Calo_vs_scoreThreshold_seedEta_seedEt_notMustache[scoreBin][etBin][etaBin]->Fill(dphi,deta,recoRatio);  
-                          } 
-                       }
+                double simScore = pfCluster_sim_fraction->at(iPF).at(seed_caloIndex); 
+                double simScore_withFraction = pfCluster_sim_fraction_withFraction->at(iPF).at(seed_caloIndex); 
+                double RecoToCalo = pfCluster_rawEnergy->at(iPF)/(simScore*caloParticle_simEnergy->at(seed_caloIndex));
+                double recoToSeed = pfCluster_rawEnergy->at(iPF)/pfCluster_rawEnergy->at(seed_index); 
+                if(simScore<=0. || simScore_withFraction<=0.) continue;
    
-                       if(useMustacheWindows_ && (!pass_dphi_must || !pass_deta_must)) continue; 
-
-                       energy_tot += pfCluster_rawEnergy->at(iPF); 
-                       energy_true_tot += pfCluster_simScore.at(iPF).at(seed_matchedIndex)*caloParticle_simEnergy->at(seed_matchedIndex); 
-                    }     
+                if(etaBin>=0 && etBin>=0)
+                { 
+                   if(dphi!=0. && deta!=0.) dEtadPhi_Calo_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta);
+                   SimFraction_dEtadPhi_Calo_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta,simScore); 
+                   SimFraction_withHitFraction_dEtadPhi_Calo_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta,simScore_withFraction); 
+                   RecoToCalo_dEtadPhi_Calo_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta,RecoToCalo); 
+                   RecoToSeed_dEtadPhi_Calo_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta,recoToSeed);
+               
+                   if(pass_dphi_must && pass_deta_must){ 
+                      if(dphi!=0. && deta!=0.) dEtadPhi_Calo_vs_seedEt_seedEta_inMustache[etBin][etaBin]->Fill(dphi,deta);
+                      SimFraction_dEtadPhi_Calo_vs_seedEt_seedEta_inMustache[etBin][etaBin]->Fill(dphi,deta,simScore); 
+                      SimFraction_withHitFraction_dEtadPhi_Calo_vs_seedEt_seedEta_inMustache[etBin][etaBin]->Fill(dphi,deta,simScore_withFraction);  
+                      RecoToCalo_dEtadPhi_Calo_vs_seedEt_seedEta_inMustache[etBin][etaBin]->Fill(dphi,deta,RecoToCalo); 
+                      RecoToSeed_dEtadPhi_Calo_vs_seedEt_seedEta_inMustache[etBin][etaBin]->Fill(dphi,deta,recoToSeed);  
+                   } 
+                   if(!pass_dphi_must || !pass_deta_must){ 
+                      if(dphi!=0. && deta!=0.) dEtadPhi_Calo_vs_seedEt_seedEta_notMustache[etBin][etaBin]->Fill(dphi,deta);
+                      SimFraction_dEtadPhi_Calo_vs_seedEt_seedEta_notMustache[etBin][etaBin]->Fill(dphi,deta,simScore);
+                      SimFraction_withHitFraction_dEtadPhi_Calo_vs_seedEt_seedEta_notMustache[etBin][etaBin]->Fill(dphi,deta,simScore_withFraction);
+                      RecoToCalo_dEtadPhi_Calo_vs_seedEt_seedEta_notMustache[etBin][etaBin]->Fill(dphi,deta,RecoToCalo); 
+                      RecoToSeed_dEtadPhi_Calo_vs_seedEt_seedEta_notMustache[etBin][etaBin]->Fill(dphi,deta,recoToSeed);  
+                   } 
+                   
+                   for(unsigned int hit=0; hit<pfClusterHit_fraction->at(iPF).size(); hit++)
+                   {
+                       if(pfClusterHit_phi->at(iPF).at(hit)<=0.) continue;
+                       //dphi = TVector2::Phi_mpi_pi(pfCluster_phi->at(seed_index)-pfClusterHit_phi->at(iPF).at(hit)); 
+                       //deta = pfCluster_eta->at(seed_index)-pfClusterHit_eta->at(iPF).at(hit); 
+                       //if(pfCluster_eta->at(seed_index)>0.) deta = -deta; 
+             
+                       HitFraction_dEtadPhi_Calo_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta,pfClusterHit_fraction->at(iPF).at(hit));
+                       if(pass_dphi_must && pass_deta_must) HitFraction_dEtadPhi_Calo_vs_seedEt_seedEta_inMustache[etBin][etaBin]->Fill(dphi,deta,pfClusterHit_fraction->at(iPF).at(hit));
+                       if(!pass_dphi_must || !pass_deta_must) HitFraction_dEtadPhi_Calo_vs_seedEt_seedEta_notMustache[etBin][etaBin]->Fill(dphi,deta,pfClusterHit_fraction->at(iPF).at(hit));
+                   } 
+                } 
+            }    
   
+         
+            for(unsigned int iPF=0; iPF<superCluster_pfClustersIndex->at(iSC).size(); iPF++)
+            {  
+                int pfCluster_index = superCluster_pfClustersIndex->at(iSC).at(iPF);          
+                float dphi = TVector2::Phi_mpi_pi(pfCluster_phi->at(seed_index)-pfCluster_phi->at(pfCluster_index)); 
+                float deta = pfCluster_eta->at(seed_index)-pfCluster_eta->at(pfCluster_index); 
+                if(pfCluster_eta->at(seed_index)>0.) deta = -deta;
+       
+                int cluster_caloIndex = pfCluster_caloIndex[pfCluster_index];        
+                if(etaBin>=0 && etBin>=0 && dphi!=0. && deta!=0.){  
+                   dEtadPhi_Mustache_vs_seedEt_seedEta[etBin][etaBin]->Fill(dphi,deta); 
+                   if(cluster_caloIndex==seed_caloIndex) dEtadPhi_Mustache_vs_seedEt_seedEta_inCalo[etBin][etaBin]->Fill(dphi,deta); 
+                   if(cluster_caloIndex!=seed_caloIndex) dEtadPhi_Mustache_vs_seedEt_seedEta_notCalo[etBin][etaBin]->Fill(dphi,deta); 
                 }
-
-                for(unsigned int iPF=0; iPF<superCluster_pfClustersIndex->at(iSC).size(); iPF++){  
-
-                    int pfCluster_index = superCluster_pfClustersIndex->at(iSC).at(iPF);          
-                    float dphi = TVector2::Phi_mpi_pi(pfCluster_phi->at(seed_index)-pfCluster_phi->at(pfCluster_index)); 
-                    float deta = pfCluster_eta->at(seed_index)-pfCluster_eta->at(pfCluster_index); 
-                    if(pfCluster_eta->at(seed_index)>0.) deta = -deta;
-
-                    if(etaBin>=0 && etBin>=0 && dphi!=0. && deta!=0.) dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(dphi,deta);  
-     
-                    int pfCluster_matchedIndex = pfCluster_matchedIndex_map[pfCluster_index];
-
-                    if(pfCluster_matchedIndex==seed_matchedIndex && etaBin>=0 && etBin>=0 && dphi!=0. && deta!=0.){  
-                       dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_inCalo[scoreBin][etBin][etaBin]->Fill(dphi,deta); 
-                    }else if(pfCluster_matchedIndex!=seed_matchedIndex && etaBin>=0 && etBin>=0 && dphi!=0. && deta!=0.){
-                       dEtadPhi_Mustache_vs_scoreThreshold_seedEta_seedEt_notCalo[scoreBin][etBin][etaBin]->Fill(dphi,deta); 
-                    }
-                }
-
-                float EoEtrue_must = superCluster_rawEnergy->at(iSC)/caloParticle_simEnergy->at(seed_matchedIndex); 
-                if(etBin>=0 && superCluster_iz->at(iSC)==0) MustOEtrue_vs_scoreThreshold_seedEt_EB[etBin][scoreBin]->Fill(EoEtrue_must);
-                if(etBin>=0 && superCluster_iz->at(iSC)!=0) MustOEtrue_vs_scoreThreshold_seedEt_EE[etBin][scoreBin]->Fill(EoEtrue_must);
-                if(etaBin>=0) MustOEtrue_vs_scoreThreshold_seedEta[etaBin][scoreBin]->Fill(EoEtrue_must);
-                if(etaBin>=0 && etBin>=0) MustOEtrue_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(EoEtrue_must);
-
-                float EoEtrue = energy_tot/caloParticle_simEnergy->at(seed_matchedIndex); 
-                if(etBin>=0 && superCluster_iz->at(iSC)==0) ErecoOEtrue_vs_scoreThreshold_seedEt_EB[etBin][scoreBin]->Fill(EoEtrue);
-                if(etBin>=0 && superCluster_iz->at(iSC)!=0) ErecoOEtrue_vs_scoreThreshold_seedEt_EE[etBin][scoreBin]->Fill(EoEtrue);
-                if(etaBin>=0) ErecoOEtrue_vs_scoreThreshold_seedEta[etaBin][scoreBin]->Fill(EoEtrue);
-                if(etaBin>=0 && etBin>=0) ErecoOEtrue_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(EoEtrue);
-
-                float EtrueOEtrue = energy_true_tot/caloParticle_simEnergy->at(seed_matchedIndex); 
-                if(etBin>=0 && superCluster_iz->at(iSC)==0) EtrueOEtrue_vs_scoreThreshold_seedEt_EB[etBin][scoreBin]->Fill(EtrueOEtrue);
-                if(etBin>=0 && superCluster_iz->at(iSC)!=0) EtrueOEtrue_vs_scoreThreshold_seedEt_EE[etBin][scoreBin]->Fill(EtrueOEtrue);
-                if(etaBin>=0) EtrueOEtrue_vs_scoreThreshold_seedEta[etaBin][scoreBin]->Fill(EtrueOEtrue);
-                if(etaBin>=0 && etBin>=0) EtrueOEtrue_vs_scoreThreshold_seedEta_seedEt[scoreBin][etBin][etaBin]->Fill(EtrueOEtrue); 
-
-
-                //std::cout << etaBin << " - " << etBin << " - " << scoreBin << std::endl; 
             }
         } 
     }
     
-    drawPlots(fitFunction_, etCuts, etaCuts, scoreCuts, matching_, outDir_);
+    drawPlots(etCuts, etaCuts, outDir_);
    
 }

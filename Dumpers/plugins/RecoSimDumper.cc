@@ -203,7 +203,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          if(!saveScores_) tree->Branch("caloParticle_pfCluster_simScore_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_simScore_MatchedIndex);
          if(saveScores_){
             tree->Branch("caloParticle_pfCluster_n_shared_xtals_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_n_shared_xtals_MatchedIndex);
-            tree->Branch("caloParticle_pfCluster_sim_fraction_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_MatchedIndex);
+            tree->Branch("caloParticle_pfCluster_sim_fraction_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_MatchedIndex);      
+            tree->Branch("caloParticle_pfCluster_sim_fraction_withFraction_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_withFraction_MatchedIndex);
             tree->Branch("caloParticle_pfCluster_sim_fraction_1MeVCut_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_1MeVCut_MatchedIndex);
             tree->Branch("caloParticle_pfCluster_sim_fraction_5MeVCut_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_5MeVCut_MatchedIndex);
             tree->Branch("caloParticle_pfCluster_sim_fraction_10MeVCut_MatchedIndex","std::vector<std::vector<int> >",&caloParticle_pfCluster_sim_fraction_10MeVCut_MatchedIndex);
@@ -376,6 +377,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          if(saveScores_){
             tree->Branch("pfCluster_n_shared_xtals_MatchedIndex","std::vector<int>",&pfCluster_n_shared_xtals_MatchedIndex);
             tree->Branch("pfCluster_sim_fraction_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_MatchedIndex);
+            tree->Branch("pfCluster_sim_fraction_withFraction_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_withFraction_MatchedIndex);
             tree->Branch("pfCluster_sim_fraction_1MeVCut_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_1MeVCut_MatchedIndex); 
             tree->Branch("pfCluster_sim_fraction_5MeVCut_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_5MeVCut_MatchedIndex);
             tree->Branch("pfCluster_sim_fraction_10MeVCut_MatchedIndex","std::vector<int>",&pfCluster_sim_fraction_10MeVCut_MatchedIndex);
@@ -400,6 +402,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          if(saveScores_){
             tree->Branch("pfCluster_n_shared_xtals","std::vector<std::vector<double> >",&pfCluster_n_shared_xtals);
             tree->Branch("pfCluster_sim_fraction","std::vector<std::vector<double> >",&pfCluster_sim_fraction);
+            tree->Branch("pfCluster_sim_fraction_withFraction","std::vector<std::vector<double> >",&pfCluster_sim_fraction_withFraction);
             tree->Branch("pfCluster_sim_fraction_1MeVCut","std::vector<std::vector<double> >",&pfCluster_sim_fraction_1MeVCut);
             tree->Branch("pfCluster_sim_fraction_5MeVCut","std::vector<std::vector<double> >",&pfCluster_sim_fraction_5MeVCut);
             tree->Branch("pfCluster_sim_fraction_10MeVCut","std::vector<std::vector<double> >",&pfCluster_sim_fraction_10MeVCut);
@@ -417,7 +420,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
          }
       }
       if(savePFClusterhits_){ 
-         tree->Branch("pfClusterHit_energy","std::vector<std::vector<float> >",&pfClusterHit_energy);
+         tree->Branch("pfClusterHit_fraction","std::vector<std::vector<float> >",&pfClusterHit_fraction);
          tree->Branch("pfClusterHit_rechitEnergy","std::vector<std::vector<float> >",&pfClusterHit_rechitEnergy);
          tree->Branch("pfClusterHit_eta","std::vector<std::vector<float> >",&pfClusterHit_eta);
          tree->Branch("pfClusterHit_phi","std::vector<std::vector<float> >",&pfClusterHit_phi);
@@ -1292,6 +1295,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_pfCluster_simScore_MatchedIndex.clear();
    caloParticle_pfCluster_n_shared_xtals_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_MatchedIndex.clear();
+   caloParticle_pfCluster_sim_fraction_withFraction_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_1MeVCut_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_5MeVCut_MatchedIndex.clear();
    caloParticle_pfCluster_sim_fraction_10MeVCut_MatchedIndex.clear();
@@ -1406,6 +1410,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    caloParticle_pfCluster_simScore_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_n_shared_xtals_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_MatchedIndex.resize(nCaloParticles);
+   caloParticle_pfCluster_sim_fraction_withFraction_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_1MeVCut_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_5MeVCut_MatchedIndex.resize(nCaloParticles);
    caloParticle_pfCluster_sim_fraction_10MeVCut_MatchedIndex.resize(nCaloParticles);
@@ -1604,6 +1609,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_simScore_MatchedIndex.clear();
    pfCluster_n_shared_xtals_MatchedIndex.clear();
    pfCluster_sim_fraction_MatchedIndex.clear();
+   pfCluster_sim_fraction_withFraction_MatchedIndex.clear();
    pfCluster_sim_fraction_1MeVCut_MatchedIndex.clear();
    pfCluster_sim_fraction_5MeVCut_MatchedIndex.clear();
    pfCluster_sim_fraction_10MeVCut_MatchedIndex.clear();
@@ -1624,6 +1630,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_simScore.clear();
    pfCluster_n_shared_xtals.clear();
    pfCluster_sim_fraction.clear();
+   pfCluster_sim_fraction_withFraction.clear();
    pfCluster_sim_fraction_1MeVCut.clear();
    pfCluster_sim_fraction_5MeVCut.clear();
    pfCluster_sim_fraction_10MeVCut.clear();
@@ -1644,6 +1651,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_simScore.resize(nPFClusters);
    pfCluster_n_shared_xtals.resize(nPFClusters);
    pfCluster_sim_fraction.resize(nPFClusters);
+   pfCluster_sim_fraction_withFraction.resize(nPFClusters);
    pfCluster_sim_fraction_1MeVCut.resize(nPFClusters);
    pfCluster_sim_fraction_5MeVCut.resize(nPFClusters);
    pfCluster_sim_fraction_10MeVCut.resize(nPFClusters);
@@ -1664,14 +1672,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    pfCluster_deepSuperClusterLWPsIndex.resize(nPFClusters); 
    pfCluster_deepSuperClusterTWPsIndex.resize(nPFClusters); 
 
-   pfClusterHit_energy.clear();
+   pfClusterHit_fraction.clear();
    pfClusterHit_rechitEnergy.clear();
    pfClusterHit_eta.clear();
    pfClusterHit_phi.clear();   
    pfClusterHit_ieta.clear();
    pfClusterHit_iphi.clear(); 
    pfClusterHit_iz.clear();           
-   pfClusterHit_energy.resize(nPFClusters);  
+   pfClusterHit_fraction.resize(nPFClusters);  
    pfClusterHit_rechitEnergy.resize(nPFClusters);  
    pfClusterHit_eta.resize(nPFClusters);  
    pfClusterHit_phi.resize(nPFClusters);     
@@ -2471,6 +2479,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           simScore.clear();
           n_shared_xtals.clear();
           sim_fraction.clear();
+          sim_fraction_withFraction.clear();
           sim_fraction_1MeVCut.clear();
           sim_fraction_5MeVCut.clear();
           sim_fraction_10MeVCut.clear();
@@ -2602,10 +2611,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }  
           
           if(savePFClusterhits_){
-             //for save PFClusterHit      
+             //for save PFClusterHit    
+             const std::vector<std::pair<DetId,float> > &hitsAndFractions = iPFCluster.hitsAndFractions();  
              for(unsigned int i = 0; i < hitsAndEnergies_PFCluster.at(iPFCl).size(); i++){      
                  cell = geometry->getPosition(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first);
-                 pfClusterHit_energy[iPFCl].push_back(reduceFloat(hitsAndEnergies_PFCluster.at(iPFCl).at(i).second,nBits_));
+                 for(unsigned int hits=0; hits<hitsAndFractions.size(); hits++){
+                      if(hitsAndFractions.at(hits).first.rawId() == hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId())
+                         pfClusterHit_fraction[iPFCl].push_back(hitsAndFractions.at(hits).second);
+                 }
                  pfClusterHit_eta[iPFCl].push_back(reduceFloat(cell.eta(),nBits_));
                  pfClusterHit_phi[iPFCl].push_back(reduceFloat(cell.phi(),nBits_));
                  if(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.subdetId()==EcalBarrel){ 
@@ -2639,7 +2652,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           if(saveCaloParticles_){ 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  caloParticle_position = calculateAndSetPositionActual(&hitsAndEnergies_CaloPart.at(iCalo), 7.4, 3.1, 1.2, 4.2, 0.89, 0.,false);
-                 std::vector<double> scores = getScores(&hitsAndEnergies_PFCluster.at(iPFCl),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE); 
+                 std::vector<double> scores = getScores(&hitsAndEnergies_PFCluster.at(iPFCl),&hitsAndEnergies_CaloPart.at(iCalo),recHitsEB,recHitsEE,&iPFCluster); 
                  std::vector<double> scores_1MeVCut = getScores(&hitsAndEnergies_PFCluster.at(iPFCl), &hitsAndEnergies_CaloPart_1MeVCut.at(iCalo), recHitsEB, recHitsEE);    
                  std::vector<double> scores_5MeVCut = getScores(&hitsAndEnergies_PFCluster.at(iPFCl), &hitsAndEnergies_CaloPart_5MeVCut.at(iCalo), recHitsEB, recHitsEE); 
                  std::vector<double> scores_10MeVCut = getScores(&hitsAndEnergies_PFCluster.at(iPFCl), &hitsAndEnergies_CaloPart_10MeVCut.at(iCalo), recHitsEB, recHitsEE); 
@@ -2650,6 +2663,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
  
                  if(scoreType_=="n_shared_xtals") simScore.push_back(scores[0]);  
                  if(scoreType_=="sim_fraction") simScore.push_back(scores[1]);  
+                 if(scoreType_=="sim_fraction_withFraction") simScore.push_back(scores[19]); 
                  if(scoreType_=="simScore_final_combination") simScore.push_back(scores[1]);  
                  if(scoreType_=="sim_fraction_1MeVCut") simScore.push_back(scores[10]);  
                  if(scoreType_=="sim_fraction_5MeVCut") simScore.push_back(scores[11]);  
@@ -2669,6 +2683,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  sim_fraction_old.push_back(scores[9]);  
                  n_shared_xtals.push_back(scores[0]);  
                  sim_fraction.push_back(scores[1]);  
+                 sim_fraction_withFraction.push_back(scores[19]);  
                  sim_fraction_1MeVCut.push_back(scores[10]);  
                  sim_fraction_5MeVCut.push_back(scores[11]);  
                  sim_fraction_10MeVCut.push_back(scores[12]);  
@@ -2691,6 +2706,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_simScore[iPFCl] = simScore; 
              pfCluster_n_shared_xtals[iPFCl] = n_shared_xtals;
              pfCluster_sim_fraction[iPFCl] = sim_fraction; 
+             pfCluster_sim_fraction_withFraction[iPFCl] = sim_fraction_withFraction; 
              pfCluster_sim_fraction_1MeVCut[iPFCl] = sim_fraction_1MeVCut; 
              pfCluster_sim_fraction_5MeVCut[iPFCl] = sim_fraction_5MeVCut;  
              pfCluster_sim_fraction_10MeVCut[iPFCl] = sim_fraction_10MeVCut;  
@@ -2718,7 +2734,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                 } 
              }else{
                 pfCluster_n_shared_xtals_MatchedIndex.push_back(getMatchedIndex(&pfCluster_n_shared_xtals, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));     
-                pfCluster_sim_fraction_MatchedIndex.push_back(getMatchedIndex(&pfCluster_sim_fraction, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));    
+                pfCluster_sim_fraction_MatchedIndex.push_back(getMatchedIndex(&pfCluster_sim_fraction, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));     
+                pfCluster_sim_fraction_withFraction_MatchedIndex.push_back(getMatchedIndex(&pfCluster_sim_fraction_withFraction, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));  
                 pfCluster_sim_fraction_1MeVCut_MatchedIndex.push_back(getMatchedIndex(&pfCluster_sim_fraction_1MeVCut, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));   
                 pfCluster_sim_fraction_5MeVCut_MatchedIndex.push_back(getMatchedIndex(&pfCluster_sim_fraction_5MeVCut, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));   
                 pfCluster_sim_fraction_10MeVCut_MatchedIndex.push_back(getMatchedIndex(&pfCluster_sim_fraction_10MeVCut, -999., true, std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), std::vector<std::vector<std::vector<double>>>({}), std::vector<double>({}), iPFCl));   
@@ -2752,6 +2769,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }else{
          fillParticleMatchedIndex(&caloParticle_pfCluster_n_shared_xtals_MatchedIndex,&pfCluster_n_shared_xtals_MatchedIndex);  
          fillParticleMatchedIndex(&caloParticle_pfCluster_sim_fraction_MatchedIndex,&pfCluster_sim_fraction_MatchedIndex);  
+         fillParticleMatchedIndex(&caloParticle_pfCluster_sim_fraction_withFraction_MatchedIndex,&pfCluster_sim_fraction_withFraction_MatchedIndex);   
          fillParticleMatchedIndex(&caloParticle_pfCluster_sim_fraction_1MeVCut_MatchedIndex,&pfCluster_sim_fraction_1MeVCut_MatchedIndex); 
          fillParticleMatchedIndex(&caloParticle_pfCluster_sim_fraction_5MeVCut_MatchedIndex,&pfCluster_sim_fraction_5MeVCut_MatchedIndex); 
          fillParticleMatchedIndex(&caloParticle_pfCluster_sim_fraction_10MeVCut_MatchedIndex,&pfCluster_sim_fraction_10MeVCut_MatchedIndex); 
@@ -5440,13 +5458,14 @@ std::vector<std::pair<DetId, float> >* RecoSimDumper::getHitsAndEnergiesSC(const
     return HitsAndEnergies_SuperCluster_tmp;
 }
 
-std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE)
+std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE, const reco::PFCluster* pfCluster)
 {
     std::vector<double> scores;
-    scores.resize(19);
+    scores.resize(20);
 
     double nSharedXtals=0;
     double simFraction=0.;
+    double simFraction_withFraction=0.;
     double simFraction_old=0.;
     double sim_rechit_diff=0.;
     double sim_rechit_fraction=0.;     
@@ -5470,16 +5489,26 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
         rechits_tot_Cluster_noEnergy+=1.;
     }
    
+    const std::vector<std::pair<DetId,float> >* hitsAndFractions = NULL;
+    if(pfCluster!=NULL) hitsAndFractions = &pfCluster->hitsAndFractions(); 
+
     double rechits_match_Cluster = 0.;
     double rechits_match_CaloPart = 0.;
+    double rechits_match_CaloPart_withFraction = 0.; 
     double rechits_match_CaloPart_noEnergy = 0.;
     for(const std::pair<DetId, float>& hit_Cluster : *hits_and_energies_Cluster){     
         for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart){  
             if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
-
+               
                rechits_match_Cluster += hit_Cluster.second;
                rechits_match_CaloPart += hit_CaloPart.second;    
                rechits_match_CaloPart_noEnergy += 1.0;
+               if(pfCluster!=NULL){
+                  for(unsigned int hits=0; hits<hitsAndFractions->size(); hits++){
+                      if(hitsAndFractions->at(hits).first.rawId() == hit_Cluster.first.rawId())
+                         rechits_match_CaloPart_withFraction += hit_CaloPart.second*hitsAndFractions->at(hits).second; 
+                  }
+               }
 
                sim_rechit_diff += fabs(hit_CaloPart.second-hit_Cluster.second);
 
@@ -5543,6 +5572,10 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     else simFraction=-999.; 
     if(simFraction==0.) simFraction=-999.;
 
+    if(rechits_tot_CaloPart!=0.) simFraction_withFraction = (double)rechits_match_CaloPart_withFraction/(double)rechits_tot_CaloPart;
+    else simFraction_withFraction=-999.; 
+    if(simFraction_withFraction==0.) simFraction_withFraction=-999.;
+
     if(rechits_match_CaloPart!=0.) simFraction_old = fabs(1.-(double)rechits_match_Cluster/(double)rechits_match_CaloPart);
     else simFraction_old=999.; 
     if(simFraction_old==1.) simFraction_old=999.;
@@ -5594,6 +5627,7 @@ std::vector<double> RecoSimDumper::getScores(const std::vector<std::pair<DetId, 
     else scores[16] = -999.;  
     scores[17] = sim_rechit_combined_fraction;
     scores[18] = rechit_sim_combined_fraction;
+    scores[19] = simFraction_withFraction;
 
     //for(unsigned iVar=0; iVar<scores.size(); iVar++)
     //    if(std::isnan(scores.at(iVar))) std::cout << "score = " << iVar << " ---> NAN " << std::endl; 

@@ -134,7 +134,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(const CaloParticle* iCaloParticle, float simHitEnergy_cut);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
-      std::vector<double> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE);
+      std::vector<double> getScores(const std::vector<std::pair<DetId, float> >*hits_and_energies_Cluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, edm::Handle<EcalRecHitCollection> recHitsEB, edm::Handle<EcalRecHitCollection> recHitsEE, const reco::PFCluster* pfCluster = NULL);
       int getMatchedIndex(std::vector<std::vector<double>>* score, double selection, bool useMax, std::vector<std::vector<std::vector<double>>> scoreSelMax, std::vector<double> selectionMax, std::vector<std::vector<std::vector<double>>> scoreSelMin, std::vector<double> selectionMin, int iCl);
       void fillParticleMatchedIndex(std::vector<std::vector<int>>* particleMatchedIndex, std::vector<int>* clusterMatchedIndex);
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
@@ -236,7 +236,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_old_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_simScore_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_n_shared_xtals_MatchedIndex;
-      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_MatchedIndex;
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_MatchedIndex;      
+      std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_withFraction_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_1MeVCut_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_5MeVCut_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_10MeVCut_MatchedIndex;
@@ -364,7 +365,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> pfRecHit_unClustered_ieta;
       std::vector<int> pfRecHit_unClustered_iphi;
       std::vector<int> pfRecHit_unClustered_iz;
-      std::vector<std::vector<float> > pfClusterHit_energy; 
+      std::vector<std::vector<float> > pfClusterHit_fraction; 
       std::vector<std::vector<float> > pfClusterHit_rechitEnergy; 
       std::vector<std::vector<float> > pfClusterHit_eta;
       std::vector<std::vector<float> > pfClusterHit_phi;
@@ -432,6 +433,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> pfCluster_simScore_MatchedIndex;
       std::vector<int> pfCluster_n_shared_xtals_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_MatchedIndex;
+      std::vector<int> pfCluster_sim_fraction_withFraction_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_1MeVCut_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_5MeVCut_MatchedIndex;
       std::vector<int> pfCluster_sim_fraction_10MeVCut_MatchedIndex;
@@ -452,6 +454,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<double> > pfCluster_simScore;
       std::vector<std::vector<double> > pfCluster_n_shared_xtals;
       std::vector<std::vector<double> > pfCluster_sim_fraction;
+      std::vector<std::vector<double> > pfCluster_sim_fraction_withFraction;
       std::vector<std::vector<double> > pfCluster_sim_fraction_1MeVCut;
       std::vector<std::vector<double> > pfCluster_sim_fraction_5MeVCut;
       std::vector<std::vector<double> > pfCluster_sim_fraction_10MeVCut;
@@ -953,6 +956,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<double> simScore;
       std::vector<double> n_shared_xtals;
       std::vector<double> sim_fraction;
+      std::vector<double> sim_fraction_withFraction;
       std::vector<double> sim_fraction_1MeVCut;
       std::vector<double> sim_fraction_5MeVCut;
       std::vector<double> sim_fraction_10MeVCut;

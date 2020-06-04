@@ -5,13 +5,13 @@ process = cms.PSet()
 process.ioFilesOpt = cms.PSet(
 
     ##input file
-    inputFiles = cms.string('/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_RetunedMustache_DeepSC_0954_0898_0523_v3_showervars_Dumper_Test.root'),
+    inputFiles = cms.string('/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_1.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_2.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_3.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_4.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_5.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_6.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_7.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_8.root,/eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourElectronsGunPt1-100_pythia8_withPU_withTracker_106X_mcRun3_2021_realistic_v3_RAW_StdSeedingGathering_Mustache_optimizedDeepSC_v14_finalscore_v2_Total_9.root'),
     
     ## base output directory: default output/
     outputDir = cms.string(''),
 
     ## maxEvents
-    maxEvents = cms.untracked.int32(250000),
+    maxEvents = cms.untracked.int32(-1),
 
     ##fitFunction
     fitFunction = cms.string('cruijff'),
@@ -19,9 +19,9 @@ process.ioFilesOpt = cms.PSet(
  
     #superClusterVal = cms.string('superCluster'),
     #superClusterVal = cms.string('retunedSuperCluster'),
-    #superClusterVal = cms.string('deepSuperCluster'),
+    superClusterVal = cms.string('deepSuperCluster'),
     #superClusterVal = cms.string('deepSuperClusterLWP'),
-    superClusterVal = cms.string('deepSuperClusterTWP'),
+    #superClusterVal = cms.string('deepSuperClusterTWP'),
 
     superClusterRef = cms.string('superCluster'),
     #superClusterRef = cms.string('retunedSuperCluster'),
@@ -61,10 +61,10 @@ process.histOpt = cms.PSet(
     SigmaIetaIetaBins_Endcap = cms.vdouble(400,0.,0.08), 
     full5x5_SigmaIetaIetaBins_Barrel = cms.vdouble(100,0.,0.02),
     full5x5_SigmaIetaIetaBins_Endcap = cms.vdouble(400,0.,0.08), 
-    SigmaIetaIphiBins_Barrel = cms.vdouble(200,0.,0.01),
-    SigmaIetaIphiBins_Endcap = cms.vdouble(400,0.,0.05), 
-    full5x5_SigmaIetaIphiBins_Barrel = cms.vdouble(200,0.,0.01),
-    full5x5_SigmaIetaIphiBins_Endcap = cms.vdouble(400,0.,0.05), 
+    SigmaIetaIphiBins_Barrel = cms.vdouble(200,-0.0003,0.0003),
+    SigmaIetaIphiBins_Endcap = cms.vdouble(200,-0.0015,0.0015), 
+    full5x5_SigmaIetaIphiBins_Barrel = cms.vdouble(200,-0.0004,0.0004),
+    full5x5_SigmaIetaIphiBins_Endcap = cms.vdouble(200,-0.003,0.003),
     SigmaIphiIphiBins_Barrel = cms.vdouble(200,0.,0.04),
     SigmaIphiIphiBins_Endcap = cms.vdouble(400,0.,0.08), 
     full5x5_SigmaIphiIphiBins_Barrel = cms.vdouble(200,0.,0.04),
