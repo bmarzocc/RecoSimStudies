@@ -19,16 +19,12 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     eeSuperClusterCollection        = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
     useHcalTowers                   = cms.bool(True),  #compute HoE
     hcalTowersCollection            = cms.InputTag("towerMaker"), #compute HoE
-    useRetunedSC                    = cms.bool(True),  #run on new RetunedSCs
+    useRetunedSC                    = cms.bool(False),  #run on new RetunedSCs
     useDeepSC                       = cms.bool(True),  #run on new DeepSCs
     ebRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALBarrelMustacheNewParams","RECO"), 
     eeRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALEndcapWithPreshowerMustacheNewParams","RECO"),
     ebDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALBarrel","RECO"), 
     eeDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALEndcapWithPreshower","RECO"),
-    ebDeepSuperClusterLWPCollection = cms.InputTag("particleFlowDeepSuperClusterLWPECAL","particleFlowDeepSuperClusterLWPECALBarrel","RECO"), 
-    eeDeepSuperClusterLWPCollection = cms.InputTag("particleFlowDeepSuperClusterLWPECAL","particleFlowDeepSuperClusterLWPECALEndcapWithPreshower","RECO"),
-    ebDeepSuperClusterTWPCollection = cms.InputTag("particleFlowDeepSuperClusterTWPECAL","particleFlowDeepSuperClusterTWPECALBarrel","RECO"), 
-    eeDeepSuperClusterTWPCollection = cms.InputTag("particleFlowDeepSuperClusterTWPECAL","particleFlowDeepSuperClusterTWPECALEndcapWithPreshower","RECO"),
     
     doCompression                   = cms.bool(True),  #do the compression of floats
     nBits                           = cms.int32(23),   #nbits for float compression (<=23)
@@ -44,7 +40,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveShowerShapes                = cms.bool(True),  #save showerShapes information
 
     #scoreType                       = cms.string("simScore_final_combination"),  #score to be used for caloParticle matching
-    scoreType                      = cms.string("sim_fraction"),  #score to be used for caloParticle matching
+    #scoreType                      = cms.string("sim_fraction"),  #score to be used for caloParticle matching
+    scoreType                      = cms.string("sim_fraction_withFraction"),  #score to be used for caloParticle matching
     #scoreType                      = cms.string("n_shared_xtals"),  #score to be used for caloParticle matching
     #scoreType                      = cms.string("sim_fraction_1MeVCut"),  #score to be used for caloParticle matching
     #scoreType                      = cms.string("sim_fraction_5MeVCut"),  #score to be used for caloParticle matching

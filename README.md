@@ -2,13 +2,13 @@
 
 1) Install:
 
-    * scram project CMSSW_10_6_4
-    * cd CMSSW_10_6_4/src/
+    * scram project CMSSW_10_6_11
+    * cd CMSSW_10_6_11/src/
     * cmsenv
     * git cms-init
     * git cms-merge-topic bmarzocc:PR_CaloParticles
     * git cms-merge-topic bmarzocc:PR_ParticleGuns
-    * git cms-merge-topic bmarzocc:PR_EcalPFSeedingThresholds #if you want new PFSeeding and PFGathering thresholds
+    * git cms-merge-topic bmarzocc:10_6_11_DeepSC_noParticleFlow #if you want to reco the deepSCs too 
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * scram b -j 5
 
