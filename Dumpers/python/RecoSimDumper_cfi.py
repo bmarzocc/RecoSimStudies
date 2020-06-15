@@ -39,26 +39,6 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveSuperCluster                = cms.bool(True),  #save superClusters information
     saveShowerShapes                = cms.bool(True),  #save showerShapes information
 
-    #scoreType                       = cms.string("simScore_final_combination"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction"),  #score to be used for caloParticle matching
-    scoreType                      = cms.string("sim_fraction_withFraction"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("n_shared_xtals"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_1MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_5MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_10MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_50MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_100MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_500MeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_fraction_1GeVCut"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_rechit_diff"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_rechit_fraction"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("global_sim_rechit_fraction"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("hgcal_caloToCluster"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("hgcal_clusterToCalo"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("sim_rechit_combined_fraction"),  #score to be used for caloParticle matching
-    #scoreType                      = cms.string("rechit_sim_combined_fraction"),  #score to be used for caloParticle matching
-   
-    saveScores                      = cms.bool(False),  #save scores information
     genID                           = cms.vint32(22,11, -11), #save only caloParticles with this pdgId 
     #genID                          = cms.vdouble(0),  #save only caloParticles with this pdgId 
 
