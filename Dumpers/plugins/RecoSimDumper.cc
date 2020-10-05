@@ -750,11 +750,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           std::cerr << "Analyze --> hcalTowers not found" << std::endl; 
           return;
       } 
-      //hcalTowersColl = hcalTowers.product();
       towerIso1_ = new EgammaTowerIsolation(0.15, 0., 0., 1, hcalTowers.product());
       towerIso2_ = new EgammaTowerIsolation(0.15, 0., 0., 2, hcalTowers.product());
       egammaHadTower_ = new EgammaHadTower(iSetup);
-      egammaHadTower_->setTowerCollection(hcalTowers.product()); 
+      //egammaHadTower_->setTowerCollection(hcalTowers.product()); 
    } 
 
    runId = ev.id().run();
@@ -1706,7 +1705,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
 
              HoEs_.clear();
-             HoEs_ = getHoE(&iSuperCluster, towerIso1_, towerIso2_, egammaHadTower_);
+             HoEs_ = getHoE(&iSuperCluster, towerIso1_, towerIso2_, egammaHadTower_, hcalTowers.product());
              superCluster_HoEraw.push_back(reduceFloat(HoEs_[0],nBits_)); 
              superCluster_HoErawBC.push_back(reduceFloat(HoEs_[1],nBits_)); 
           } 
@@ -1850,7 +1849,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
 
              HoEs_.clear();
-             HoEs_ = getHoE(&iSuperCluster, towerIso1_, towerIso2_, egammaHadTower_);
+             HoEs_ = getHoE(&iSuperCluster, towerIso1_, towerIso2_, egammaHadTower_, hcalTowers.product());
              superCluster_HoEraw.push_back(reduceFloat(HoEs_[0],nBits_)); 
              superCluster_HoErawBC.push_back(reduceFloat(HoEs_[1],nBits_)); 
           }
@@ -2027,7 +2026,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
 
              HoEs_.clear();
-             HoEs_ = getHoE(&iRetunedSuperCluster, towerIso1_, towerIso2_, egammaHadTower_);
+             HoEs_ = getHoE(&iRetunedSuperCluster, towerIso1_, towerIso2_, egammaHadTower_, hcalTowers.product());
              retunedSuperCluster_HoEraw.push_back(reduceFloat(HoEs_[0],nBits_)); 
              retunedSuperCluster_HoErawBC.push_back(reduceFloat(HoEs_[1],nBits_));
           } 
@@ -2170,7 +2169,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
 
              HoEs_.clear();
-             HoEs_ = getHoE(&iRetunedSuperCluster, towerIso1_, towerIso2_, egammaHadTower_);
+             HoEs_ = getHoE(&iRetunedSuperCluster, towerIso1_, towerIso2_, egammaHadTower_, hcalTowers.product());
              retunedSuperCluster_HoEraw.push_back(reduceFloat(HoEs_[0],nBits_)); 
              retunedSuperCluster_HoErawBC.push_back(reduceFloat(HoEs_[1],nBits_)); 
           }
@@ -2347,7 +2346,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
 
              HoEs_.clear();
-             HoEs_ = getHoE(&iDeepSuperCluster, towerIso1_, towerIso2_, egammaHadTower_);
+             HoEs_ = getHoE(&iDeepSuperCluster, towerIso1_, towerIso2_, egammaHadTower_, hcalTowers.product());
              deepSuperCluster_HoEraw.push_back(reduceFloat(HoEs_[0],nBits_)); 
              deepSuperCluster_HoErawBC.push_back(reduceFloat(HoEs_[1],nBits_)); 
           } 
@@ -2490,7 +2489,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_));
 
              HoEs_.clear();
-             HoEs_ = getHoE(&iDeepSuperCluster, towerIso1_, towerIso2_, egammaHadTower_);
+             HoEs_ = getHoE(&iDeepSuperCluster, towerIso1_, towerIso2_, egammaHadTower_, hcalTowers.product());
              deepSuperCluster_HoEraw.push_back(reduceFloat(HoEs_[0],nBits_)); 
              deepSuperCluster_HoErawBC.push_back(reduceFloat(HoEs_[1],nBits_));  
           }
@@ -2931,7 +2930,7 @@ std::vector<float> RecoSimDumper::getShowerShapes(reco::CaloCluster* caloBC, con
     return shapes; 
 }
 
-std::vector<float> RecoSimDumper::getHoE(const reco::SuperCluster* iSuperCluster, EgammaTowerIsolation* towerIso1, EgammaTowerIsolation* towerIso2, const EgammaHadTower* egammaHadTower)
+std::vector<float> RecoSimDumper::getHoE(const reco::SuperCluster* iSuperCluster, EgammaTowerIsolation* towerIso1, EgammaTowerIsolation* towerIso2, const EgammaHadTower* egammaHadTower, const CaloTowerCollection* caloTower)
 {
      std::vector<float> HoEs;
      HoEs.resize(2);
@@ -2939,8 +2938,8 @@ std::vector<float> RecoSimDumper::getHoE(const reco::SuperCluster* iSuperCluster
      std::vector<CaloTowerDetId> towersBehindCluster = egammaHadTower->towersOf(*iSuperCluster);
      double HoEraw1 = towerIso1->getTowerESum(iSuperCluster)/iSuperCluster->rawEnergy();
      double HoEraw2 = towerIso2->getTowerESum(iSuperCluster)/iSuperCluster->rawEnergy();        
-     float HoEraw1bc = egammaHadTower->getDepth1HcalESum(towersBehindCluster)/iSuperCluster->energy();
-     float HoEraw2bc = egammaHadTower->getDepth2HcalESum(towersBehindCluster)/iSuperCluster->energy(); 
+     float HoEraw1bc = egammaHadTower->getDepth1HcalESum(towersBehindCluster, *caloTower)/iSuperCluster->energy();
+     float HoEraw2bc = egammaHadTower->getDepth2HcalESum(towersBehindCluster, *caloTower)/iSuperCluster->energy(); 
      HoEs[0] = HoEraw1 + HoEraw2;
      HoEs[1] = HoEraw1bc + HoEraw2bc;
      
