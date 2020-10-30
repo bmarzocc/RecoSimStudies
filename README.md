@@ -2,14 +2,16 @@
 
 1) Install:
 
-    * scram project CMSSW_10_6_11
-    * cd CMSSW_10_6_11/src/
+    * scram project CMSSW_11_1_3
+    * cd CMSSW_11_1_3/src/
     * cmsenv
     * git cms-init
-    * git cms-merge-topic bmarzocc:PR_CaloParticles
-    * git cms-merge-topic bmarzocc:PR_ParticleGuns
-    * git cms-merge-topic bmarzocc:10_6_11_DeepSC_noParticleFlow #if you want to reco the deepSCs too 
+    * git cms-merge-topic bmarzocc:PR_ParticleGuns_11_1_X
+    * git cms-merge-topic bmarzocc:11_1_X_DeepSC_noParticleFlow 
     * git clone https://github.com/bmarzocc/RecoSimStudies
+    * cd RecoSimStudies
+    * git checkout 11_1_X
+    * cd -
     * scram b -j 5
 
 2) Produce GEN-SIM of standard PhotonGun:
