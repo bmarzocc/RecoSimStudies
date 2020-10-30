@@ -2,15 +2,15 @@
 
 1) Install:
 
-    * scram project CMSSW_11_1_3
-    * cd CMSSW_11_1_3/src/
+    * scram project CMSSW_11_2_0_pre7
+    * cd CMSSW_11_2_0_pre7/src/
     * cmsenv
     * git cms-init
-    * git cms-merge-topic bmarzocc:PR_ParticleGuns_11_1_X
-    * git cms-merge-topic bmarzocc:11_1_X_DeepSC_noParticleFlow 
+    * git cms-merge-topic bmarzocc:PR_ParticleGuns_11_2_X #if you produce particle-guns
+    * git cms-merge-topic bmarzocc:11_2_X_DeepSC_noParticleFlow #if you produce deepSC
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * cd RecoSimStudies
-    * git checkout 11_1_X
+    * git checkout 11_2_X
     * cd -
     * scram b -j 5
 
