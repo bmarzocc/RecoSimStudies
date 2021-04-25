@@ -62,6 +62,7 @@ SEED3=$5
 SEED4=$6
 SEED5=$7
 SEED6=$8
+SEED7=$9
 
 
 cd RecoSimStudies/Dumpers/test
@@ -71,10 +72,10 @@ echo -e ">>> STEP1";
 #cmsRun GammasGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
 #cmsRun ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
 #cmsRun QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
-cmsRun JetsGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
+cmsRun JetsGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 seed4=$SEED5 
 
 echo -e ">>> STEP2";
-cmsRun step2_DIGI_L1_DIGI2RAW_HLT_PU_Run3_2021.py jobid=$JOBID seed1=$SEED5 seed2=$SEED6 
+cmsRun step2_DIGI_L1_DIGI2RAW_HLT_PU_Run3_2021.py jobid=$JOBID seed1=$SEED6 seed2=$SEED7 
 
 xrdcp --nopbar step2.root root://eoscms.cern.ch/${OUTPUTFILE}_step2.root;
 
@@ -108,7 +109,8 @@ for ijob in range(njobs):
                 jobid,outputfile,args.split, 
                 jobid+40001,jobid+40002, 
                 jobid+40003,jobid+40004,
-                jobid+40005,jobid+40006))
+                jobid+40005,jobid+40006,
+                jobid+40007))
 
 print("Njobs: ", len(arguments))
     
