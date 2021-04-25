@@ -48,6 +48,8 @@
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
 #include "SimDataFormats/CaloAnalysis/interface/SimCluster.h"
 #include "SimDataFormats/CaloAnalysis/interface/CaloParticle.h"
+#include "SimDataFormats/Vertex/interface/SimVertex.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecHit.h"
@@ -74,7 +76,6 @@
 #include "RecoCaloTools/Selectors/interface/CaloConeSelector.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalTools.h"
-
 
 #include "DataFormats/Math/interface/deltaR.h"
 //#include "PhysicsTools/Utilities/macros/setTDRStyle.C"
@@ -127,13 +128,17 @@ class RecoSimDumper : public edm::EDAnalyzer
         
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
+      void setTree(TTree* tree);
+      void setVectors(int nGenParticles, int nCaloParticles, int nPFClusters, int nSuperClustersEB, int nSuperClustersEE, int nRetunedSuperClustersEB, int nRetunedSuperClustersEE, int nDeepSuperClustersEB, int nDeepSuperClustersEE); 
       double ptFast(const double energy, const math::XYZPoint& position, const math::XYZPoint& origin);
+      void addDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2);
+      int getGenMother(const std::vector<reco::GenParticle>* genParticles, const int genIndex);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(const CaloParticle* iCaloParticle, float simHitEnergy_cut);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
+      std::vector<std::pair<DetId,std::pair<float,float>>>* getSharedHitsAndEnergies(const std::vector<std::pair<DetId, float> >* hitsAndEnergies1, const std::vector<std::pair<DetId, float> >* hitsAndEnergies2);
       std::pair<double,double> calculateCovariances(const reco::PFCluster* pfCluster, const EcalRecHitCollection* recHits, const CaloSubdetectorGeometry* geometry);
       std::vector<float> getShowerShapes(reco::CaloCluster* caloBC, const EcalRecHitCollection* recHits, const CaloTopology *topology);
-      std::vector<float> getHoE(const reco::SuperCluster* iSuperCluster, EgammaTowerIsolation* towerIso1, EgammaTowerIsolation* towerIso2, const EgammaHadTower* egammaHadTower, const CaloTowerCollection* caloTower);
       std::vector<double> getScores(const reco::PFCluster* pfCluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
       std::vector<double> getScores(const reco::SuperCluster* superCluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
       int getMatchedIndex(std::vector<std::vector<double>>* score, double selection, bool useMax, double scale, int iCl);
@@ -142,9 +147,11 @@ class RecoSimDumper : public edm::EDAnalyzer
       
       // ----------collection tokens-------------------
       edm::EDGetTokenT<double> rhoToken_;
+      edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_;
+      edm::EDGetTokenT<std::vector<SimVertex> > simVtxToken_;
       edm::EDGetTokenT<EcalRecHitCollection> ebRechitToken_; 
       edm::EDGetTokenT<EcalRecHitCollection> eeRechitToken_; 
       edm::EDGetTokenT<std::vector<reco::PFRecHit>  > pfRecHitToken_; 
@@ -169,13 +176,14 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool _esMinus;
       
       // ----------config inputs-------------------
-      bool useHcalTowers_;
       bool useRetunedSC_;
       bool useDeepSC_;
       bool doCompression_;
       int nBits_;
       bool saveGenParticles_;       
-      bool saveCaloParticles_;    
+      bool saveCaloParticles_;  
+      bool saveCaloParticlesPU_; 
+      bool saveCaloParticlesOOTPU_;    
       bool saveSimhits_;          
       bool saveRechits_;          
       bool savePFRechits_;   
@@ -183,12 +191,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool savePFClusterhits_;   
       bool saveSuperCluster_;     
       bool saveShowerShapes_;   
-      std::vector<int> genID_;
-      const CaloTowerCollection* hcalTowersColl;
-      EgammaHadTower* egammaHadTower_;
-      EgammaTowerIsolation* towerIso1_;
-      EgammaTowerIsolation* towerIso2_; 
-
+      
       // ----------DNN inputs-------------------
       std::vector<double> HLF_VectorVar_;
       std::vector<std::vector<double>> PL_VectorVar_;
@@ -201,14 +204,21 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> locCov_;
       std::vector<float> full5x5_locCov_;
       std::vector<float> showerShapes_;
-      std::vector<float> HoEs_;
+      std::map<int,std::vector<int>> genDaughters;
       
       long int eventId;
       int lumiId;
       int runId; 
+      double truePU;
+      double obsPU;
       int nVtx;
-      float rho;  
-      std::vector<int> genParticle_id;
+      float rho; 
+      int genParticle_size; 
+      int caloParticle_size;
+      int caloParticlePU_size;
+      int caloParticleOOTPU_size; 
+      std::vector<int> genParticle_pdgId;
+      std::vector<int> genParticle_status; 
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;
       std::vector<float> genParticle_eta;
@@ -217,7 +227,14 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > genParticle_superCluster_dR_genScore_MatchedIndex;
       std::vector<std::vector<int> > genParticle_retunedSuperCluster_dR_genScore_MatchedIndex;
       std::vector<std::vector<int> > genParticle_deepSuperCluster_dR_genScore_MatchedIndex; 
-      std::vector<int> caloParticle_id;
+      std::vector<int> caloParticle_index; 
+      std::vector<int> caloParticle_nXtals;  
+      std::vector<bool> caloParticle_isPU;
+      std::vector<bool> caloParticle_isOOTPU;
+      std::vector<int> caloParticle_pdgId;
+      std::vector<int> caloParticle_status;
+      std::vector<int> caloParticle_g4TracksEventID;
+      std::vector<int> caloParticle_g4TracksBX;
       std::vector<float> caloParticle_genEnergy;
       std::vector<float> caloParticle_simEnergy;
       std::vector<float> caloParticle_genPt;
@@ -226,9 +243,21 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> caloParticle_simEta;
       std::vector<float> caloParticle_genPhi;
       std::vector<float> caloParticle_simPhi;
+      std::vector<int> caloParticle_genMotherIndex;
+      std::vector<int> caloParticle_genMotherPdgId; 
+      std::vector<float> caloParticle_genMotherEnergy;
+      std::vector<float> caloParticle_genMotherPt;
+      std::vector<float> caloParticle_genMotherEta;
+      std::vector<float> caloParticle_genMotherPhi; 
+      std::vector<float> caloParticle_genMotherDR; 
       std::vector<int> caloParticle_simIeta;
       std::vector<int> caloParticle_simIphi;
       std::vector<int> caloParticle_simIz;
+      std::vector<int> caloParticle_nSharedXtals;
+      std::vector<int> caloParticle_sharedIndex1;
+      std::vector<int> caloParticle_sharedIndex2;
+      std::vector<float> caloParticle_sharedEnergyFrac1;
+      std::vector<float> caloParticle_sharedEnergyFrac2;
       std::vector<std::vector<int> > caloParticle_pfCluster_dR_simScore_MatchedIndex; 
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_nSharedXtals_MatchedIndex;
       std::vector<std::vector<int> > caloParticle_pfCluster_sim_fraction_noHitsFraction_MatchedIndex;
@@ -427,8 +456,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> superCluster_full5x5_sigmaIetaIeta; 
       std::vector<float> superCluster_full5x5_sigmaIetaIphi; 
       std::vector<float> superCluster_full5x5_sigmaIphiIphi;      
-      std::vector<float> superCluster_HoEraw; 
-      std::vector<float> superCluster_HoErawBC; 
       std::vector<std::vector<float> > superCluster_psCluster_energy;
       std::vector<std::vector<float> > superCluster_psCluster_eta;
       std::vector<std::vector<float> > superCluster_psCluster_phi;
@@ -502,8 +529,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> retunedSuperCluster_full5x5_sigmaIetaIeta; 
       std::vector<float> retunedSuperCluster_full5x5_sigmaIetaIphi; 
       std::vector<float> retunedSuperCluster_full5x5_sigmaIphiIphi; 
-      std::vector<float> retunedSuperCluster_HoEraw; 
-      std::vector<float> retunedSuperCluster_HoErawBC; 
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_energy;
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_eta;
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_phi;
@@ -577,8 +602,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> deepSuperCluster_full5x5_sigmaIetaIeta; 
       std::vector<float> deepSuperCluster_full5x5_sigmaIetaIphi; 
       std::vector<float> deepSuperCluster_full5x5_sigmaIphiIphi; 
-      std::vector<float> deepSuperCluster_HoEraw; 
-      std::vector<float> deepSuperCluster_HoErawBC; 
       std::vector<std::vector<float> > deepSuperCluster_psCluster_energy;
       std::vector<std::vector<float> > deepSuperCluster_psCluster_eta;
       std::vector<std::vector<float> > deepSuperCluster_psCluster_phi;
@@ -593,6 +616,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<double> recoEnergy_sharedXtals; 
       std::vector<DetId> pfRechit_unClustered;
       std::vector<std::vector<DetId>> hits_PFCluster;
+      std::vector<std::vector<DetId>> hits_CaloParticle;
+      std::vector<std::vector<float>> energies_CaloParticle;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_CaloPart; 
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_PFCluster;
       std::vector<std::vector<std::pair<DetId, float>>> hitsAndEnergies_SuperClusterEB;

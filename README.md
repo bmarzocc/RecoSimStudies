@@ -2,50 +2,45 @@
 
 1) Install:
 
-    * scram project CMSSW_11_2_0_pre7
-    * cd CMSSW_11_2_0_pre7/src/
+    * scram project CMSSW_11_2_2_patch1
+    * cd CMSSW_11_2_2_patch1/src/
     * cmsenv
     * git cms-init
-    * git cms-merge-topic bmarzocc:PR_ParticleGuns_11_2_X #if you produce particle-guns
-    * git cms-merge-topic bmarzocc:11_2_X_DeepSC_noParticleFlow #if you produce deepSC
+    * git cms-merge-topic bmarzocc:ParticleGuns_CMSSW_11_2_2_patch1 #if you produce particle-guns
+    * git cms-merge-topic bmarzocc:CaloParticles_CMSSW_11_2_2_patch1 #if you produce RAW samples with caloParticles
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * cd RecoSimStudies
-    * git checkout 11_2_X
+    * git checkout CMSSW_11_2_2_patch1
     * cd -
     * scram b -j 5
 
-2) Produce GEN-SIM of standard PhotonGun:
+2) Produce GEN-SIM (ParticleGuns and QCD):
     
     * cd RecoSimStudies/Dumpers/test/
-    * cmsRun SingleGammaPt35_pythia8_cfi_GEN_SIM.py
+    * cmsRun GammasGunPt1-100_pythia8_cfi_GEN_SIM.py #Photon gun
+    * cmsRun ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py #Electron gun
+    * cmsRun JetsGunPt1-100_pythia8_cfi_GEN_SIM.py #Jet gun
+    * cmsRun QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py #QCD
 
-3) Produce GEN-SIM of PhotonGun in front of ECAL:
+3) Produce DIGI-RAW (Standard Mixing):
     
     * cd RecoSimStudies/Dumpers/test/
-    * cmsRun DoubleGammaE50_CloseEcal_cfi_GEN_SIM.py
+    * cmsRun step2_DIGI_L1_DIGI2RAW_HLT_PU_Run3_2021.py
 
-4) Produce DIGI-RAW:
-    
-    In case of studies including PCaloHits uncomment line #80 to keep the PCaloHit collection. 
+4) Produce RECO:
 
     * cd RecoSimStudies/Dumpers/test/
-    * cmsRun step2_DIGI_L1_DIGI2RAW_HLT.py
+    * cmsRun step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_Run3_2021.py
 
-5) Produce RECO:
-
-    In case of studies including PCaloHits uncomment line #65 to keep the PCaloHit collection. 
-    
-    * cd RecoSimStudies/Dumpers/test/
-    * cmsRun step3_RAW2DIGI_L1Reco_RECO_RECOSIM_EI_PAT_VALIDATION_DQM.py
-
-6) Produce TwentyPhotons Run3_2021 Recos with condor:
-
-    * cd RecoSimStudies/Dumpers/test/
-    * python condor_production.py  -o /eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/TwentyGammasGunPt1-100_pythia8_withPU_withTracker_Run3_2021/ -c /afs/cern.ch/work/b/bmarzocc/Clustering/CMSSW_10_6_4/ -q tomorrow -n 100000 -s 100 -e cms
-
-7) Run general dumper (per crystal, PFcluster, superCluster infos) on a RECO sample (produced in the previous steps):
+5) Run general dumper (per crystal, CaloParticle, PFcluster, superCluster infos) on a RECO sample (produced in the previous steps):
     
     * cd RecoSimStudies/Dumpers/
     * cmsRun python/RecoSimDumper_cfg.py
+
+6) Run on condor (set properly the voms-key in the cfg before):
+
+    * cd RecoSimStudies/Dumpers/condor/
+    * python condor_production_raw.py -n 100000 -s 10 -o /eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/FourGammasGunPt1-100_pythia8_PU_Flat55To75_14TeV_112X_mcRun3_2021_realistic_v15_GEN-SIM-RAW/ -c /afs/cern.ch/work/b/bmarzocc/Clustering_stdSeeding/CMSSW_11_2_2_patch1 -e EOS -q tomorrow
+    * python condor_production_recodumper.py -i /eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/JetsGunPt1-100_pythia8_PU_Flat55To75_14TeV_112X_mcRun3_2021_realistic_v15_GEN-SIM-RAW -o /eos/cms/store/group/dpg_ecal/alca_ecalcalib/bmarzocc/Clustering/JetsGunPt1-100_pythia8_PU_Flat55To75_14TeV_112X_mcRun3_2021_realistic_v15_Dumper -c /afs/cern.ch/work/b/bmarzocc/Clustering_stdSeeding/CMSSW_11_2_2_patch1 -d RecoSimDumper -e EOS -q tomorrow
 
 

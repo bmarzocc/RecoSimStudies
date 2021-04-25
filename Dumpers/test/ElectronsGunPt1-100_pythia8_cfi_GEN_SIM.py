@@ -158,7 +158,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '112X_mcRun3_2021_realistic_v15
 
 process.generator = cms.EDProducer("ManyParticleFlatEtGunProducer",
                                    PGunParameters = cms.PSet(
-                                      PartID = cms.vint32(22),
+                                      PartID = cms.vint32(11,-11),
                                       PtMin = cms.vdouble(1, 1, 1, 1),  
                                       PtMax = cms.vdouble(100, 100, 100, 100), 
                                       PhiMin = cms.vdouble(-3.14159265359, -3.14159265359, -3.14159265359, -3.14159265359),

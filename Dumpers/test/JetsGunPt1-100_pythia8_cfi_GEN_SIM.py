@@ -156,24 +156,55 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '112X_mcRun3_2021_realistic_v15', '')
 
-process.generator = cms.EDProducer("ManyParticleFlatEtGunProducer",
-                                   PGunParameters = cms.PSet(
-                                      PartID = cms.vint32(22),
-                                      PtMin = cms.vdouble(1, 1, 1, 1),  
-                                      PtMax = cms.vdouble(100, 100, 100, 100), 
-                                      PhiMin = cms.vdouble(-3.14159265359, -3.14159265359, -3.14159265359, -3.14159265359),
-                                      PhiMax = cms.vdouble(3.14159265359, 3.14159265359, 3.14159265359, 3.14159265359),
-                                      EtaMin = cms.vdouble(-3., -1.479, 0., 1.479),    
-                                      EtaMax = cms.vdouble(-1.479, 0, 1.479, 3),   
-                                      MaxPhi = cms.double(0.), #not used
-                                      MinPhi = cms.double(0.), #not used
-                                      MaxEta = cms.double(0.), #not used
-                                      MinEta = cms.double(0.), #not used
-                                   ),
-                                   Verbosity = cms.untracked.int32(0),
-                                   AddAntiParticle = cms.bool(False),
-                                   psethack = cms.string('4 random photons'),
-                                   firstRun = cms.untracked.uint32(1)
+process.generator = cms.EDFilter("Pythia8MultiPtGun",
+
+    maxEventsToPrint = cms.untracked.int32(1),
+    pythiaPylistVerbosity = cms.untracked.int32(1),
+    pythiaHepMCVerbosity = cms.untracked.bool(True),
+
+    PGunParameters = cms.PSet(
+        ParticleID = cms.vint32(21,21,21,1,2,3,4,5,6),
+        AddAntiParticle = cms.bool(True),
+        MinPhi = cms.double(-3.14159265359),
+        MaxPhi = cms.double(3.14159265359),
+        MinPt = cms.vdouble(1.,1.),
+        MaxPt = cms.vdouble(100.,100.),
+        MinEta = cms.vdouble(-3., -1.479),    
+        MaxEta = cms.vdouble(-1.479, 0.)   
+     ),
+           
+    PythiaParameters = cms.PSet(
+        parameterSets = cms.vstring(
+            'pythia8CommonSettings', 
+            'pythia8CUEP8M1Settings', 
+            'processParameters'
+        ),
+        processParameters = cms.vstring(
+            'HardQCD:all = on', 
+            'PhaseSpace:pTHatMin = 15', 
+            'PhaseSpace:pTHatMax = 7000', 
+            'PhaseSpace:bias2Selection = on', 
+            'PhaseSpace:bias2SelectionPow = 4.5', 
+            'PhaseSpace:bias2SelectionRef = 15.'
+        ),
+        pythia8CUEP8M1Settings = cms.vstring(
+            'Tune:pp 14', 
+            'Tune:ee 7', 
+            'MultipartonInteractions:pT0Ref=2.4024', 
+            'MultipartonInteractions:ecmPow=0.25208', 
+            'MultipartonInteractions:expPow=1.6'
+        ),
+        pythia8CommonSettings = cms.vstring(
+            'Tune:preferLHAPDF = 2', 
+            'Main:timesAllowErrors = 10000', 
+            'Check:epTolErr = 0.01', 
+            'Beams:setProductionScalesFromLHEF = off', 
+            'SLHA:minMassSM = 1000.', 
+            'ParticleDecays:limitTau0 = on', 
+            'ParticleDecays:tau0Max = 10', 
+            'ParticleDecays:allowPhotonRadiation = on'
+        ) 
+    )
 )
 
 # Path and EndPath definitions

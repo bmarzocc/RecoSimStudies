@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: Configuration/GenProduction/python/EGM-Run3Winter21GS-00001-fragment.py --python_filename EGM-Run3Winter21GS-00001_1_cfg.py --eventcontent RAWSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --fileout file:EGM-Run3Winter21GS-00001.root --conditions 112X_mcRun3_2021_realistic_v15 --beamspot Run3RoundOptics25ns13TeVLowSigmaZ --step GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n 5
+# with command line options: Configuration/GenProduction/python/TRK-Run3Winter21GS-00001-fragment.py --python_filename TRK-Run3Winter21GS-00001_1_cfg.py --eventcontent RAWSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM --fileout file:TRK-Run3Winter21GS-00001.root --conditions 112X_mcRun3_2021_realistic_v15 --beamspot Run3RoundOptics25ns13TeVLowSigmaZ --step GEN,SIM --geometry DB:Extended --era Run3 --no_exec --mc -n 10
 import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 
@@ -97,9 +97,9 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('Photon ParticleGun'),
+    annotation = cms.untracked.string('Configuration/GenProduction/python/TRK-Run3Winter21GS-00001-fragment.py nevts:10'),
     name = cms.untracked.string('Applications'),
-    version = cms.untracked.string('$Revision: 1.1 $')
+    version = cms.untracked.string('$Revision: 1.19 $')
 )
 
 # Output definition
@@ -123,58 +123,52 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
 # Additional output definition
 
 # Other statements
-import SimGeneral.Configuration.ThrowAndSetRandomRun as ThrowAndSetRandomRun
-ThrowAndSetRandomRun.throwAndSetRandomRun(process.source,[(options.jobid,1)])
-
-process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
-
-    LHCTransport = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed1),
-       engineName = cms.untracked.string('TRandom3')
-    ),
-    externalLHEProducer = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed2),
-       engineName = cms.untracked.string('HepJamesRandom')
-    ),
-    generator = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed3),
-       engineName = cms.untracked.string('HepJamesRandom')
-    ),
-    VtxSmeared = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed4),
-       engineName = cms.untracked.string('HepJamesRandom')
-    ),
-    g4SimHits = cms.PSet(
-       initialSeed = cms.untracked.uint32(options.seed5),
-       engineName = cms.untracked.string('HepJamesRandom')
-    )
-
-)
-
 process.XMLFromDBSource.label = cms.string("Extended")
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '112X_mcRun3_2021_realistic_v15', '')
 
-process.generator = cms.EDProducer("ManyParticleFlatEtGunProducer",
-                                   PGunParameters = cms.PSet(
-                                      PartID = cms.vint32(22),
-                                      PtMin = cms.vdouble(1, 1, 1, 1),  
-                                      PtMax = cms.vdouble(100, 100, 100, 100), 
-                                      PhiMin = cms.vdouble(-3.14159265359, -3.14159265359, -3.14159265359, -3.14159265359),
-                                      PhiMax = cms.vdouble(3.14159265359, 3.14159265359, 3.14159265359, 3.14159265359),
-                                      EtaMin = cms.vdouble(-3., -1.479, 0., 1.479),    
-                                      EtaMax = cms.vdouble(-1.479, 0, 1.479, 3),   
-                                      MaxPhi = cms.double(0.), #not used
-                                      MinPhi = cms.double(0.), #not used
-                                      MaxEta = cms.double(0.), #not used
-                                      MinEta = cms.double(0.), #not used
-                                   ),
-                                   Verbosity = cms.untracked.int32(0),
-                                   AddAntiParticle = cms.bool(False),
-                                   psethack = cms.string('4 random photons'),
-                                   firstRun = cms.untracked.uint32(1)
+process.generator = cms.EDFilter("Pythia8GeneratorFilter",
+    PythiaParameters = cms.PSet(
+        parameterSets = cms.vstring(
+            'pythia8CommonSettings', 
+            'pythia8CUEP8M1Settings', 
+            'processParameters'
+        ),
+        processParameters = cms.vstring(
+            'HardQCD:all = on', 
+            'PhaseSpace:pTHatMin = 15', 
+            'PhaseSpace:pTHatMax = 7000', 
+            'PhaseSpace:bias2Selection = on', 
+            'PhaseSpace:bias2SelectionPow = 4.5', 
+            'PhaseSpace:bias2SelectionRef = 15.'
+        ),
+        pythia8CUEP8M1Settings = cms.vstring(
+            'Tune:pp 14', 
+            'Tune:ee 7', 
+            'MultipartonInteractions:pT0Ref=2.4024', 
+            'MultipartonInteractions:ecmPow=0.25208', 
+            'MultipartonInteractions:expPow=1.6'
+        ),
+        pythia8CommonSettings = cms.vstring(
+            'Tune:preferLHAPDF = 2', 
+            'Main:timesAllowErrors = 10000', 
+            'Check:epTolErr = 0.01', 
+            'Beams:setProductionScalesFromLHEF = off', 
+            'SLHA:minMassSM = 1000.', 
+            'ParticleDecays:limitTau0 = on', 
+            'ParticleDecays:tau0Max = 10', 
+            'ParticleDecays:allowPhotonRadiation = on'
+        )
+    ),
+    comEnergy = cms.double(14000.0),
+    crossSection = cms.untracked.double(2022100000.0),
+    filterEfficiency = cms.untracked.double(1.0),
+    maxEventsToPrint = cms.untracked.int32(1),
+    pythiaHepMCVerbosity = cms.untracked.bool(False),
+    pythiaPylistVerbosity = cms.untracked.int32(1)
 )
+
 
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen)

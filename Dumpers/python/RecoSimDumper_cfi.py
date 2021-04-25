@@ -8,19 +8,19 @@ CaloTowerConstituentsMapBuilder = cms.ESProducer("CaloTowerConstituentsMapBuilde
 recosimdumper = cms.EDAnalyzer("RecoSimDumper",
 
     rhoCollection                   = cms.InputTag("fixedGridRhoAll"),
+    pileupSummary                   = cms.InputTag("addPileupInfo"),
     vertexCollection                = cms.InputTag("offlinePrimaryVertices"),
     genParticleCollection           = cms.InputTag("genParticles",""),
     caloParticleCollection          = cms.InputTag("mix","MergedCaloTruth"),
+    simVtxCollection                = cms.InputTag("g4SimHits","","SIM"),
     ebRechitCollection              = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     eeRechitCollection              = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
     pfRechitCollection              = cms.InputTag("particleFlowRecHitECAL","","RECO"),
     pfClusterCollection             = cms.InputTag("particleFlowClusterECAL","","RECO"),
     ebSuperClusterCollection        = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALBarrel","RECO"), 
     eeSuperClusterCollection        = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
-    useHcalTowers                   = cms.bool(True),  #compute HoE
-    hcalTowersCollection            = cms.InputTag("towerMaker"), #compute HoE
     useRetunedSC                    = cms.bool(False),  #run on new RetunedSCs
-    useDeepSC                       = cms.bool(True),  #run on new DeepSCs
+    useDeepSC                       = cms.bool(False),  #run on new DeepSCs
     ebRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALBarrelMustacheNewParams","RECO"), 
     eeRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALEndcapWithPreshowerMustacheNewParams","RECO"),
     ebDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALBarrel","RECO"), 
@@ -31,6 +31,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     
     saveGenParticles                = cms.bool(True),  #save genParticles information   
     saveCaloParticles               = cms.bool(True),  #save caloParticles information
+    saveCaloParticlesPU             = cms.bool(True),  #save PU caloParticles information
+    saveCaloParticlesOOTPU          = cms.bool(False),  #save OOT PU caloParticles information
     saveSimhits                     = cms.bool(True), #save simHits information
     saveRechits                     = cms.bool(True), #save recHits information
     savePFRechits                   = cms.bool(True), #save pfRecHits information
@@ -38,8 +40,4 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     savePFClusterhits               = cms.bool(True), #save pfClustershits information
     saveSuperCluster                = cms.bool(True),  #save superClusters information
     saveShowerShapes                = cms.bool(True),  #save showerShapes information
-
-    genID                           = cms.vint32(22,11, -11), #save only caloParticles with this pdgId 
-    #genID                          = cms.vdouble(0),  #save only caloParticles with this pdgId 
-
 )
