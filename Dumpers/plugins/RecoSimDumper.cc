@@ -474,45 +474,71 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        caloParticle_index.push_back(iCalo); 
        caloParticle_nXtals.push_back(hitsAndEnergies_CaloPart.at(iCalo).size()); 
    
-       int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;       
-       if((unsigned)genIndex<genParts_tmp.size()){
+       int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;    
+       if(isPU==0 && isOOTPU==0){
           auto genParticle = genParts_tmp[genIndex]; 
-          int motherIndex = -1;
-          if(genParticle.numberOfMothers()!=0) motherIndex = getGenMother(&genParts_tmp,genIndex); 
-          if(motherIndex>=0){
-             auto genMother = genParts_tmp[motherIndex]; 
-             caloParticle_genMotherIndex.push_back(motherIndex);
-             caloParticle_genMotherPdgId.push_back(genMother.pdgId());
-             caloParticle_genMotherEnergy.push_back(reduceFloat(genMother.energy(),nBits_));
-             caloParticle_genMotherPt.push_back(reduceFloat(genMother.pt(),nBits_));
-             caloParticle_genMotherEta.push_back(reduceFloat(genMother.eta(),nBits_));
-             caloParticle_genMotherPhi.push_back(reduceFloat(genMother.phi(),nBits_)); 
-             caloParticle_genMotherDR.push_back(reduceFloat(deltaR(genMother.eta(),genMother.phi(),genParticle.eta(),genParticle.phi()),nBits_)); 
+          int partonIndex = -1;
+          if(genParticle.numberOfMothers()!=0) partonIndex = getGenMother(&genParts_tmp,genIndex); 
+          if(partonIndex>=0){
+             auto genMother = genParts_tmp[partonIndex]; 
+             caloParticle_partonIndex.push_back(partonIndex);
+             caloParticle_partonPdgId.push_back(genMother.pdgId());
+             caloParticle_partonCharge.push_back(genMother.charge());
+             caloParticle_partonEnergy.push_back(reduceFloat(genMother.energy(),nBits_));
+             caloParticle_partonPt.push_back(reduceFloat(genMother.pt(),nBits_));
+             caloParticle_partonEta.push_back(reduceFloat(genMother.eta(),nBits_));
+             caloParticle_partonPhi.push_back(reduceFloat(genMother.phi(),nBits_)); 
           }else{
-             caloParticle_genMotherIndex.push_back(-99);
+             caloParticle_partonIndex.push_back(-99);
+             caloParticle_partonPdgId.push_back(0);
+             caloParticle_partonCharge.push_back(-99);
+             caloParticle_partonEnergy.push_back(-999.);
+             caloParticle_partonPt.push_back(-999.);
+             caloParticle_partonEta.push_back(-999.);
+             caloParticle_partonPhi.push_back(-999.);
+          } 
+          if(genParticle.numberOfMothers()!=0){
+             caloParticle_genMotherPdgId.push_back(genParticle.mother()->pdgId());
+             caloParticle_genMotherStatus.push_back(genParticle.mother()->status());
+             caloParticle_genMotherCharge.push_back(genParticle.mother()->charge());
+             caloParticle_genMotherEnergy.push_back(reduceFloat(genParticle.mother()->energy(),nBits_));
+             caloParticle_genMotherPt.push_back(reduceFloat(genParticle.mother()->pt(),nBits_));
+             caloParticle_genMotherEta.push_back(reduceFloat(genParticle.mother()->eta(),nBits_));
+             caloParticle_genMotherPhi.push_back(reduceFloat(genParticle.mother()->phi(),nBits_)); 
+          }else{
              caloParticle_genMotherPdgId.push_back(0);
+             caloParticle_genMotherStatus.push_back(-999);
+             caloParticle_genMotherCharge.push_back(-99);
              caloParticle_genMotherEnergy.push_back(-999.);
              caloParticle_genMotherPt.push_back(-999.);
              caloParticle_genMotherEta.push_back(-999.);
-             caloParticle_genMotherPhi.push_back(-999.);
-             caloParticle_genMotherDR.push_back(-999.);
-          } 
+             caloParticle_genMotherPhi.push_back(-999.);  
+          }
           caloParticle_pdgId.push_back(genParticle.pdgId());
           caloParticle_status.push_back(genParticle.status());
+          caloParticle_charge.push_back(genParticle.charge());
           caloParticle_genEnergy.push_back(reduceFloat(genParticle.energy(),nBits_));
           caloParticle_genPt.push_back(reduceFloat(genParticle.pt(),nBits_));
           caloParticle_genEta.push_back(reduceFloat(genParticle.eta(),nBits_));
           caloParticle_genPhi.push_back(reduceFloat(genParticle.phi(),nBits_));
        }else{
-          caloParticle_genMotherIndex.push_back(-99);
+          caloParticle_partonIndex.push_back(-99);
+          caloParticle_partonPdgId.push_back(0);
+          caloParticle_partonCharge.push_back(-99);
+          caloParticle_partonEnergy.push_back(-999.);
+          caloParticle_partonPt.push_back(-999.);
+          caloParticle_partonEta.push_back(-999.);
+          caloParticle_partonPhi.push_back(-999.); 
           caloParticle_genMotherPdgId.push_back(0);
+          caloParticle_genMotherStatus.push_back(-999);
+          caloParticle_genMotherCharge.push_back(-99);
           caloParticle_genMotherEnergy.push_back(-999.);
           caloParticle_genMotherPt.push_back(-999.);
           caloParticle_genMotherEta.push_back(-999.);
-          caloParticle_genMotherPhi.push_back(-999.); 
-          caloParticle_genMotherDR.push_back(-999.);
+          caloParticle_genMotherPhi.push_back(-999.);
           caloParticle_pdgId.push_back(caloParts.at(iCalo).pdgId());
           caloParticle_status.push_back(-99);
+          caloParticle_charge.push_back(caloParts.at(iCalo).charge());
           caloParticle_genEnergy.push_back(caloParts.at(iCalo).energy());
           caloParticle_genPt.push_back(caloParts.at(iCalo).pt());
           caloParticle_genEta.push_back(caloParts.at(iCalo).eta());
@@ -1951,6 +1977,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("caloParticle_isOOTPU","std::vector<bool>",&caloParticle_isOOTPU);   
       tree->Branch("caloParticle_pdgId","std::vector<int>",&caloParticle_pdgId); 
       tree->Branch("caloParticle_status","std::vector<int>",&caloParticle_status); 
+      tree->Branch("caloParticle_charge","std::vector<int>",&caloParticle_charge); 
       tree->Branch("caloParticle_g4TracksEventID","std::vector<int>",&caloParticle_g4TracksEventID); 
       tree->Branch("caloParticle_g4TracksBX","std::vector<int>",&caloParticle_g4TracksBX);     
       tree->Branch("caloParticle_genEnergy","std::vector<float>",&caloParticle_genEnergy);
@@ -1960,13 +1987,20 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("caloParticle_genEta","std::vector<float>",&caloParticle_genEta);
       tree->Branch("caloParticle_simEta","std::vector<float>",&caloParticle_simEta);
       tree->Branch("caloParticle_genPhi","std::vector<float>",&caloParticle_genPhi);
-      tree->Branch("caloParticle_genMotherIndex","std::vector<int>",&caloParticle_genMotherIndex);
+      tree->Branch("caloParticle_partonIndex","std::vector<int>",&caloParticle_partonIndex);
+      tree->Branch("caloParticle_partonPdgId","std::vector<int>",&caloParticle_partonPdgId);
+      tree->Branch("caloParticle_partonCharge","std::vector<int>",&caloParticle_partonCharge);
+      tree->Branch("caloParticle_partonEnergy","std::vector<float>",&caloParticle_partonEnergy);
+      tree->Branch("caloParticle_partonPt","std::vector<float>",&caloParticle_partonPt);
+      tree->Branch("caloParticle_partonEta","std::vector<float>",&caloParticle_partonEta);
+      tree->Branch("caloParticle_partonPhi","std::vector<float>",&caloParticle_partonPhi);
       tree->Branch("caloParticle_genMotherPdgId","std::vector<int>",&caloParticle_genMotherPdgId);
+      tree->Branch("caloParticle_genMotherStatus","std::vector<int>",&caloParticle_genMotherStatus);
+      tree->Branch("caloParticle_genMotherCharge","std::vector<int>",&caloParticle_genMotherCharge);
       tree->Branch("caloParticle_genMotherEnergy","std::vector<float>",&caloParticle_genMotherEnergy);
       tree->Branch("caloParticle_genMotherPt","std::vector<float>",&caloParticle_genMotherPt);
       tree->Branch("caloParticle_genMotherEta","std::vector<float>",&caloParticle_genMotherEta);
       tree->Branch("caloParticle_genMotherPhi","std::vector<float>",&caloParticle_genMotherPhi);
-      tree->Branch("caloParticle_genMotherDR","std::vector<float>",&caloParticle_genMotherDR);
       tree->Branch("caloParticle_simPhi","std::vector<float>",&caloParticle_simPhi);
       tree->Branch("caloParticle_simIeta","std::vector<int>",&caloParticle_simIeta);
       tree->Branch("caloParticle_simIphi","std::vector<int>",&caloParticle_simIphi);
@@ -2385,6 +2419,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    caloParticle_isOOTPU.clear(); 
    caloParticle_pdgId.clear(); 
    caloParticle_status.clear(); 
+   caloParticle_charge.clear(); 
    caloParticle_g4TracksEventID.clear(); 
    caloParticle_g4TracksBX.clear(); 
    caloParticle_genEnergy.clear(); 
@@ -2395,13 +2430,20 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    caloParticle_simEta.clear(); 
    caloParticle_genPhi.clear(); 
    caloParticle_simPhi.clear(); 
-   caloParticle_genMotherIndex.clear(); 
-   caloParticle_genMotherPdgId.clear();  
+   caloParticle_partonIndex.clear(); 
+   caloParticle_partonPdgId.clear();  
+   caloParticle_partonCharge.clear();  
+   caloParticle_partonEnergy.clear(); 
+   caloParticle_partonPt.clear(); 
+   caloParticle_partonEta.clear(); 
+   caloParticle_partonPhi.clear();  
+   caloParticle_genMotherPdgId.clear();
+   caloParticle_genMotherStatus.clear();  
+   caloParticle_genMotherCharge.clear();  
    caloParticle_genMotherEnergy.clear(); 
    caloParticle_genMotherPt.clear(); 
    caloParticle_genMotherEta.clear(); 
    caloParticle_genMotherPhi.clear();  
-   caloParticle_genMotherDR.clear();  
    caloParticle_simIeta.clear(); 
    caloParticle_simIphi.clear(); 
    caloParticle_simIz.clear(); 
