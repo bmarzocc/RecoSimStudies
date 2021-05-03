@@ -126,7 +126,7 @@ process.configurationMetadata = cms.untracked.PSet(
 
 process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
-    compressionLevel = cms.untracked.int32(1),
+    compressionLevel = cms.untracked.int32(5),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string('GEN-SIM-DIGI-RAW'),
         filterName = cms.untracked.string('')
