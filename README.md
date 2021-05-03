@@ -17,10 +17,11 @@
 2) Produce GEN-SIM (ParticleGuns and QCD):
     
     * cd RecoSimStudies/Dumpers/test/
-    * cmsRun GammasGunPt1-100_pythia8_cfi_GEN_SIM.py #Photon gun
-    * cmsRun ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py #Electron gun
-    * cmsRun JetsGunPt1-100_pythia8_cfi_GEN_SIM.py #Jet gun
-    * cmsRun QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py #QCD
+    * cmsRun GammasGunPt1-100_pythia8_cfi_GEN_SIM.py maxEvents=10 #Photon gun
+    * cmsRun ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py maxEvents=10 #Electron gun
+    * cmsRun JetsGunPt1-100_EMEnriched_pythia8_cfi_GEN_SIM.py maxEvents=10 #Jet gun with EMEnriched filter
+    * cmsRun JetsGunPt1-100_pythia8_cfi_GEN_SIM.py maxEvents=10 #Jet gun
+    * cmsRun QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py maxEvents=10 #QCD
 
 3) Produce DIGI-RAW (Standard Mixing):
     
