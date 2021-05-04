@@ -20,6 +20,9 @@ parser.add_argument("-o", "--outputdir", type=str, help="Outputdir", required=Tr
 parser.add_argument("-c", "--cmssw", type=str, help="Absolute path to CMSSW release", required=True)
 parser.add_argument("-q", "--queue", type=str, help="Condor queue", default="longlunch", required=True)
 parser.add_argument("-e", "--eos", type=str, default="user", help="EOS instance user/cms", required=False)
+parser.add_argument("-g", "--gun", type=str, help="GEN-SIM cfg", required=True)
+parser.add_argument("-S", "--seed", type=int, help="Seed offset", default=0)
+parser.add_argument("-p", "--proxy", type=str, help="Proxy key", required=False)
 parser.add_argument("--redo", action="store_true", default=False, help="Redo all files")
 args = parser.parse_args()
 
@@ -43,7 +46,7 @@ user = os.environ["USER"]
 
 script = '''#!/bin/sh -e
 
-export X509_USER_PROXY=/afs/cern.ch/work/{user1}/{user}/public/x509up_u35923
+export X509_USER_PROXY=DIR/PROXY
 voms-proxy-info
 
 cp -r {cmssw_loc} ./
@@ -69,10 +72,8 @@ cd RecoSimStudies/Dumpers/test
 
 echo -e "cmsRun..";
 echo -e ">>> STEP1";
-#cmsRun GammasGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
-#cmsRun ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
-#cmsRun QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 
-cmsRun JetsGunPt1-100_pythia8_cfi_GEN_SIM.py jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 seed4=$SEED5 
+
+cmsRun GEN_SIM_CFG jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 seed5=$SEED5 
 
 echo -e ">>> STEP2";
 cmsRun step2_DIGI_L1_DIGI2RAW_HLT_PU_Run3_2021.py jobid=$JOBID seed1=$SEED6 seed2=$SEED7 
@@ -88,10 +89,20 @@ script = script.replace("{user}", user)
 cmssw_file = args.cmssw.split("/")[-1]
 script = script.replace("{cmssw_loc}", args.cmssw)
 script = script.replace("{cmssw_file}", cmssw_file)
+script = script.replace("DIR", os.getcwd())
+script = script.replace("PROXY", args.proxy)
+
+if args.gun == "Photons": script = script.replace("GEN_SIM_CFG", "GammasGunPt1-100_pythia8_cfi_GEN_SIM.py")
+elif args.gun == "Electrons": script = script.replace("GEN_SIM_CFG", "ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py")
+elif args.gun == "Jets": script = script.replace("GEN_SIM_CFG", "JetsGunPt1-100_EMEnriched_pythia8_cfi_GEN_SIM.py")
+elif args.gun == "QCD": script = script.replace("GEN_SIM_CFG", "QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py")
+else: 
+  print "Wrong GUN option, please use: 'Photons' or 'Electrons' or 'Jets' or 'QCD'"
+  exit() 
 
 arguments= []
-#if not os.path.exists(args.outputdir):
-#    os.makedirs(args.outputdir)
+if not os.path.exists(args.outputdir):
+  os.makedirs(args.outputdir)
 
 outputfiles = [args.outputdir +"/"+f for f in os.listdir(args.outputdir)]
 
@@ -105,12 +116,12 @@ for ijob in range(njobs):
             if not args.redo and outputfile+".root" in outputfiles:
                 continue
 
-            arguments.append("{} {} {} {} {} {} {} {} {}".format(
+            arguments.append("{} {} {} {} {} {} {} {} {} {}".format(
                 jobid,outputfile,args.split, 
-                jobid+40001,jobid+40002, 
-                jobid+40003,jobid+40004,
-                jobid+40005,jobid+40006,
-                jobid+40007))
+                jobid+args.seed+1,jobid+args.seed+2, 
+                jobid+args.seed+3,jobid+args.seed+4,
+                jobid+args.seed+5,jobid+args.seed+6,
+                jobid+args.seed+7))
 
 print("Njobs: ", len(arguments))
     

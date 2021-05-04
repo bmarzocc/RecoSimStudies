@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import random
+import commands
 from math import *
 
 with open("command.txt", "w") as of:
@@ -14,7 +15,8 @@ group them in strips reading a DOF file
 parser = argparse.ArgumentParser()
 
 #parser.add_argument("-f", "--files", type=str, help="input file", required=True)
-parser.add_argument("-i", "--inputdir", type=str, help="Inputdir", required=True)
+parser.add_argument("-i", "--inputdir", type=str, default="", help="Inputdir", required=False)
+parser.add_argument("-D", "--das", type=str, default="", help="input DAS dataset", required=False)
 parser.add_argument("-o", "--outputdir", type=str, help="Outputdir", required=True)
 parser.add_argument("-c", "--cmssw", type=str, help="CMSSW tar", required=True)
 parser.add_argument("-d", "---dumper", type=str, help="Dumper to run", required=True, default="RecoSimDumper")
@@ -23,6 +25,9 @@ parser.add_argument("-e", "--eos", type=str, default="user", help="EOS instance 
 parser.add_argument("--redo", action="store_true", default=False, help="Redo all files")
 args = parser.parse_args()
 
+if (args.inputdir=="" and args.das=="") or (args.inputdir!="" and args.das!=""):
+  print "ERROR: Give either inputdir, either DAS option"
+  exit()  
 
 # Prepare condor jobs
 condor = '''executable              = run_script.sh
@@ -43,9 +48,6 @@ condor = condor.replace("{queue}", args.queue)
 user = os.environ["USER"]
 
 script = '''#!/bin/sh -e
-
-export X509_USER_PROXY=/afs/cern.ch/user/{user1}/{user}/x509up_u35923
-voms-proxy-info
 
 cp -r {cmssw_loc} ./
 cd {cmssw_file}/src
@@ -88,16 +90,29 @@ script = script.replace("{dumper}", args.dumper)
 
 arguments= []
 if not os.path.exists(args.outputdir):
-    os.makedirs(args.outputdir)
+  os.makedirs(args.outputdir)
 
 outputfiles = [args.outputdir +"/"+f for f in os.listdir(args.outputdir)]
-inputfiles = [ f for f in os.listdir(args.inputdir)]
+
+inputfiles = ""
+if args.inputdir!="":
+  inputfiles = [ f for f in os.listdir(args.inputdir)]
+if args.das!="":
+  query = "dasgoclient --query='file dataset=/"+args.das+" instance=prod/phys03'"
+  status, output = commands.getstatusoutput(query) 
+  #print output
+  inputfiles = output.split()
 
 jobid = 0
 for ifile in inputfiles:
     jobid +=1
-    inputfile = args.inputdir + "/" + ifile
-    outputfile = args.outputdir + "/" + ifile[:-5] + "_output.root"
+    if args.inputdir!="": 
+      inputfile = args.inputdir + "/" + ifile
+      outputfile = args.outputdir + "/" + ifile[:-5] + "_output.root"
+    else: 
+      inputfile = "root://cms-xrd-global.cern.ch/" + ifile
+      outputfile = args.outputdir + "/" + ifile.split('/')[-1]
+    
 
     if not args.redo and outputfile in outputfiles:
         continue
