@@ -1164,7 +1164,7 @@ process.mix.digitizers = cms.PSet(process.theDigitizersValid)
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '112X_mcRun3_2021_realistic_v16', '')
 
-process.load("RecoSimStudies/Dumpers/reduceCaloParticles_cfi")
+process.load("SimGeneral/CaloAnalysis/reduceCaloParticles_cfi")
 process.caloPart_step = cms.Path(process.reducedCaloParticlesSequence)
 
 # Path and EndPath definitions
