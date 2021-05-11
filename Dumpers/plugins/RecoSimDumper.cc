@@ -121,6 +121,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    rhoToken_                      = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoCollection"));
    genToken_                      = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
    caloPartToken_                 = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticleCollection"));
+   puCaloPartToken_               = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("puCaloParticleCollection"));
+   ootpuCaloPartToken_            = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("ootpuCaloParticleCollection"));
    ebRechitToken_                 = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("ebRechitCollection"));
    eeRechitToken_                 = consumes<EcalRecHitCollection>(iConfig.getParameter<edm::InputTag>("eeRechitCollection"));
    pfRecHitToken_                 = consumes<std::vector<reco::PFRecHit> >(iConfig.getParameter<edm::InputTag>("pfRechitCollection")); 
@@ -221,6 +223,24 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    if (!caloParticles.isValid()) {
        std::cerr << "Analyze --> caloParticles not found" << std::endl; 
        return;
+   }
+   
+   edm::Handle<std::vector<CaloParticle> > puCaloParticle;
+   if(saveCaloParticlesPU_) {  
+      ev.getByToken(puCaloPartToken_,puCaloParticle);
+      if (!puCaloParticle.isValid()) {
+          std::cerr << "Analyze --> puCaloParticle not found" << std::endl; 
+          return;
+      }
+   }
+
+   edm::Handle<std::vector<CaloParticle> > ootpuCaloParticle;
+   if(saveCaloParticlesOOTPU_) {  
+      ev.getByToken(ootpuCaloPartToken_,ootpuCaloParticle);
+      if (!ootpuCaloParticle.isValid()) {
+          std::cerr << "Analyze --> ootpuCaloParticle not found" << std::endl; 
+          return;
+      }
    }
 
    edm::Handle<EcalRecHitCollection> recHitsEB;
@@ -368,37 +388,15 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    //std::cout << "GenParticles size  : " << nGenParticles << std::endl;
    
    hitsAndEnergies_CaloPart.clear();
+   hitsAndEnergies_CaloPartPU.clear();
+   hitsAndEnergies_CaloPartOOTPU.clear(); 
    
    std::vector<CaloParticle> caloParts;
    std::vector<GlobalPoint> caloParts_position;
    caloParticle_size = 0;
-   caloParticlePU_size = 0;
-   caloParticleOOTPU_size = 0; 
    for(const auto& iCalo : *(caloParticles.product()))
    {
-    
-       bool isPU = false; 
-       bool isOOTPU = false; 
-       if(iCalo.g4Tracks()[0].eventId().bunchCrossing() != 0){
-          isPU = false;
-          isOOTPU = true;  
-       }else{
-          if(iCalo.g4Tracks()[0].eventId().event() != 0){
-             isPU = true;
-             isOOTPU = false; 
-          }else{
-             isPU = false;
-             isOOTPU = false;    
-          }    
-       }
- 
-       if(!isPU && !isOOTPU) caloParticle_size++;
-       else if(isPU && !isOOTPU) caloParticlePU_size++;
-       else if(!isPU && isOOTPU) caloParticleOOTPU_size++;
-
-       if(!saveCaloParticlesPU_ && isPU) continue;
-       if(!saveCaloParticlesOOTPU_ && isOOTPU) continue;
-       
+       caloParticle_size++;
        std::vector<std::pair<DetId, float> > caloParticle_hitsAndEnergies = *getHitsAndEnergiesCaloPart(&iCalo,-1.);
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(&caloParticle_hitsAndEnergies, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,true);
        if(caloParticle_position == GlobalPoint(-999999., -999999., -999999.)){
@@ -410,9 +408,43 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        caloParts_position.push_back(caloParticle_position);
        caloParts.push_back(iCalo); 
    }
-
+   
    int nCaloParticles = caloParts.size(); 
    //std::cout << "CaloParticles size  : " << nCaloParticles << " - " << caloParticle_size << " - " << caloParticlePU_size << " - " << caloParticleOOTPU_size << " - " << nVtx << std::endl;
+
+   if(saveCaloParticlesPU_)
+   {
+      for(const auto& iCalo : *(puCaloParticle.product()))
+      {
+          const auto& simClusters = iCalo.simClusters();
+          auto hits_and_fractions = simClusters[0]->hits_and_fractions();
+          caloParticlePU_nHits = hits_and_fractions.size(); 
+          caloParticlePU_totEnergy = 0.; 
+          std::vector<std::pair<DetId, float>> hitsAndEnergies;         
+          for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
+              caloParticlePU_totEnergy += hits_and_fractions[i].second;
+              hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));
+          } 
+          hitsAndEnergies_CaloPartPU.push_back(hitsAndEnergies);
+      }   
+   }
+
+   if(saveCaloParticlesOOTPU_)
+   {
+      for(const auto& iCalo : *(ootpuCaloParticle.product()))
+      {
+          const auto& simClusters = iCalo.simClusters();
+          auto hits_and_fractions = simClusters[0]->hits_and_fractions();
+          caloParticleOOTPU_nHits = hits_and_fractions.size(); 
+          caloParticleOOTPU_totEnergy = 0.;          
+          std::vector<std::pair<DetId, float>> hitsAndEnergies;         
+          for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
+              caloParticleOOTPU_totEnergy += hits_and_fractions[i].second;
+              hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));
+          } 
+          hitsAndEnergies_CaloPartOOTPU.push_back(hitsAndEnergies);
+      }   
+   } 
   
    int nSuperClustersEB = 0;
    int nSuperClustersEE = 0;
@@ -451,76 +483,22 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
   
    for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
    
-       bool isPU = false; 
-       bool isOOTPU = false; 
-       if(caloParts.at(iCalo).g4Tracks()[0].eventId().bunchCrossing() != 0){
-          isPU = false;
-          isOOTPU = true;  
-       }else{
-          if(caloParts.at(iCalo).g4Tracks()[0].eventId().event() != 0){
-             isPU = true;
-             isOOTPU = false; 
-          }else{
-             isPU = false;
-             isOOTPU = false;    
-          }    
-       }
-       
-       caloParticle_isPU.push_back(isPU);
-       caloParticle_isOOTPU.push_back(isOOTPU);
-       caloParticle_g4TracksEventID.push_back(caloParts.at(iCalo).g4Tracks()[0].eventId().event());
-       caloParticle_g4TracksBX.push_back(caloParts.at(iCalo).g4Tracks()[0].eventId().bunchCrossing());
-       
        caloParticle_index.push_back(iCalo); 
        caloParticle_nXtals.push_back(hitsAndEnergies_CaloPart.at(iCalo).size()); 
    
        int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;    
-       if(isPU==0 && isOOTPU==0){
-          auto genParticle = genParts_tmp[genIndex]; 
-          int partonIndex = -1;
-          if(genParticle.numberOfMothers()!=0) partonIndex = getGenMother(&genParts_tmp,genIndex); 
-          if(partonIndex>=0){
-             auto genMother = genParts_tmp[partonIndex]; 
-             caloParticle_partonIndex.push_back(partonIndex);
-             caloParticle_partonPdgId.push_back(genMother.pdgId());
-             caloParticle_partonCharge.push_back(genMother.charge());
-             caloParticle_partonEnergy.push_back(reduceFloat(genMother.energy(),nBits_));
-             caloParticle_partonPt.push_back(reduceFloat(genMother.pt(),nBits_));
-             caloParticle_partonEta.push_back(reduceFloat(genMother.eta(),nBits_));
-             caloParticle_partonPhi.push_back(reduceFloat(genMother.phi(),nBits_)); 
-          }else{
-             caloParticle_partonIndex.push_back(-99);
-             caloParticle_partonPdgId.push_back(0);
-             caloParticle_partonCharge.push_back(-99);
-             caloParticle_partonEnergy.push_back(-999.);
-             caloParticle_partonPt.push_back(-999.);
-             caloParticle_partonEta.push_back(-999.);
-             caloParticle_partonPhi.push_back(-999.);
-          } 
-          if(genParticle.numberOfMothers()!=0){
-             caloParticle_genMotherPdgId.push_back(genParticle.mother()->pdgId());
-             caloParticle_genMotherStatus.push_back(genParticle.mother()->status());
-             caloParticle_genMotherCharge.push_back(genParticle.mother()->charge());
-             caloParticle_genMotherEnergy.push_back(reduceFloat(genParticle.mother()->energy(),nBits_));
-             caloParticle_genMotherPt.push_back(reduceFloat(genParticle.mother()->pt(),nBits_));
-             caloParticle_genMotherEta.push_back(reduceFloat(genParticle.mother()->eta(),nBits_));
-             caloParticle_genMotherPhi.push_back(reduceFloat(genParticle.mother()->phi(),nBits_)); 
-          }else{
-             caloParticle_genMotherPdgId.push_back(0);
-             caloParticle_genMotherStatus.push_back(-999);
-             caloParticle_genMotherCharge.push_back(-99);
-             caloParticle_genMotherEnergy.push_back(-999.);
-             caloParticle_genMotherPt.push_back(-999.);
-             caloParticle_genMotherEta.push_back(-999.);
-             caloParticle_genMotherPhi.push_back(-999.);  
-          }
-          caloParticle_pdgId.push_back(genParticle.pdgId());
-          caloParticle_status.push_back(genParticle.status());
-          caloParticle_charge.push_back(genParticle.charge());
-          caloParticle_genEnergy.push_back(reduceFloat(genParticle.energy(),nBits_));
-          caloParticle_genPt.push_back(reduceFloat(genParticle.pt(),nBits_));
-          caloParticle_genEta.push_back(reduceFloat(genParticle.eta(),nBits_));
-          caloParticle_genPhi.push_back(reduceFloat(genParticle.phi(),nBits_));
+       auto genParticle = genParts_tmp[genIndex]; 
+       int partonIndex = -1;
+       if(genParticle.numberOfMothers()!=0) partonIndex = getGenMother(&genParts_tmp,genIndex); 
+       if(partonIndex>=0){
+          auto genMother = genParts_tmp[partonIndex]; 
+          caloParticle_partonIndex.push_back(partonIndex);
+          caloParticle_partonPdgId.push_back(genMother.pdgId());
+          caloParticle_partonCharge.push_back(genMother.charge());
+          caloParticle_partonEnergy.push_back(reduceFloat(genMother.energy(),nBits_));
+          caloParticle_partonPt.push_back(reduceFloat(genMother.pt(),nBits_));
+          caloParticle_partonEta.push_back(reduceFloat(genMother.eta(),nBits_));
+          caloParticle_partonPhi.push_back(reduceFloat(genMother.phi(),nBits_)); 
        }else{
           caloParticle_partonIndex.push_back(-99);
           caloParticle_partonPdgId.push_back(0);
@@ -528,23 +506,33 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           caloParticle_partonEnergy.push_back(-999.);
           caloParticle_partonPt.push_back(-999.);
           caloParticle_partonEta.push_back(-999.);
-          caloParticle_partonPhi.push_back(-999.); 
+          caloParticle_partonPhi.push_back(-999.);
+       } 
+       if(genParticle.numberOfMothers()!=0){
+          caloParticle_genMotherPdgId.push_back(genParticle.mother()->pdgId());
+          caloParticle_genMotherStatus.push_back(genParticle.mother()->status());
+          caloParticle_genMotherCharge.push_back(genParticle.mother()->charge());
+          caloParticle_genMotherEnergy.push_back(reduceFloat(genParticle.mother()->energy(),nBits_));
+          caloParticle_genMotherPt.push_back(reduceFloat(genParticle.mother()->pt(),nBits_));
+          caloParticle_genMotherEta.push_back(reduceFloat(genParticle.mother()->eta(),nBits_));
+          caloParticle_genMotherPhi.push_back(reduceFloat(genParticle.mother()->phi(),nBits_)); 
+       }else{
           caloParticle_genMotherPdgId.push_back(0);
           caloParticle_genMotherStatus.push_back(-999);
           caloParticle_genMotherCharge.push_back(-99);
           caloParticle_genMotherEnergy.push_back(-999.);
           caloParticle_genMotherPt.push_back(-999.);
           caloParticle_genMotherEta.push_back(-999.);
-          caloParticle_genMotherPhi.push_back(-999.);
-          caloParticle_pdgId.push_back(caloParts.at(iCalo).pdgId());
-          caloParticle_status.push_back(-99);
-          caloParticle_charge.push_back(caloParts.at(iCalo).charge());
-          caloParticle_genEnergy.push_back(caloParts.at(iCalo).energy());
-          caloParticle_genPt.push_back(caloParts.at(iCalo).pt());
-          caloParticle_genEta.push_back(caloParts.at(iCalo).eta());
-          caloParticle_genPhi.push_back(caloParts.at(iCalo).phi());
+          caloParticle_genMotherPhi.push_back(-999.);  
        }
-
+       caloParticle_pdgId.push_back(genParticle.pdgId());
+       caloParticle_status.push_back(genParticle.status());
+       caloParticle_charge.push_back(genParticle.charge());
+       caloParticle_genEnergy.push_back(reduceFloat(genParticle.energy(),nBits_));
+       caloParticle_genPt.push_back(reduceFloat(genParticle.pt(),nBits_));
+       caloParticle_genEta.push_back(reduceFloat(genParticle.eta(),nBits_));
+       caloParticle_genPhi.push_back(reduceFloat(genParticle.phi(),nBits_));
+       
        GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
        caloParticle_simEta.push_back(reduceFloat(caloParticle_position.eta(),nBits_));
        caloParticle_simPhi.push_back(reduceFloat(caloParticle_position.phi(),nBits_));
@@ -664,16 +652,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       int iPFCl=0;
       //std::cout << "PFClusters size     : " << (pfClusters.product())->size() << std::endl;
       for(const auto& iPFCluster : *(pfClusters.product())){  
-
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear(); 
 
           pfCluster_rawEnergy.push_back(reduceFloat(iPFCluster.energy(),nBits_));
           pfCluster_energy.push_back(reduceFloat(iPFCluster.correctedEnergy(),nBits_));
@@ -819,9 +797,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  } 
              }
           }
-   
+          
           //compute scores     
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -829,7 +808,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_dR_genScore[iPFCl] = dR_genScore;        
              pfCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&pfCluster_dR_genScore, 999., false, 0., iPFCl));
           } 
+        
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iPFCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             pfCluster_simPU_nSharedXtals[iPFCl] = simPU_nSharedXtals[0];   
+             pfCluster_simEnergy_sharedXtalsPU[iPFCl] = simEnergy_sharedXtalsPU[0];   
+             pfCluster_recoEnergy_sharedXtalsPU[iPFCl] = recoEnergy_sharedXtalsPU[0];     
+             pfCluster_simEnergy_noHitsFraction_sharedXtalsPU[iPFCl] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iPFCl] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iPFCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             pfCluster_simOOTPU_nSharedXtals[iPFCl] = simOOTPU_nSharedXtals[0];   
+             pfCluster_simEnergy_sharedXtalsOOTPU[iPFCl] = simEnergy_sharedXtalsOOTPU[0];   
+             pfCluster_recoEnergy_sharedXtalsOOTPU[iPFCl] = recoEnergy_sharedXtalsOOTPU[0];     
+             pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iPFCl] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iPFCl] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+
           if(saveCaloParticles_){ 
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear(); 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iPFCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -846,7 +876,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  recoEnergy_sharedXtals.push_back(scores[6]);  
              } 
 
-             pfCluster_nXtals.push_back((iPFCluster.hitsAndFractions()).size());   
+
+             pfCluster_nXtals.push_back((double)(iPFCluster.hitsAndFractions()).size());   
              pfCluster_dR_simScore[iPFCl] = dR_simScore;  
              pfCluster_sim_nSharedXtals[iPFCl] = sim_nSharedXtals;   
              pfCluster_sim_fraction_noHitsFraction[iPFCl] = sim_fraction_noHitsFraction;    
@@ -893,16 +924,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEB.product())){  
 
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear(); 
- 
           superCluster_rawEnergy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
@@ -963,6 +984,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
          
           //compute scores  
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -970,7 +992,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_dR_genScore[iSC] = dR_genScore;        
              superCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&superCluster_dR_genScore, 999., false, 0., iSC));
           } 
+
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iSuperCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             superCluster_simPU_nSharedXtals[iSC] = simPU_nSharedXtals[0];   
+             superCluster_simEnergy_sharedXtalsPU[iSC] = simEnergy_sharedXtalsPU[0];   
+             superCluster_recoEnergy_sharedXtalsPU[iSC] = recoEnergy_sharedXtalsPU[0];     
+             superCluster_simEnergy_noHitsFraction_sharedXtalsPU[iSC] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             superCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iSuperCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             superCluster_simOOTPU_nSharedXtals[iSC] = simOOTPU_nSharedXtals[0];   
+             superCluster_simEnergy_sharedXtalsOOTPU[iSC] = simEnergy_sharedXtalsOOTPU[0];   
+             superCluster_recoEnergy_sharedXtalsOOTPU[iSC] = recoEnergy_sharedXtalsOOTPU[0];     
+             superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+
           if(saveCaloParticles_){ 
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear(); 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iSuperCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -1031,15 +1104,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
       for(const auto& iSuperCluster : *(superClusterEE.product())){    
 
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear();    
           iSC_tmp++;
         
           superCluster_rawEnergy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
@@ -1102,6 +1166,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           //compute scores  
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -1109,7 +1174,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_dR_genScore[iSC] = dR_genScore;        
              superCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&superCluster_dR_genScore, 999., false, 0., iSC));
           } 
+          
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iSuperCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             superCluster_simPU_nSharedXtals[iSC] = simPU_nSharedXtals[0];   
+             superCluster_simEnergy_sharedXtalsPU[iSC] = simEnergy_sharedXtalsPU[0];   
+             superCluster_recoEnergy_sharedXtalsPU[iSC] = recoEnergy_sharedXtalsPU[0];     
+             superCluster_simEnergy_noHitsFraction_sharedXtalsPU[iSC] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             superCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iSuperCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             superCluster_simOOTPU_nSharedXtals[iSC] = simOOTPU_nSharedXtals[0];   
+             superCluster_simEnergy_sharedXtalsOOTPU[iSC] = simEnergy_sharedXtalsOOTPU[0];   
+             superCluster_recoEnergy_sharedXtalsOOTPU[iSC] = recoEnergy_sharedXtalsOOTPU[0];     
+             superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+ 
           if(saveCaloParticles_){ 
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear();  
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iSuperCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -1204,16 +1320,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "retunedSuperClustersEB size: " << (retunedSuperClusterEB.product())->size() << std::endl;
       for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEB.product())){  
 
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear(); 
-
           retunedSuperCluster_rawEnergy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
           retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_)); 
           retunedSuperCluster_eta.push_back(reduceFloat(iRetunedSuperCluster.eta(),nBits_));
@@ -1274,6 +1380,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
          
           //compute scores  
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -1281,7 +1388,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_dR_genScore[iSC] = dR_genScore;        
              retunedSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&retunedSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
+
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iRetunedSuperCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             retunedSuperCluster_simPU_nSharedXtals[iSC] = simPU_nSharedXtals[0];   
+             retunedSuperCluster_simEnergy_sharedXtalsPU[iSC] = simEnergy_sharedXtalsPU[0];   
+             retunedSuperCluster_recoEnergy_sharedXtalsPU[iSC] = recoEnergy_sharedXtalsPU[0];     
+             retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU[iSC] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iRetunedSuperCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             retunedSuperCluster_simOOTPU_nSharedXtals[iSC] = simOOTPU_nSharedXtals[0];   
+             retunedSuperCluster_simEnergy_sharedXtalsOOTPU[iSC] = simEnergy_sharedXtalsOOTPU[0];   
+             retunedSuperCluster_recoEnergy_sharedXtalsOOTPU[iSC] = recoEnergy_sharedXtalsOOTPU[0];     
+             retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+
           if(saveCaloParticles_){ 
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear(); 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iRetunedSuperCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -1341,15 +1499,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "retunedSuperClustersEE size: " << (retunedSuperClusterEE.product())->size() << std::endl;
       for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEE.product())){    
 
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear(); 
           iSC_tmp++;
         
           retunedSuperCluster_rawEnergy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
@@ -1412,6 +1561,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           //compute scores  
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -1419,7 +1569,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_dR_genScore[iSC] = dR_genScore;        
              retunedSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&retunedSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
+
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iRetunedSuperCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             retunedSuperCluster_simPU_nSharedXtals[iSC] = simPU_nSharedXtals[0];   
+             retunedSuperCluster_simEnergy_sharedXtalsPU[iSC] = simEnergy_sharedXtalsPU[0];   
+             retunedSuperCluster_recoEnergy_sharedXtalsPU[iSC] = recoEnergy_sharedXtalsPU[0];     
+             retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU[iSC] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iRetunedSuperCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             retunedSuperCluster_simOOTPU_nSharedXtals[iSC] = simOOTPU_nSharedXtals[0];   
+             retunedSuperCluster_simEnergy_sharedXtalsOOTPU[iSC] = simEnergy_sharedXtalsOOTPU[0];   
+             retunedSuperCluster_recoEnergy_sharedXtalsOOTPU[iSC] = recoEnergy_sharedXtalsOOTPU[0];     
+             retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+
           if(saveCaloParticles_){ 
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear(); 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iRetunedSuperCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -1514,16 +1715,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "deepSuperClustersEB size: " << (deepSuperClusterEB.product())->size() << std::endl;
       for(const auto& iDeepSuperCluster : *(deepSuperClusterEB.product())){  
 
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear(); 
-
           deepSuperCluster_rawEnergy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));
           deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
           deepSuperCluster_eta.push_back(reduceFloat(iDeepSuperCluster.eta(),nBits_));
@@ -1584,6 +1775,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
          
           //compute scores  
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -1591,7 +1783,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_dR_genScore[iSC] = dR_genScore;        
              deepSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&deepSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
+
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iDeepSuperCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             deepSuperCluster_simPU_nSharedXtals[iSC] = simPU_nSharedXtals[0];   
+             deepSuperCluster_simEnergy_sharedXtalsPU[iSC] = simEnergy_sharedXtalsPU[0];   
+             deepSuperCluster_recoEnergy_sharedXtalsPU[iSC] = recoEnergy_sharedXtalsPU[0];     
+             deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU[iSC] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iDeepSuperCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             deepSuperCluster_simOOTPU_nSharedXtals[iSC] = simOOTPU_nSharedXtals[0];   
+             deepSuperCluster_simEnergy_sharedXtalsOOTPU[iSC] = simEnergy_sharedXtalsOOTPU[0];   
+             deepSuperCluster_recoEnergy_sharedXtalsOOTPU[iSC] = recoEnergy_sharedXtalsOOTPU[0];     
+             deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+
           if(saveCaloParticles_){ 
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear(); 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iDeepSuperCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -1651,15 +1894,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "deepSuperClustersEE size: " << (deepSuperClusterEE.product())->size() << std::endl;
       for(const auto& iDeepSuperCluster : *(deepSuperClusterEE.product())){    
 
-          dR_genScore.clear();
-          dR_simScore.clear();
-          sim_nSharedXtals.clear();
-          sim_fraction_noHitsFraction.clear();
-          sim_fraction.clear();
-          recoToSim_fraction.clear();
-          recoToSim_fraction_sharedXtals.clear();  
-          simEnergy_sharedXtals.clear(); 
-          recoEnergy_sharedXtals.clear(); 
           iSC_tmp++;
         
           deepSuperCluster_rawEnergy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));     
@@ -1722,6 +1956,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           //compute scores  
           if(saveGenParticles_){
+             dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())); 
                  else dR_genScore.push_back(999.);     
@@ -1729,7 +1964,58 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_dR_genScore[iSC] = dR_genScore;        
              deepSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&deepSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
-          if(saveCaloParticles_){ 
+
+          if(saveCaloParticlesPU_){ 
+             simPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsPU.clear(); 
+             recoEnergy_sharedXtalsPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iDeepSuperCluster,&hitsAndEnergies_CaloPartPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsPU.push_back(scores[8]);   
+             } 
+             deepSuperCluster_simPU_nSharedXtals[iSC] = simPU_nSharedXtals[0];   
+             deepSuperCluster_simEnergy_sharedXtalsPU[iSC] = simEnergy_sharedXtalsPU[0];   
+             deepSuperCluster_recoEnergy_sharedXtalsPU[iSC] = recoEnergy_sharedXtalsPU[0];     
+             deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU[iSC] = simEnergy_noHitsFraction_sharedXtalsPU[0];   
+             deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
+          }
+
+          if(saveCaloParticlesOOTPU_){ 
+             simOOTPU_nSharedXtals.clear();
+             simEnergy_sharedXtalsOOTPU.clear(); 
+             recoEnergy_sharedXtalsOOTPU.clear();
+             simEnergy_noHitsFraction_sharedXtalsOOTPU.clear(); 
+             recoEnergy_noHitsFraction_sharedXtalsOOTPU.clear();
+             for(unsigned int iCalo=0; iCalo<hitsAndEnergies_CaloPartOOTPU.size(); iCalo++){
+                 std::vector<double> scores = getScores(&iDeepSuperCluster,&hitsAndEnergies_CaloPartOOTPU.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
+                 simOOTPU_nSharedXtals.push_back(scores[0]);  
+                 simEnergy_sharedXtalsOOTPU.push_back(scores[5]);  
+                 recoEnergy_sharedXtalsOOTPU.push_back(scores[6]); 
+                 simEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[7]);  
+                 recoEnergy_noHitsFraction_sharedXtalsOOTPU.push_back(scores[8]);   
+             } 
+             deepSuperCluster_simOOTPU_nSharedXtals[iSC] = simOOTPU_nSharedXtals[0];   
+             deepSuperCluster_simEnergy_sharedXtalsOOTPU[iSC] = simEnergy_sharedXtalsOOTPU[0];   
+             deepSuperCluster_recoEnergy_sharedXtalsOOTPU[iSC] = recoEnergy_sharedXtalsOOTPU[0];     
+             deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = simEnergy_noHitsFraction_sharedXtalsOOTPU[0];   
+             deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
+          }
+
+          if(saveCaloParticles_){
+             dR_simScore.clear();
+             sim_nSharedXtals.clear();
+             sim_fraction_noHitsFraction.clear();
+             sim_fraction.clear();
+             recoToSim_fraction.clear();
+             recoToSim_fraction_sharedXtals.clear();  
+             simEnergy_sharedXtals.clear(); 
+             recoEnergy_sharedXtals.clear(); 
              for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
                  GlobalPoint caloParticle_position = caloParts_position.at(iCalo);
                  std::vector<double> scores = getScores(&iDeepSuperCluster,&hitsAndEnergies_CaloPart.at(iCalo), &(*(recHitsEB.product())), &(*(recHitsEE.product())));
@@ -1967,19 +2253,21 @@ void RecoSimDumper::setTree(TTree* tree)
       if(saveSuperCluster_ && useRetunedSC_) tree->Branch("genParticle_retunedSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_retunedSuperCluster_dR_genScore_MatchedIndex); 
       if(saveSuperCluster_ && useDeepSC_) tree->Branch("genParticle_deepSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_deepSuperCluster_dR_genScore_MatchedIndex); 
    }
+   if(saveCaloParticlesPU_){
+      tree->Branch("caloParticlePU_nHits", &caloParticlePU_nHits, "caloParticlePU_nHits/I");  
+      tree->Branch("caloParticlePU_totEnergy", &caloParticlePU_totEnergy, "caloParticlePU_totEnergy/F");  
+   }
+   if(saveCaloParticlesOOTPU_){
+      tree->Branch("caloParticleOOTPU_nHits", &caloParticleOOTPU_nHits, "caloParticleOOTPU_nHits/I");  
+      tree->Branch("caloParticleOOTPU_totEnergy", &caloParticleOOTPU_totEnergy, "caloParticleOOTPU_totEnergy/F");  
+   }
    if(saveCaloParticles_){
       tree->Branch("caloParticle_size", &caloParticle_size, "caloParticle_size/I"); 
-      tree->Branch("caloParticlePU_size", &caloParticlePU_size, "caloParticlePU_size/I"); 
-      tree->Branch("caloParticleOOTPU_size", &caloParticleOOTPU_size, "caloParticleOOTPU_size/I"); 
       tree->Branch("caloParticle_index","std::vector<int>",&caloParticle_index); 
       tree->Branch("caloParticle_nXtals","std::vector<int>",&caloParticle_nXtals);   
-      tree->Branch("caloParticle_isPU","std::vector<bool>",&caloParticle_isPU);   
-      tree->Branch("caloParticle_isOOTPU","std::vector<bool>",&caloParticle_isOOTPU);   
       tree->Branch("caloParticle_pdgId","std::vector<int>",&caloParticle_pdgId); 
       tree->Branch("caloParticle_status","std::vector<int>",&caloParticle_status); 
       tree->Branch("caloParticle_charge","std::vector<int>",&caloParticle_charge); 
-      tree->Branch("caloParticle_g4TracksEventID","std::vector<int>",&caloParticle_g4TracksEventID); 
-      tree->Branch("caloParticle_g4TracksBX","std::vector<int>",&caloParticle_g4TracksBX);     
       tree->Branch("caloParticle_genEnergy","std::vector<float>",&caloParticle_genEnergy);
       tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy); 
       tree->Branch("caloParticle_genPt","std::vector<float>",&caloParticle_genPt);
@@ -2085,7 +2373,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("pfCluster_ieta","std::vector<int>",&pfCluster_ieta);
       tree->Branch("pfCluster_iphi","std::vector<int>",&pfCluster_iphi);   
       tree->Branch("pfCluster_iz","std::vector<int>",&pfCluster_iz);
-      tree->Branch("pfCluster_nXtals","std::vector<int>",&pfCluster_nXtals);  
+      tree->Branch("pfCluster_nXtals","std::vector<double>",&pfCluster_nXtals);  
       if(saveSuperCluster_) tree->Branch("pfCluster_superClustersIndex","std::vector<std::vector<int> >",&pfCluster_superClustersIndex); 
       if(saveSuperCluster_ && useRetunedSC_) tree->Branch("pfCluster_retunedSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_retunedSuperClustersIndex);  
       if(saveSuperCluster_ && useDeepSC_) tree->Branch("pfCluster_deepSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_deepSuperClustersIndex); 
@@ -2108,6 +2396,20 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("pfCluster_recoToSim_fraction_sharedXtals_MatchedIndex","std::vector<int>",&pfCluster_recoToSim_fraction_sharedXtals_MatchedIndex);
          tree->Branch("pfCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&pfCluster_simEnergy_sharedXtals_MatchedIndex);
          tree->Branch("pfCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&pfCluster_recoEnergy_sharedXtals_MatchedIndex);
+      }
+      if(saveCaloParticlesPU_){ 
+         tree->Branch("pfCluster_simPU_nSharedXtals","std::vector<double>",&pfCluster_simPU_nSharedXtals);
+         tree->Branch("pfCluster_simEnergy_sharedXtalsPU","std::vector<double>",&pfCluster_simEnergy_sharedXtalsPU);
+         tree->Branch("pfCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&pfCluster_recoEnergy_sharedXtalsPU); 
+         tree->Branch("pfCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&pfCluster_simEnergy_noHitsFraction_sharedXtalsPU);
+         tree->Branch("pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
+      }
+      if(saveCaloParticlesOOTPU_){ 
+         tree->Branch("pfCluster_simOOTPU_nSharedXtals","std::vector<double>",&pfCluster_simOOTPU_nSharedXtals);
+         tree->Branch("pfCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&pfCluster_simEnergy_sharedXtalsOOTPU);
+         tree->Branch("pfCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&pfCluster_recoEnergy_sharedXtalsOOTPU);  
+         tree->Branch("pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
+         tree->Branch("pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
       }
       if(savePFClusterhits_){ 
          tree->Branch("pfClusterHit_fraction","std::vector<std::vector<float> >",&pfClusterHit_fraction);
@@ -2157,6 +2459,20 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("superCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&superCluster_simEnergy_sharedXtals_MatchedIndex);
          tree->Branch("superCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&superCluster_recoEnergy_sharedXtals_MatchedIndex);
       }    
+      if(saveCaloParticlesPU_){ 
+         tree->Branch("superCluster_simPU_nSharedXtals","std::vector<double>",&superCluster_simPU_nSharedXtals);
+         tree->Branch("superCluster_simEnergy_sharedXtalsPU","std::vector<double>",&superCluster_simEnergy_sharedXtalsPU);
+         tree->Branch("superCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&superCluster_recoEnergy_sharedXtalsPU);  
+         tree->Branch("superCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&superCluster_simEnergy_noHitsFraction_sharedXtalsPU);
+         tree->Branch("superCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&superCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
+      }
+      if(saveCaloParticlesOOTPU_){ 
+         tree->Branch("superCluster_simOOTPU_nSharedXtals","std::vector<double>",&superCluster_simOOTPU_nSharedXtals);
+         tree->Branch("superCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&superCluster_simEnergy_sharedXtalsOOTPU);
+         tree->Branch("superCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&superCluster_recoEnergy_sharedXtalsOOTPU);  
+         tree->Branch("superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
+         tree->Branch("superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
+      }
       if(useRetunedSC_){   
          tree->Branch("retunedSuperCluster_rawEnergy","std::vector<float> ",&retunedSuperCluster_rawEnergy);
          tree->Branch("retunedSuperCluster_energy","std::vector<float> ",&retunedSuperCluster_energy);
@@ -2195,6 +2511,20 @@ void RecoSimDumper::setTree(TTree* tree)
             tree->Branch("retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex);
             tree->Branch("retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
          } 
+         if(saveCaloParticlesPU_){ 
+            tree->Branch("retunedSuperCluster_simPU_nSharedXtals","std::vector<double>",&retunedSuperCluster_simPU_nSharedXtals);
+            tree->Branch("retunedSuperCluster_simEnergy_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_simEnergy_sharedXtalsPU);
+            tree->Branch("retunedSuperCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_recoEnergy_sharedXtalsPU);  
+            tree->Branch("retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU);
+            tree->Branch("retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
+         }
+         if(saveCaloParticlesOOTPU_){ 
+            tree->Branch("retunedSuperCluster_simOOTPU_nSharedXtals","std::vector<double>",&retunedSuperCluster_simOOTPU_nSharedXtals);
+            tree->Branch("retunedSuperCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_simEnergy_sharedXtalsOOTPU);
+            tree->Branch("retunedSuperCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_recoEnergy_sharedXtalsOOTPU);  
+            tree->Branch("retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
+            tree->Branch("retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
+         }
       } 
       if(useDeepSC_){
          tree->Branch("deepSuperCluster_rawEnergy","std::vector<float> ",&deepSuperCluster_rawEnergy);
@@ -2234,6 +2564,20 @@ void RecoSimDumper::setTree(TTree* tree)
             tree->Branch("deepSuperCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_simEnergy_sharedXtals_MatchedIndex);
             tree->Branch("deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
          }   
+         if(saveCaloParticlesPU_){ 
+            tree->Branch("deepSuperCluster_simPU_nSharedXtals","std::vector<double>",&deepSuperCluster_simPU_nSharedXtals);
+            tree->Branch("deepSuperCluster_simEnergy_sharedXtalsPU","std::vector<double>",&deepSuperCluster_simEnergy_sharedXtalsPU);
+            tree->Branch("deepSuperCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&deepSuperCluster_recoEnergy_sharedXtalsPU);  
+            tree->Branch("deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU);
+            tree->Branch("deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
+         }
+         if(saveCaloParticlesOOTPU_){ 
+            tree->Branch("deepSuperCluster_simOOTPU_nSharedXtals","std::vector<double>",&deepSuperCluster_simOOTPU_nSharedXtals);
+            tree->Branch("deepSuperCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_simEnergy_sharedXtalsOOTPU);
+            tree->Branch("deepSuperCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_recoEnergy_sharedXtalsOOTPU); 
+            tree->Branch("deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
+            tree->Branch("deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
+         }
       }   
    }
    if(savePFCluster_ && saveShowerShapes_){  
@@ -2415,13 +2759,9 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
 
    caloParticle_index.clear();
    caloParticle_nXtals.clear();
-   caloParticle_isPU.clear(); 
-   caloParticle_isOOTPU.clear(); 
    caloParticle_pdgId.clear(); 
    caloParticle_status.clear(); 
    caloParticle_charge.clear(); 
-   caloParticle_g4TracksEventID.clear(); 
-   caloParticle_g4TracksBX.clear(); 
    caloParticle_genEnergy.clear(); 
    caloParticle_simEnergy.clear(); 
    caloParticle_genPt.clear(); 
@@ -2600,6 +2940,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfCluster_full5x5_sigmaIetaIeta.clear(); 
    pfCluster_full5x5_sigmaIetaIphi.clear(); 
    pfCluster_full5x5_sigmaIphiIphi.clear();    
+   pfCluster_nXtals.clear();
    pfCluster_dR_genScore_MatchedIndex.clear();
    pfCluster_dR_simScore_MatchedIndex.clear();
    pfCluster_sim_nSharedXtals_MatchedIndex.clear();
@@ -2618,6 +2959,16 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfCluster_recoToSim_fraction_sharedXtals.resize(nPFClusters);
    pfCluster_simEnergy_sharedXtals.resize(nPFClusters);
    pfCluster_recoEnergy_sharedXtals.resize(nPFClusters);   
+   pfCluster_simPU_nSharedXtals.resize(nPFClusters);
+   pfCluster_simEnergy_sharedXtalsPU.resize(nPFClusters);
+   pfCluster_recoEnergy_sharedXtalsPU.resize(nPFClusters);   
+   pfCluster_simEnergy_noHitsFraction_sharedXtalsPU.resize(nPFClusters);
+   pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU.resize(nPFClusters); 
+   pfCluster_simOOTPU_nSharedXtals.resize(nPFClusters);
+   pfCluster_simEnergy_sharedXtalsOOTPU.resize(nPFClusters);
+   pfCluster_recoEnergy_sharedXtalsOOTPU.resize(nPFClusters);   
+   pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nPFClusters);
+   pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nPFClusters); 
    pfCluster_superClustersIndex.resize(nPFClusters); 
    pfCluster_retunedSuperClustersIndex.resize(nPFClusters);  
    pfCluster_deepSuperClustersIndex.resize(nPFClusters); 
@@ -2717,6 +3068,16 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       superCluster_recoToSim_fraction_sharedXtals.resize(nSuperClusters);
       superCluster_simEnergy_sharedXtals.resize(nSuperClusters);
       superCluster_recoEnergy_sharedXtals.resize(nSuperClusters);  
+      superCluster_simPU_nSharedXtals.resize(nSuperClusters);
+      superCluster_simEnergy_sharedXtalsPU.resize(nSuperClusters);
+      superCluster_recoEnergy_sharedXtalsPU.resize(nSuperClusters);   
+      superCluster_simEnergy_noHitsFraction_sharedXtalsPU.resize(nSuperClusters);
+      superCluster_recoEnergy_noHitsFraction_sharedXtalsPU.resize(nSuperClusters); 
+      superCluster_simOOTPU_nSharedXtals.resize(nSuperClusters);
+      superCluster_simEnergy_sharedXtalsOOTPU.resize(nSuperClusters);
+      superCluster_recoEnergy_sharedXtalsOOTPU.resize(nSuperClusters);   
+      superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nSuperClusters);
+      superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nSuperClusters); 
    }
    
    retunedSuperCluster_rawEnergy.clear(); 
@@ -2799,6 +3160,16 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       retunedSuperCluster_recoToSim_fraction_sharedXtals.resize(nRetunedSuperClusters);
       retunedSuperCluster_simEnergy_sharedXtals.resize(nRetunedSuperClusters);
       retunedSuperCluster_recoEnergy_sharedXtals.resize(nRetunedSuperClusters);  
+      retunedSuperCluster_simPU_nSharedXtals.resize(nRetunedSuperClusters);
+      retunedSuperCluster_simEnergy_sharedXtalsPU.resize(nRetunedSuperClusters);
+      retunedSuperCluster_recoEnergy_sharedXtalsPU.resize(nRetunedSuperClusters);   
+      retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU.resize(nRetunedSuperClusters);
+      retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU.resize(nRetunedSuperClusters); 
+      retunedSuperCluster_simOOTPU_nSharedXtals.resize(nRetunedSuperClusters);
+      retunedSuperCluster_simEnergy_sharedXtalsOOTPU.resize(nRetunedSuperClusters);
+      retunedSuperCluster_recoEnergy_sharedXtalsOOTPU.resize(nRetunedSuperClusters);   
+      retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nRetunedSuperClusters);
+      retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nRetunedSuperClusters);  
    }
 
    deepSuperCluster_rawEnergy.clear(); 
@@ -2881,6 +3252,16 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       deepSuperCluster_recoToSim_fraction_sharedXtals.resize(nDeepSuperClusters);
       deepSuperCluster_simEnergy_sharedXtals.resize(nDeepSuperClusters);
       deepSuperCluster_recoEnergy_sharedXtals.resize(nDeepSuperClusters);   
+      deepSuperCluster_simPU_nSharedXtals.resize(nDeepSuperClusters);
+      deepSuperCluster_simEnergy_sharedXtalsPU.resize(nDeepSuperClusters);
+      deepSuperCluster_recoEnergy_sharedXtalsPU.resize(nDeepSuperClusters);   
+      deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU.resize(nDeepSuperClusters);
+      deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU.resize(nDeepSuperClusters); 
+      deepSuperCluster_simOOTPU_nSharedXtals.resize(nDeepSuperClusters);
+      deepSuperCluster_simEnergy_sharedXtalsOOTPU.resize(nDeepSuperClusters);
+      deepSuperCluster_recoEnergy_sharedXtalsOOTPU.resize(nDeepSuperClusters);   
+      deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nDeepSuperClusters);
+      deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nDeepSuperClusters); 
    }   
 }
 
@@ -3155,7 +3536,7 @@ std::vector<float> RecoSimDumper::getShowerShapes(reco::CaloCluster* caloBC, con
 std::vector<double> RecoSimDumper::getScores(const reco::PFCluster* pfCluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE)
 {
     std::vector<double> scores;
-    scores.resize(7);
+    scores.resize(9);
 
     double nSharedXtals=0;
     double simFraction_noHitsFraction=0.;
@@ -3168,6 +3549,7 @@ std::vector<double> RecoSimDumper::getScores(const reco::PFCluster* pfCluster, c
     double simEnergy_shared_noHitsFraction=0.;
     double recoEnergy=pfCluster->energy();
     double recoEnergy_shared=0.;
+    double recoEnergy_shared_noHitsFraction=0.;
    
     for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart)
         simEnergy+=hit_CaloPart.second;
@@ -3179,29 +3561,36 @@ std::vector<double> RecoSimDumper::getScores(const reco::PFCluster* pfCluster, c
                nSharedXtals+=1.;
                simEnergy_shared+=hit_CaloPart.second*hit_Cluster.second;
                simEnergy_shared_noHitsFraction+=hit_CaloPart.second;
-               if(hit_Cluster.first.subdetId()==EcalBarrel) recoEnergy_shared+=hit_Cluster.second*(*recHitsEB->find(hit_Cluster.first)).energy();
-               if(hit_Cluster.first.subdetId()==EcalEndcap) recoEnergy_shared+=hit_Cluster.second*(*recHitsEE->find(hit_Cluster.first)).energy(); 
+               if(hit_Cluster.first.subdetId()==EcalBarrel){ 
+                  recoEnergy_shared+=hit_Cluster.second*(*recHitsEB->find(hit_Cluster.first)).energy();
+                  recoEnergy_shared_noHitsFraction+=(*recHitsEB->find(hit_Cluster.first)).energy();
+               }
+               if(hit_Cluster.first.subdetId()==EcalEndcap){ 
+                  recoEnergy_shared+=hit_Cluster.second*(*recHitsEE->find(hit_Cluster.first)).energy(); 
+                  recoEnergy_shared_noHitsFraction+=(*recHitsEE->find(hit_Cluster.first)).energy(); 
+               } 
             } 
         }
     }
 
-    if(nSharedXtals<=0.) nSharedXtals = -1.; 
+    if(nSharedXtals<0.) nSharedXtals = -1.; 
 
-    if(simEnergy_shared_noHitsFraction>0. && simEnergy>0.) simFraction_noHitsFraction = simEnergy_shared_noHitsFraction/simEnergy;
+    if(simEnergy>0.) simFraction_noHitsFraction = simEnergy_shared_noHitsFraction/simEnergy;
     else simFraction_noHitsFraction = -1.; 
 
-    if(simEnergy_shared>0. && simEnergy>0.) simFraction = simEnergy_shared/simEnergy;
+    if(simEnergy>0.) simFraction = simEnergy_shared/simEnergy;
     else simFraction = -1.;
  
-    if(recoEnergy>0. && simEnergy_shared>0.) recoToSim = recoEnergy/simEnergy_shared;
+    if(simEnergy_shared>0.) recoToSim = recoEnergy/simEnergy_shared;
     else recoToSim = -1.; 
 
-    if(recoEnergy_shared>0. && simEnergy_shared>0.) recoToSim_shared = recoEnergy_shared/simEnergy_shared;
+    if(simEnergy_shared>0.) recoToSim_shared = recoEnergy_shared/simEnergy_shared;
     else recoToSim_shared = -1.;  
 
-    if(simEnergy_shared<=0) simEnergy_shared = -1.;
-
-    if(recoEnergy_shared<=0) recoEnergy_shared = -1.;
+    if(simEnergy_shared<0) simEnergy_shared = -1.;
+    if(recoEnergy_shared<0) recoEnergy_shared = -1.;
+    if(simEnergy_shared_noHitsFraction<0) simEnergy_shared_noHitsFraction = -1.;
+    if(recoEnergy_shared_noHitsFraction<0) recoEnergy_shared_noHitsFraction = -1.;
     
     scores[0] = (double)nSharedXtals;
     scores[1] = simFraction_noHitsFraction;
@@ -3210,6 +3599,8 @@ std::vector<double> RecoSimDumper::getScores(const reco::PFCluster* pfCluster, c
     scores[4] = recoToSim_shared;
     scores[5] = simEnergy_shared;
     scores[6] = recoEnergy_shared;
+    scores[7] = simEnergy_shared_noHitsFraction;
+    scores[8] = recoEnergy_shared_noHitsFraction;
 
     for(unsigned iVar=0; iVar<scores.size(); iVar++)
         if(std::isnan(scores.at(iVar))) std::cout << "score = " << iVar << " ---> NAN " << std::endl; 
@@ -3220,7 +3611,7 @@ std::vector<double> RecoSimDumper::getScores(const reco::PFCluster* pfCluster, c
 std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superCluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE)
 {
     std::vector<double> scores;
-    scores.resize(7);
+    scores.resize(9);
 
     double nSharedXtals=0;
     double simFraction_noHitsFraction=0.;
@@ -3233,6 +3624,7 @@ std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superClus
     double simEnergy_shared_noHitsFraction=0.;
     double recoEnergy=superCluster->energy();
     double recoEnergy_shared=0.;
+    double recoEnergy_shared_noHitsFraction=0.; 
    
     for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPart)
         simEnergy+=hit_CaloPart.second;
@@ -3245,8 +3637,14 @@ std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superClus
                 if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
                    simEnergy_shared+=hit_CaloPart.second*hit_Cluster.second;
                    simEnergy_shared_noHitsFraction+=hit_CaloPart.second;
-                   if(hit_Cluster.first.subdetId()==EcalBarrel) recoEnergy_shared+=hit_Cluster.second*(*recHitsEB->find(hit_Cluster.first)).energy();
-                   if(hit_Cluster.first.subdetId()==EcalEndcap) recoEnergy_shared+=hit_Cluster.second*(*recHitsEE->find(hit_Cluster.first)).energy();
+                   if(hit_Cluster.first.subdetId()==EcalBarrel){ 
+                      recoEnergy_shared+=hit_Cluster.second*(*recHitsEB->find(hit_Cluster.first)).energy();
+                      recoEnergy_shared_noHitsFraction+=(*recHitsEB->find(hit_Cluster.first)).energy();
+                   }
+                   if(hit_Cluster.first.subdetId()==EcalEndcap){ 
+                      recoEnergy_shared+=hit_Cluster.second*(*recHitsEE->find(hit_Cluster.first)).energy(); 
+                      recoEnergy_shared_noHitsFraction+=(*recHitsEE->find(hit_Cluster.first)).energy(); 
+                   } 
                    if(std::find(superCluster_IDs.begin(),superCluster_IDs.end(),hit_Cluster.first) == superCluster_IDs.end()) superCluster_IDs.push_back(hit_Cluster.first);
                 } 
             } 
@@ -3254,23 +3652,24 @@ std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superClus
     }
 
     nSharedXtals = (int)superCluster_IDs.size();
-    if(nSharedXtals<=0.) nSharedXtals = -1.; 
+    if(nSharedXtals<0.) nSharedXtals = -1.; 
 
-    if(simEnergy_shared_noHitsFraction>0. && simEnergy>0.) simFraction_noHitsFraction = simEnergy_shared_noHitsFraction/simEnergy;
+    if(simEnergy>0.) simFraction_noHitsFraction = simEnergy_shared_noHitsFraction/simEnergy;
     else simFraction_noHitsFraction = -1.; 
 
-    if(simEnergy_shared>0. && simEnergy>0.) simFraction = simEnergy_shared/simEnergy;
+    if(simEnergy>0.) simFraction = simEnergy_shared/simEnergy;
     else simFraction = -1.;
  
-    if(recoEnergy>0. && simEnergy_shared>0.) recoToSim = recoEnergy/simEnergy_shared;
+    if(simEnergy_shared>0.) recoToSim = recoEnergy/simEnergy_shared;
     else recoToSim = -1.; 
 
-    if(recoEnergy_shared>0. && simEnergy_shared>0.) recoToSim_shared = recoEnergy_shared/simEnergy_shared;
+    if(simEnergy_shared>0.) recoToSim_shared = recoEnergy_shared/simEnergy_shared;
     else recoToSim_shared = -1.;  
 
-    if(simEnergy_shared<=0) simEnergy_shared = -1.;
-
-    if(recoEnergy_shared<=0) recoEnergy_shared = -1.;
+    if(simEnergy_shared<0) simEnergy_shared = -1.;
+    if(recoEnergy_shared<0) recoEnergy_shared = -1.;
+    if(simEnergy_shared_noHitsFraction<0) simEnergy_shared_noHitsFraction = -1.;
+    if(recoEnergy_shared_noHitsFraction<0) recoEnergy_shared_noHitsFraction = -1.;
     
     scores[0] = (double)nSharedXtals;
     scores[1] = simFraction_noHitsFraction;
@@ -3279,6 +3678,8 @@ std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superClus
     scores[4] = recoToSim_shared;
     scores[5] = simEnergy_shared;
     scores[6] = recoEnergy_shared;
+    scores[7] = simEnergy_shared_noHitsFraction;
+    scores[8] = recoEnergy_shared_noHitsFraction;
 
     for(unsigned iVar=0; iVar<scores.size(); iVar++)
         if(std::isnan(scores.at(iVar))) std::cout << "score = " << iVar << " ---> NAN " << std::endl; 
