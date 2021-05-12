@@ -35,6 +35,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveCaloParticlesPU             = cms.bool(True),  #save PU caloParticles information
     saveCaloParticlesOOTPU          = cms.bool(False),  #save OOT PU caloParticles information
     saveSimhits                     = cms.bool(True), #save simHits information
+    saveSimhitsPU                   = cms.bool(False), #save simHits of PU information
     saveRechits                     = cms.bool(True), #save recHits information
     savePFRechits                   = cms.bool(True), #save pfRecHits information
     savePFCluster                   = cms.bool(True),  #save pfClusters information

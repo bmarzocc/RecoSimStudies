@@ -185,7 +185,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool saveCaloParticles_;  
       bool saveCaloParticlesPU_; 
       bool saveCaloParticlesOOTPU_;    
-      bool saveSimhits_;          
+      bool saveSimhits_;   
+      bool saveSimhitsPU_;          
       bool saveRechits_;          
       bool savePFRechits_;   
       bool savePFCluster_;    
@@ -230,8 +231,14 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > genParticle_deepSuperCluster_dR_genScore_MatchedIndex; 
       int caloParticlePU_nHits; 
       float caloParticlePU_totEnergy;
+      std::vector<float> caloParticlePU_xtalEnergy;
+      std::vector<float> caloParticlePU_xtalEta;
+      std::vector<float> caloParticlePU_xtalPhi;
       int caloParticleOOTPU_nHits; 
       float caloParticleOOTPU_totEnergy;
+      std::vector<float> caloParticleOOTPU_xtalEnergy;
+      std::vector<float> caloParticleOOTPU_xtalEta;
+      std::vector<float> caloParticleOOTPU_xtalPhi;
       std::vector<int> caloParticle_index; 
       std::vector<int> caloParticle_nXtals;  
       std::vector<int> caloParticle_pdgId;

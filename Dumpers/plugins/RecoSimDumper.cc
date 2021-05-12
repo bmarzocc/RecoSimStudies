@@ -146,6 +146,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    saveCaloParticlesPU_           = iConfig.getParameter<bool>("saveCaloParticlesPU");
    saveCaloParticlesOOTPU_        = iConfig.getParameter<bool>("saveCaloParticlesOOTPU");
    saveSimhits_             	  = iConfig.getParameter<bool>("saveSimhits");
+   saveSimhitsPU_             	  = iConfig.getParameter<bool>("saveSimhitsPU");
    saveRechits_                   = iConfig.getParameter<bool>("saveRechits");
    savePFRechits_                 = iConfig.getParameter<bool>("savePFRechits"); 
    savePFCluster_                 = iConfig.getParameter<bool>("savePFCluster");
@@ -387,6 +388,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    genParticle_size = nGenParticles; 
    //std::cout << "GenParticles size  : " << nGenParticles << std::endl;
    
+   GlobalPoint cell;
    hitsAndEnergies_CaloPart.clear();
    hitsAndEnergies_CaloPartPU.clear();
    hitsAndEnergies_CaloPartOOTPU.clear(); 
@@ -414,6 +416,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    if(saveCaloParticlesPU_)
    {
+      caloParticlePU_xtalEnergy.clear();
+      caloParticlePU_xtalEta.clear();
+      caloParticlePU_xtalPhi.clear();
       for(const auto& iCalo : *(puCaloParticle.product()))
       {
           const auto& simClusters = iCalo.simClusters();
@@ -424,6 +429,12 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
               caloParticlePU_totEnergy += hits_and_fractions[i].second;
               hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));
+              if(saveSimhitsPU_){
+                 cell = geometry->getPosition(DetId(hits_and_fractions[i].first)); 
+                 caloParticlePU_xtalEnergy.push_back(reduceFloat(hits_and_fractions[i].second,nBits_));
+                 caloParticlePU_xtalEta.push_back(reduceFloat(cell.eta(),nBits_));
+                 caloParticlePU_xtalPhi.push_back(reduceFloat(cell.phi(),nBits_)); 
+              }
           } 
           hitsAndEnergies_CaloPartPU.push_back(hitsAndEnergies);
       }   
@@ -431,6 +442,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    if(saveCaloParticlesOOTPU_)
    {
+      caloParticleOOTPU_xtalEnergy.clear();
+      caloParticleOOTPU_xtalEta.clear();
+      caloParticleOOTPU_xtalPhi.clear(); 
       for(const auto& iCalo : *(ootpuCaloParticle.product()))
       {
           const auto& simClusters = iCalo.simClusters();
@@ -441,6 +455,12 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
               caloParticleOOTPU_totEnergy += hits_and_fractions[i].second;
               hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));
+              if(saveSimhitsPU_){
+                 cell = geometry->getPosition(DetId(hits_and_fractions[i].first)); 
+                 caloParticleOOTPU_xtalEnergy.push_back(reduceFloat(hits_and_fractions[i].second,nBits_));
+                 caloParticleOOTPU_xtalEta.push_back(reduceFloat(cell.eta(),nBits_));
+                 caloParticleOOTPU_xtalPhi.push_back(reduceFloat(cell.phi(),nBits_)); 
+              }
           } 
           hitsAndEnergies_CaloPartOOTPU.push_back(hitsAndEnergies);
       }   
@@ -475,7 +495,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    hitsAndEnergies_DeepSuperClusterEB.clear();
    hitsAndEnergies_DeepSuperClusterEE.clear();
 
-   GlobalPoint cell;
    std::vector<DetId> hits;
    std::vector<float> energies; 
    hits_CaloParticle.clear();
@@ -2256,10 +2275,20 @@ void RecoSimDumper::setTree(TTree* tree)
    if(saveCaloParticlesPU_){
       tree->Branch("caloParticlePU_nHits", &caloParticlePU_nHits, "caloParticlePU_nHits/I");  
       tree->Branch("caloParticlePU_totEnergy", &caloParticlePU_totEnergy, "caloParticlePU_totEnergy/F");  
+      if(saveSimhitsPU_){ 
+         tree->Branch("caloParticlePU_xtalEnergy", "std::vector<float>", &caloParticlePU_xtalEnergy);  
+         tree->Branch("caloParticlePU_xtalEta", "std::vector<float>", &caloParticlePU_xtalEta);   
+         tree->Branch("caloParticlePU_xtalPhi", "std::vector<float>", &caloParticlePU_xtalPhi); 
+      }  
    }
    if(saveCaloParticlesOOTPU_){
       tree->Branch("caloParticleOOTPU_nHits", &caloParticleOOTPU_nHits, "caloParticleOOTPU_nHits/I");  
-      tree->Branch("caloParticleOOTPU_totEnergy", &caloParticleOOTPU_totEnergy, "caloParticleOOTPU_totEnergy/F");  
+      tree->Branch("caloParticleOOTPU_totEnergy", &caloParticleOOTPU_totEnergy, "caloParticleOOTPU_totEnergy/F"); 
+      if(saveSimhitsPU_){ 
+         tree->Branch("caloParticleOOTPU_xtalEnergy", "std::vector<float>", &caloParticleOOTPU_xtalEnergy);  
+         tree->Branch("caloParticleOOTPU_xtalEta", "std::vector<float>", &caloParticleOOTPU_xtalEta);   
+         tree->Branch("caloParticleOOTPU_xtalPhi", "std::vector<float>", &caloParticleOOTPU_xtalPhi); 
+      }     
    }
    if(saveCaloParticles_){
       tree->Branch("caloParticle_size", &caloParticle_size, "caloParticle_size/I"); 
