@@ -22,12 +22,22 @@ parser.add_argument("-c", "--cmssw", type=str, help="CMSSW tar", required=True)
 parser.add_argument("-d", "---dumper", type=str, help="Dumper to run", required=True, default="RecoSimDumper")
 parser.add_argument("-q", "--queue", type=str, help="Condor queue", default="longlunch", required=True)
 parser.add_argument("-e", "--eos", type=str, default="user", help="EOS instance user/cms", required=False)
+parser.add_argument("-p", "--proxy", type=str, help="Proxy key", required=False)
 parser.add_argument("--redo", action="store_true", default=False, help="Redo all files")
 args = parser.parse_args()
 
 if (args.inputdir=="" and args.das=="") or (args.inputdir!="" and args.das!=""):
   print "ERROR: Give either inputdir, either DAS option"
   exit()  
+
+if not os.path.isdir('error'): os.mkdir('error') 
+if not os.path.isdir('output'): os.mkdir('output') 
+if not os.path.isdir('log'): os.mkdir('log') 
+
+command = "tar -czvf cmssw.tar DIR"
+command = command.replace("DIR", args.cmssw)
+os.system("rm -rf cmssw.tar")
+os.system(command)
 
 # Prepare condor jobs
 condor = '''executable              = run_script.sh
@@ -48,10 +58,11 @@ condor = condor.replace("{queue}", args.queue)
 user = os.environ["USER"]
 
 script = '''#!/bin/sh -e
-
-cp -r {cmssw_loc} ./
+export X509_USER_PROXY=DIR/PROXYKEY
+voms-proxy-info
+cp -r DIR/cmssw.tar ./
+tar -xzvf cmssw.tar
 cd {cmssw_file}/src
-
 echo -e "evaluate"
 eval `scramv1 ru -sh`
 export HOME='/afs/cern.ch/user/{user1}/{user}'
@@ -83,10 +94,12 @@ echo -e "DONE";
 script = script.replace("{eosinstance}", args.eos)
 script = script.replace("{user1}", user[:1])
 script = script.replace("{user}", user)
-cmssw_file = args.cmssw.split("/")[-1]
+cmssw_file = str(args.cmssw)[1:]
 script = script.replace("{cmssw_loc}", args.cmssw)
 script = script.replace("{cmssw_file}", cmssw_file)
 script = script.replace("{dumper}", args.dumper)
+script = script.replace("DIR", os.getcwd())
+script = script.replace("PROXYKEY", args.proxy)
 
 arguments= []
 if not os.path.exists(args.outputdir):

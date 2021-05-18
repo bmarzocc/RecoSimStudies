@@ -144,7 +144,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
    saveGenParticles_              = iConfig.getParameter<bool>("saveGenParticles");
    saveCaloParticles_             = iConfig.getParameter<bool>("saveCaloParticles");
    saveCaloParticlesPU_           = iConfig.getParameter<bool>("saveCaloParticlesPU");
-   saveCaloParticlesOOTPU_        = iConfig.getParameter<bool>("saveCaloParticlesOOTPU");
+   saveCaloParticlesOOTPU_        = iConfig.getParameter<bool>("saveCaloParticlesOOTPU");   
+   subtractSignalCalo_            = iConfig.getParameter<bool>("subtractSignalCalo"); 
    saveSimhits_             	  = iConfig.getParameter<bool>("saveSimhits");
    saveSimhitsPU_             	  = iConfig.getParameter<bool>("saveSimhitsPU");
    saveRechits_                   = iConfig.getParameter<bool>("saveRechits");
@@ -427,14 +428,21 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           caloParticlePU_totEnergy = 0.; 
           std::vector<std::pair<DetId, float>> hitsAndEnergies;         
           for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
-              caloParticlePU_totEnergy += hits_and_fractions[i].second;
-              hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));
+              float energy = hits_and_fractions[i].second;
+              if(subtractSignalCalo_){
+                 for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
+                     for(const std::pair<DetId, float>& hit_CaloPart : hitsAndEnergies_CaloPart.at(iCalo))  
+                         if(hit_CaloPart.first.rawId() == DetId(hits_and_fractions[i].first).rawId()) energy -= hit_CaloPart.second; 
+                 }         
+              }
+              caloParticlePU_totEnergy += energy;
+              hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),energy));
               if(saveSimhitsPU_){
                  cell = geometry->getPosition(DetId(hits_and_fractions[i].first)); 
-                 caloParticlePU_xtalEnergy.push_back(reduceFloat(hits_and_fractions[i].second,nBits_));
+                 caloParticlePU_xtalEnergy.push_back(reduceFloat(energy,nBits_));
                  caloParticlePU_xtalEta.push_back(reduceFloat(cell.eta(),nBits_));
                  caloParticlePU_xtalPhi.push_back(reduceFloat(cell.phi(),nBits_)); 
-              }
+              }  
           } 
           hitsAndEnergies_CaloPartPU.push_back(hitsAndEnergies);
       }   

@@ -26,6 +26,15 @@ parser.add_argument("-p", "--proxy", type=str, help="Proxy key", required=False)
 parser.add_argument("--redo", action="store_true", default=False, help="Redo all files")
 args = parser.parse_args()
 
+if not os.path.isdir('error'): os.mkdir('error') 
+if not os.path.isdir('output'): os.mkdir('output') 
+if not os.path.isdir('log'): os.mkdir('log') 
+
+command = "tar -czvf cmssw.tar DIR"
+command = command.replace("DIR", args.cmssw)
+print "Command:",command
+os.system("rm -rf cmssw.tar")
+os.system(command)
 
 # Prepare condor jobs
 condor = '''executable              = run_script.sh
@@ -46,7 +55,8 @@ user = os.environ["USER"]
 script = '''#!/bin/sh -e
 export X509_USER_PROXY=DIR/PROXYKEY
 voms-proxy-info
-cp -r {cmssw_loc} ./
+cp -r DIR/cmssw.tar ./
+tar -xzvf cmssw.tar
 cd {cmssw_file}/src
 echo -e "evaluate"
 eval `scramv1 ru -sh`
@@ -74,7 +84,7 @@ echo -e "DONE";
 script = script.replace("{eosinstance}", args.eos)
 script = script.replace("{user1}", user[:1])
 script = script.replace("{user}", user)
-cmssw_file = args.cmssw.split("/")[-1]
+cmssw_file = str(args.cmssw)[1:]
 script = script.replace("{cmssw_loc}", args.cmssw)
 script = script.replace("{cmssw_file}", cmssw_file)
 script = script.replace("DIR", os.getcwd())

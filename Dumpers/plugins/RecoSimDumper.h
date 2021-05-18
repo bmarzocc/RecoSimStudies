@@ -185,7 +185,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       bool saveCaloParticles_;  
       bool saveCaloParticlesPU_; 
       bool saveCaloParticlesOOTPU_;    
-      bool saveSimhits_;   
+      bool subtractSignalCalo_;    
+      bool saveSimhits_;       
       bool saveSimhitsPU_;          
       bool saveRechits_;          
       bool savePFRechits_;   
