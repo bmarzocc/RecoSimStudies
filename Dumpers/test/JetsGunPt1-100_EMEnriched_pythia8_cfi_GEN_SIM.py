@@ -208,14 +208,14 @@ process.generator = cms.EDFilter("Pythia8MultiPtGun",
     )
 )
 
-process.gj_filter = cms.EDFilter("PythiaFilterGammaGamma",
+process.gj_filter = cms.EDFilter("PythiaFilterEMEnrich",
     PtSeedThr = cms.double(1.0),
-    EtaSeedThr = cms.double(2.8),
+    EtaSeedThr = cms.double(3.),
     PtGammaThr = cms.double(0.0),
-    EtaGammaThr = cms.double(2.8),
+    EtaGammaThr = cms.double(3.),
     PtElThr = cms.double(1.0),
-    EtaElThr = cms.double(2.8),
-    dRSeedMax = cms.double(0.0),
+    EtaElThr = cms.double(3.),
+    dRSeedMax = cms.double(0.),
     dPhiSeedMax = cms.double(0.2),
     dEtaSeedMax = cms.double(0.12),
     dRNarrowCone = cms.double(0.02),
@@ -231,7 +231,9 @@ process.gj_filter = cms.EDFilter("PythiaFilterGammaGamma",
     InvMassMax = cms.double(14000.0),
     EnergyCut = cms.double(1.0),
     AcceptPrompts = cms.bool(True),
-    PromptPtThreshold = cms.double(1.0)   
+    PromptPtThreshold = cms.double(1.0),
+    NGoodPairs = cms.int32(0),
+    NGoodPairsFromMother = cms.int32(4) 
 )
 
 process.ProductionFilterSequence = cms.Sequence(process.generator+process.gj_filter)
