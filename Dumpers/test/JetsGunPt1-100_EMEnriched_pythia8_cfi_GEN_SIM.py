@@ -163,8 +163,7 @@ process.generator = cms.EDFilter("Pythia8MultiPtGun",
     pythiaHepMCVerbosity = cms.untracked.bool(True),
 
     PGunParameters = cms.PSet(
-        #ParticleID = cms.vint32(21,21,21,1,2,3,4,5,6),
-        ParticleID = cms.vint32(21,21,21,21,1,1,2,2,3,3),
+        ParticleID = cms.vint32(21,21,21,1,2,3,4,5,6),
         AddAntiParticle = cms.bool(True),
         MinPhi = cms.double(-3.14159265359),
         MaxPhi = cms.double(3.14159265359),
@@ -176,17 +175,7 @@ process.generator = cms.EDFilter("Pythia8MultiPtGun",
            
     PythiaParameters = cms.PSet(
         parameterSets = cms.vstring(
-            'pythia8CommonSettings', 
-            'pythia8CUEP8M1Settings', 
-            'processParameters'
-        ),
-        processParameters = cms.vstring(
-            'HardQCD:all = on', 
-            'PhaseSpace:pTHatMin = 15', 
-            'PhaseSpace:pTHatMax = 7000', 
-            'PhaseSpace:bias2Selection = on', 
-            'PhaseSpace:bias2SelectionPow = 4.5', 
-            'PhaseSpace:bias2SelectionRef = 15.'
+            'pythia8CUEP8M1Settings' 
         ),
         pythia8CUEP8M1Settings = cms.vstring(
             'Tune:pp 14', 
@@ -194,17 +183,7 @@ process.generator = cms.EDFilter("Pythia8MultiPtGun",
             'MultipartonInteractions:pT0Ref=2.4024', 
             'MultipartonInteractions:ecmPow=0.25208', 
             'MultipartonInteractions:expPow=1.6'
-        ),
-        pythia8CommonSettings = cms.vstring(
-            'Tune:preferLHAPDF = 2', 
-            'Main:timesAllowErrors = 10000', 
-            'Check:epTolErr = 0.01', 
-            'Beams:setProductionScalesFromLHEF = off', 
-            'SLHA:minMassSM = 1000.', 
-            'ParticleDecays:limitTau0 = on', 
-            'ParticleDecays:tau0Max = 10', 
-            'ParticleDecays:allowPhotonRadiation = on'
-        ) 
+        )
     )
 )
 
