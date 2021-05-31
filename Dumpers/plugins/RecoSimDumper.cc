@@ -39,6 +39,7 @@
 
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+#include "DataFormats/EcalDetId/interface/ESDetId.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
@@ -420,28 +421,79 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       caloParticlePU_xtalEnergy.clear();
       caloParticlePU_xtalEta.clear();
       caloParticlePU_xtalPhi.clear();
+      caloParticlePU_xtalIeta.clear();   
+      caloParticlePU_xtalIphi.clear();   
+      caloParticlePU_xtalIz.clear();   
+      caloParticlePU_xtalIplane.clear(); 
       for(const auto& iCalo : *(puCaloParticle.product()))
       {
           const auto& simClusters = iCalo.simClusters();
           auto hits_and_fractions = simClusters[0]->hits_and_fractions();
-          caloParticlePU_nHits = hits_and_fractions.size(); 
+          caloParticlePU_nHitsWithES = hits_and_fractions.size(); 
+          caloParticlePU_nHits = 0; 
+          std::vector<std::pair<DetId, float>> hitsAndEnergies;   
+          caloParticlePU_totEnergyWithES = 0.;   
           caloParticlePU_totEnergy = 0.; 
-          std::vector<std::pair<DetId, float>> hitsAndEnergies;         
           for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
-              float energy = hits_and_fractions[i].second;
+              float energyWithES=0.;    
+              float energy = 0.;
+  
+              DetId id(hits_and_fractions[i].first);
+              if(id.subdetId()!=EcalPreshower){
+                 energy = hits_and_fractions[i].second;
+                 caloParticlePU_nHits += 1;
+              }  
+              energyWithES = hits_and_fractions[i].second;  
+
               if(subtractSignalCalo_){
                  for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
-                     for(const std::pair<DetId, float>& hit_CaloPart : hitsAndEnergies_CaloPart.at(iCalo))  
-                         if(hit_CaloPart.first.rawId() == DetId(hits_and_fractions[i].first).rawId()) energy -= hit_CaloPart.second; 
+                     for(const std::pair<DetId, float>& hit_CaloPart : hitsAndEnergies_CaloPart.at(iCalo)){  
+                         if(hit_CaloPart.first.rawId() == DetId(hits_and_fractions[i].first).rawId()){ 
+                            energyWithES -= hit_CaloPart.second; 
+                            if(id.subdetId()!=EcalPreshower) energy -= hit_CaloPart.second; 
+                         }
+                     }
                  }         
               }
+              caloParticlePU_totEnergyWithES += energyWithES;
               caloParticlePU_totEnergy += energy;
+
               hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),energy));
-              if(saveSimhitsPU_){
+              if(saveSimhitsPU_){               
                  cell = geometry->getPosition(DetId(hits_and_fractions[i].first)); 
                  caloParticlePU_xtalEnergy.push_back(reduceFloat(energy,nBits_));
                  caloParticlePU_xtalEta.push_back(reduceFloat(cell.eta(),nBits_));
                  caloParticlePU_xtalPhi.push_back(reduceFloat(cell.phi(),nBits_)); 
+                     
+                 int ieta = -99; 
+                 int iphi = -99; 
+                 int iz = -99;  
+                 int iplane = -99;
+                 if(id.subdetId()==EcalBarrel){
+                    EBDetId eb_id(id);
+                    ieta = eb_id.ieta(); 
+                    iphi = eb_id.iphi();  
+                    iz = 0;   
+                    iplane = 0;
+                 }else if(id.subdetId()==EcalEndcap){
+                    EEDetId ee_id(id);
+                    ieta = ee_id.ix(); 
+                    iphi = ee_id.iy();
+                    if(ee_id.zside()<0) iz=-1;
+                    if(ee_id.zside()>0) iz=1;           
+                    iplane = 0;
+                 }else if(id.subdetId()==EcalPreshower){
+                    ESDetId es_id(id);
+                    ieta = es_id.six(); 
+                    iphi = es_id.siy();
+                    if(es_id.zside()<0) iz=-1;
+                    if(es_id.zside()>0) iz=1;           
+                    iplane = es_id.plane();  
+                 } 
+                 caloParticlePU_xtalIeta.push_back(ieta); 
+                 caloParticlePU_xtalIphi.push_back(iphi);   
+                 caloParticlePU_xtalIz.push_back(iz);
+                 caloParticlePU_xtalIplane.push_back(iplane); 
               }  
           } 
           hitsAndEnergies_CaloPartPU.push_back(hitsAndEnergies);
@@ -453,25 +505,84 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       caloParticleOOTPU_xtalEnergy.clear();
       caloParticleOOTPU_xtalEta.clear();
       caloParticleOOTPU_xtalPhi.clear(); 
-      for(const auto& iCalo : *(ootpuCaloParticle.product()))
+      caloParticleOOTPU_xtalIeta.clear();   
+      caloParticleOOTPU_xtalIphi.clear();   
+      caloParticleOOTPU_xtalIz.clear();   
+      caloParticleOOTPU_xtalIplane.clear(); 
+      for(const auto& iCalo : *(puCaloParticle.product()))
       {
           const auto& simClusters = iCalo.simClusters();
           auto hits_and_fractions = simClusters[0]->hits_and_fractions();
-          caloParticleOOTPU_nHits = hits_and_fractions.size(); 
-          caloParticleOOTPU_totEnergy = 0.;          
-          std::vector<std::pair<DetId, float>> hitsAndEnergies;         
+          caloParticleOOTPU_nHitsWithES = hits_and_fractions.size(); 
+          caloParticleOOTPU_nHits = 0; 
+          std::vector<std::pair<DetId, float>> hitsAndEnergies;   
+          caloParticleOOTPU_totEnergyWithES = 0.;   
+          caloParticleOOTPU_totEnergy = 0.; 
           for(unsigned int i = 0; i < hits_and_fractions.size(); i++){
-              caloParticleOOTPU_totEnergy += hits_and_fractions[i].second;
-              hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),hits_and_fractions[i].second));
-              if(saveSimhitsPU_){
+              float energyWithES=0.;    
+              float energy = 0.;
+  
+              DetId id(hits_and_fractions[i].first);
+              if(id.subdetId()!=EcalPreshower){
+                 energy = hits_and_fractions[i].second;
+                 caloParticlePU_nHits += 1;
+              }  
+              energyWithES = hits_and_fractions[i].second;  
+
+              if(subtractSignalCalo_){
+                 for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
+                     for(const std::pair<DetId, float>& hit_CaloPart : hitsAndEnergies_CaloPart.at(iCalo)){  
+                         if(hit_CaloPart.first.rawId() == DetId(hits_and_fractions[i].first).rawId()){ 
+                            energyWithES -= hit_CaloPart.second; 
+                            if(id.subdetId()!=EcalPreshower) energy -= hit_CaloPart.second; 
+                         }
+                     }
+                 }         
+              }
+              caloParticleOOTPU_totEnergyWithES += energyWithES;
+              caloParticleOOTPU_totEnergy += energy;
+
+              hitsAndEnergies.push_back(std::make_pair(DetId(hits_and_fractions[i].first),energy));
+              if(saveSimhitsPU_){               
                  cell = geometry->getPosition(DetId(hits_and_fractions[i].first)); 
-                 caloParticleOOTPU_xtalEnergy.push_back(reduceFloat(hits_and_fractions[i].second,nBits_));
+                 caloParticleOOTPU_xtalEnergy.push_back(reduceFloat(energy,nBits_));
                  caloParticleOOTPU_xtalEta.push_back(reduceFloat(cell.eta(),nBits_));
                  caloParticleOOTPU_xtalPhi.push_back(reduceFloat(cell.phi(),nBits_)); 
-              }
+                     
+                 int ieta = -99; 
+                 int iphi = -99; 
+                 int iz = -99;  
+                 int iplane = -99;
+                 if(id.subdetId()==EcalBarrel){
+                    EBDetId eb_id(id);
+                    ieta = eb_id.ieta(); 
+                    iphi = eb_id.iphi();  
+                    iz = 0;   
+                    iplane = 0;
+                 }else if(id.subdetId()==EcalEndcap){
+                    EEDetId ee_id(id);
+                    ieta = ee_id.ix(); 
+                    iphi = ee_id.iy();
+                    if(ee_id.zside()<0) iz=-1;
+                    if(ee_id.zside()>0) iz=1;           
+                    iplane = 0;
+                 }else if(id.subdetId()==EcalPreshower){
+                    ESDetId es_id(id);
+                    ieta = es_id.six(); 
+                    iphi = es_id.siy();
+                    if(es_id.zside()<0) iz=-1;
+                    if(es_id.zside()>0) iz=1;           
+                    iplane = es_id.plane();  
+                 } 
+                 caloParticleOOTPU_xtalIeta.push_back(ieta); 
+                 caloParticleOOTPU_xtalIphi.push_back(iphi);   
+                 caloParticleOOTPU_xtalIz.push_back(iz);
+                 caloParticleOOTPU_xtalIplane.push_back(iplane); 
+              }  
           } 
           hitsAndEnergies_CaloPartOOTPU.push_back(hitsAndEnergies);
       }   
+      
    } 
   
    int nSuperClustersEB = 0;
@@ -580,12 +691,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        } 
 
        float calo_simEnergy=0.;  
+       float calo_simEnergyWithES=0.;  
        for(auto const& hit: hitsAndEnergies_CaloPart[iCalo])
        {
            DetId id(hit.first);
-           if(id.subdetId()!=EcalBarrel && id.subdetId()!=EcalEndcap) continue;
+           if(id.subdetId()==EcalBarrel || id.subdetId()==EcalEndcap) calo_simEnergy += hit.second; 
+           if(id.subdetId()!=EcalBarrel && id.subdetId()!=EcalEndcap && id.subdetId() != EcalPreshower) continue;
                
-           calo_simEnergy += hit.second; 
+           calo_simEnergyWithES += hit.second; 
 
            cell = geometry->getPosition(id);
            float eta = cell.eta();  
@@ -593,20 +706,28 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
            int ieta = -99; 
            int iphi = -99;
            int iz = -99;  
+           int iplane = -99;
            if(id.subdetId()==EcalBarrel){
               EBDetId eb_id(id);
               ieta = eb_id.ieta(); 
               iphi = eb_id.iphi();  
               iz = 0;   
-           }
-           if(id.subdetId()==EcalEndcap){
+              iplane = 0;
+           }else if(id.subdetId()==EcalEndcap){
               EEDetId ee_id(id);
               ieta = ee_id.ix(); 
               iphi = ee_id.iy();
               if(ee_id.zside()<0) iz=-1;
-              if(ee_id.zside()>0) iz=1;   
-           }
-
+              if(ee_id.zside()>0) iz=1;           
+              iplane = 0;
+           }else if(id.subdetId()==EcalPreshower){
+              ESDetId es_id(id);
+              ieta = es_id.six(); 
+              iphi = es_id.siy();
+              if(es_id.zside()<0) iz=-1;
+              if(es_id.zside()>0) iz=1;           
+              iplane = es_id.plane(); 
+           } 
            if(saveSimhits_ && saveCaloParticles_){
               simHit_energy[iCalo].push_back(reduceFloat(hit.second,nBits_));
               simHit_eta[iCalo].push_back(reduceFloat(eta,nBits_));
@@ -614,9 +735,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               simHit_ieta[iCalo].push_back(ieta);
               simHit_iphi[iCalo].push_back(iphi);
               simHit_iz[iCalo].push_back(iz); 
+              simHit_iplane[iCalo].push_back(iplane); 
            }
        } 
        caloParticle_simEnergy.push_back(reduceFloat(calo_simEnergy,nBits_));
+       caloParticle_simEnergyWithES.push_back(reduceFloat(calo_simEnergyWithES,nBits_));
    }
 
    //check shared crystals among caloParticles  
@@ -638,8 +761,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               caloParticle_sharedIndex1.push_back((int)i);  
               caloParticle_sharedIndex2.push_back((int)j);  
               caloParticle_nSharedXtals.push_back((int)shareHits->size()); 
-              caloParticle_sharedEnergyFrac1.push_back(reduceFloat(sharedEnergy1/caloParticle_simEnergy.at(i),nBits_));   
-              caloParticle_sharedEnergyFrac2.push_back(reduceFloat(sharedEnergy2/caloParticle_simEnergy.at(j),nBits_));  
+              caloParticle_sharedEnergyFrac1.push_back(reduceFloat(sharedEnergy1/caloParticle_simEnergyWithES.at(i),nBits_));   
+              caloParticle_sharedEnergyFrac2.push_back(reduceFloat(sharedEnergy2/caloParticle_simEnergyWithES.at(j),nBits_));  
            }   
        } 
    } 
@@ -2281,22 +2404,34 @@ void RecoSimDumper::setTree(TTree* tree)
       if(saveSuperCluster_ && useDeepSC_) tree->Branch("genParticle_deepSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_deepSuperCluster_dR_genScore_MatchedIndex); 
    }
    if(saveCaloParticlesPU_){
+      tree->Branch("caloParticlePU_nHitsWithES", &caloParticlePU_nHitsWithES, "caloParticlePU_nHitsWithES/I");  
       tree->Branch("caloParticlePU_nHits", &caloParticlePU_nHits, "caloParticlePU_nHits/I");  
+      tree->Branch("caloParticlePU_totEnergyWithES", &caloParticlePU_totEnergyWithES, "caloParticlePU_totEnergyWithES/F");  
       tree->Branch("caloParticlePU_totEnergy", &caloParticlePU_totEnergy, "caloParticlePU_totEnergy/F");  
       if(saveSimhitsPU_){ 
          tree->Branch("caloParticlePU_xtalEnergy", "std::vector<float>", &caloParticlePU_xtalEnergy);  
          tree->Branch("caloParticlePU_xtalEta", "std::vector<float>", &caloParticlePU_xtalEta);   
-         tree->Branch("caloParticlePU_xtalPhi", "std::vector<float>", &caloParticlePU_xtalPhi); 
+         tree->Branch("caloParticlePU_xtalPhi", "std::vector<float>", &caloParticlePU_xtalPhi);                
+         tree->Branch("caloParticlePU_xtalIeta", "std::vector<int>", &caloParticlePU_xtalIeta);   
+         tree->Branch("caloParticlePU_xtalIphi", "std::vector<int>", &caloParticlePU_xtalIphi);  
+         tree->Branch("caloParticlePU_xtalIz", "std::vector<int>", &caloParticlePU_xtalIz);              
+         tree->Branch("caloParticlePU_xtalIplane", "std::vector<int>", &caloParticlePU_xtalIplane);   
       }  
    }
    if(saveCaloParticlesOOTPU_){
-      tree->Branch("caloParticleOOTPU_nHits", &caloParticleOOTPU_nHits, "caloParticleOOTPU_nHits/I");  
-      tree->Branch("caloParticleOOTPU_totEnergy", &caloParticleOOTPU_totEnergy, "caloParticleOOTPU_totEnergy/F"); 
+      tree->Branch("caloParticleOOTPU_nHitsWithES", &caloParticlePU_nHitsWithES, "caloParticlePU_nHitsWithES/I");  
+      tree->Branch("caloParticleOOTPU_nHits", &caloParticlePU_nHits, "caloParticlePU_nHits/I");  
+      tree->Branch("caloParticleOOTPU_totEnergyWithES", &caloParticlePU_totEnergyWithES, "caloParticlePU_totEnergyWithES/F");  
+      tree->Branch("caloParticleOOTPU_totEnergy", &caloParticlePU_totEnergy, "caloParticlePU_totEnergy/F");  
       if(saveSimhitsPU_){ 
          tree->Branch("caloParticleOOTPU_xtalEnergy", "std::vector<float>", &caloParticleOOTPU_xtalEnergy);  
          tree->Branch("caloParticleOOTPU_xtalEta", "std::vector<float>", &caloParticleOOTPU_xtalEta);   
-         tree->Branch("caloParticleOOTPU_xtalPhi", "std::vector<float>", &caloParticleOOTPU_xtalPhi); 
-      }     
+         tree->Branch("caloParticleOOTPU_xtalPhi", "std::vector<float>", &caloParticleOOTPU_xtalPhi);                
+         tree->Branch("caloParticleOOTPU_xtalIeta", "std::vector<int>", &caloParticleOOTPU_xtalIeta);   
+         tree->Branch("caloParticleOOTPU_xtalIphi", "std::vector<int>", &caloParticleOOTPU_xtalIphi);  
+         tree->Branch("caloParticleOOTPU_xtalIz", "std::vector<int>", &caloParticleOOTPU_xtalIz);              
+         tree->Branch("caloParticleOOTPU_xtalIplane", "std::vector<int>", &caloParticleOOTPU_xtalIplane);   
+      }   
    }
    if(saveCaloParticles_){
       tree->Branch("caloParticle_size", &caloParticle_size, "caloParticle_size/I"); 
@@ -2306,7 +2441,8 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("caloParticle_status","std::vector<int>",&caloParticle_status); 
       tree->Branch("caloParticle_charge","std::vector<int>",&caloParticle_charge); 
       tree->Branch("caloParticle_genEnergy","std::vector<float>",&caloParticle_genEnergy);
-      tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy); 
+      tree->Branch("caloParticle_simEnergyWithES","std::vector<float>",&caloParticle_simEnergyWithES); 
+      tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy);  
       tree->Branch("caloParticle_genPt","std::vector<float>",&caloParticle_genPt);
       tree->Branch("caloParticle_simPt","std::vector<float>",&caloParticle_simPt);
       tree->Branch("caloParticle_genEta","std::vector<float>",&caloParticle_genEta);
@@ -2382,6 +2518,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("simHit_ieta","std::vector<std::vector<int> >",&simHit_ieta);
          tree->Branch("simHit_iphi","std::vector<std::vector<int> >",&simHit_iphi);
          tree->Branch("simHit_iz","std::vector<std::vector<int> >",&simHit_iz);
+         tree->Branch("simHit_iplane","std::vector<std::vector<int> >",&simHit_iplane);
       }
    }
    if(saveRechits_){
@@ -2801,6 +2938,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    caloParticle_charge.clear(); 
    caloParticle_genEnergy.clear(); 
    caloParticle_simEnergy.clear(); 
+   caloParticle_simEnergyWithES.clear(); 
    caloParticle_genPt.clear(); 
    caloParticle_simPt.clear(); 
    caloParticle_genEta.clear(); 
@@ -2902,6 +3040,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    simHit_ieta.clear();
    simHit_iphi.clear();
    simHit_iz.clear();
+   simHit_iplane.clear();
    if(saveSimhits_ && saveCaloParticles_){
       simHit_energy.resize(nCaloParticles);
       simHit_eta.resize(nCaloParticles);
@@ -2909,6 +3048,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       simHit_ieta.resize(nCaloParticles);
       simHit_iphi.resize(nCaloParticles);
       simHit_iz.resize(nCaloParticles);
+      simHit_iplane.resize(nCaloParticles);
    }
 
    recHit_noPF_energy.clear();

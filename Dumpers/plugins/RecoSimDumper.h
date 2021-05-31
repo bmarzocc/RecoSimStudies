@@ -43,6 +43,7 @@
 
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
+#include "DataFormats/EcalDetId/interface/ESDetId.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "SimDataFormats/CaloHit/interface/PCaloHitContainer.h"
@@ -218,8 +219,6 @@ class RecoSimDumper : public edm::EDAnalyzer
       float rho; 
       int genParticle_size; 
       int caloParticle_size;
-      int caloParticlePU_size;
-      int caloParticleOOTPU_size; 
       std::vector<int> genParticle_pdgId;
       std::vector<int> genParticle_status; 
       std::vector<float> genParticle_energy;
@@ -230,23 +229,36 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > genParticle_superCluster_dR_genScore_MatchedIndex;
       std::vector<std::vector<int> > genParticle_retunedSuperCluster_dR_genScore_MatchedIndex;
       std::vector<std::vector<int> > genParticle_deepSuperCluster_dR_genScore_MatchedIndex; 
+      int caloParticlePU_nHitsWithES; 
       int caloParticlePU_nHits; 
+      float caloParticlePU_totEnergyWithES;
       float caloParticlePU_totEnergy;
       std::vector<float> caloParticlePU_xtalEnergy;
       std::vector<float> caloParticlePU_xtalEta;
       std::vector<float> caloParticlePU_xtalPhi;
+      std::vector<int> caloParticlePU_xtalIeta;
+      std::vector<int> caloParticlePU_xtalIphi; 
+      std::vector<int> caloParticlePU_xtalIz;
+      std::vector<int> caloParticlePU_xtalIplane;
+      int caloParticleOOTPU_nHitsWithES; 
       int caloParticleOOTPU_nHits; 
+      float caloParticleOOTPU_totEnergyWithES;
       float caloParticleOOTPU_totEnergy;
       std::vector<float> caloParticleOOTPU_xtalEnergy;
       std::vector<float> caloParticleOOTPU_xtalEta;
       std::vector<float> caloParticleOOTPU_xtalPhi;
+      std::vector<int> caloParticleOOTPU_xtalIeta;
+      std::vector<int> caloParticleOOTPU_xtalIphi; 
+      std::vector<int> caloParticleOOTPU_xtalIz;
+      std::vector<int> caloParticleOOTPU_xtalIplane;
       std::vector<int> caloParticle_index; 
       std::vector<int> caloParticle_nXtals;  
       std::vector<int> caloParticle_pdgId;
       std::vector<int> caloParticle_status;
       std::vector<int> caloParticle_charge;
       std::vector<float> caloParticle_genEnergy;
-      std::vector<float> caloParticle_simEnergy;
+      std::vector<float> caloParticle_simEnergy;   
+      std::vector<float> caloParticle_simEnergyWithES;
       std::vector<float> caloParticle_genPt;
       std::vector<float> caloParticle_simPt;
       std::vector<float> caloParticle_genEta;
@@ -313,6 +325,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > simHit_ieta;
       std::vector<std::vector<int> > simHit_iphi;
       std::vector<std::vector<int> > simHit_iz;
+      std::vector<std::vector<int> > simHit_iplane; 
       std::vector<float> recHit_noPF_energy;
       std::vector<float> recHit_noPF_eta;
       std::vector<float> recHit_noPF_phi;
