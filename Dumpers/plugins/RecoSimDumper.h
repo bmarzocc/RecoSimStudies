@@ -78,6 +78,23 @@
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalTools.h"
 
+#include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
+#include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
+#include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalIntercalibConstantsMC.h"
+#include "CondFormats/DataRecord/interface/EcalIntercalibConstantsMCRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalADCToGeVConstant.h"
+#include "CondFormats/DataRecord/interface/EcalADCToGeVConstantRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalLaserAlphas.h"
+#include "CondFormats/DataRecord/interface/EcalLaserAlphasRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalLaserAPDPNRatiosRef.h"
+#include "CondFormats/DataRecord/interface/EcalLaserAPDPNRatiosRefRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalLaserAPDPNRatios.h"
+#include "CondFormats/DataRecord/interface/EcalLaserAPDPNRatiosRcd.h"
+#include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbService.h"
+#include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbRecord.h"
+
 #include "DataFormats/Math/interface/deltaR.h"
 //#include "PhysicsTools/Utilities/macros/setTDRStyle.C"
 
@@ -142,6 +159,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<float> getShowerShapes(reco::CaloCluster* caloBC, const EcalRecHitCollection* recHits, const CaloTopology *topology);
       std::vector<double> getScores(const reco::PFCluster* pfCluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
       std::vector<double> getScores(const reco::SuperCluster* superCluster, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPart, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
+      std::pair<double,std::pair<double,double>> getNoise(const reco::PFCluster* pfCluster, const std::vector<std::vector<std::pair<DetId, float> >> *hits_and_energies_CaloPart, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPartPU, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE, const EcalLaserAlphas* laserAlpha, const EcalLaserAPDPNRatios* laserRatio, const EcalIntercalibConstants* ical, const EcalIntercalibConstants* icalMC, bool useFractions);
       int getMatchedIndex(std::vector<std::vector<double>>* score, double selection, bool useMax, double scale, int iCl);
       void fillParticleMatchedIndex(std::vector<std::vector<int>>* particleMatchedIndex, std::vector<int>* clusterMatchedIndex);
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
@@ -257,7 +275,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<int> caloParticle_status;
       std::vector<int> caloParticle_charge;
       std::vector<float> caloParticle_genEnergy;
-      std::vector<float> caloParticle_simEnergy;   
+      std::vector<float> caloParticle_simEnergy;  
+      std::vector<float> caloParticle_simEnergyGoodStatus;   
       std::vector<float> caloParticle_simEnergyWithES;
       std::vector<float> caloParticle_genPt;
       std::vector<float> caloParticle_simPt;
@@ -326,6 +345,7 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<int> > simHit_iphi;
       std::vector<std::vector<int> > simHit_iz;
       std::vector<std::vector<int> > simHit_iplane; 
+      std::vector<std::vector<int> > simHit_chStatus; 
       std::vector<float> recHit_noPF_energy;
       std::vector<float> recHit_noPF_eta;
       std::vector<float> recHit_noPF_phi;
@@ -344,11 +364,21 @@ class RecoSimDumper : public edm::EDAnalyzer
       std::vector<std::vector<float> > pfClusterHit_phi;
       std::vector<std::vector<int> > pfClusterHit_ieta;
       std::vector<std::vector<int> > pfClusterHit_iphi;
-      std::vector<std::vector<int> > pfClusterHit_iz;
-      std::vector<float> pfCluster_rawEnergy;
+      std::vector<std::vector<int> > pfClusterHit_iz;     
+      std::vector<std::vector<float> > pfClusterHit_adcToGeV; 
+      std::vector<std::vector<float> > pfClusterHit_laserCorr; 
+      std::vector<std::vector<float> > pfClusterHit_ic; 
+      std::vector<std::vector<float> > pfClusterHit_icMC; 
+      std::vector<std::vector<int> > pfClusterHit_chStatus; 
+      std::vector<float> pfCluster_rawEnergy;    
+      std::vector<float> pfCluster_rawEnergyUncalib;
       std::vector<float> pfCluster_energy;
       std::vector<float> pfCluster_rawPt;
       std::vector<float> pfCluster_pt;
+      std::vector<float> pfCluster_noise;
+      std::vector<float> pfCluster_noiseUncalib;    
+      std::vector<float> pfCluster_noiseNoFractions;
+      std::vector<float> pfCluster_noiseUncalibNoFractions;
       std::vector<float> pfCluster_eta;
       std::vector<float> pfCluster_phi; 
       std::vector<int> pfCluster_ieta;

@@ -73,6 +73,23 @@
 #include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaHadTower.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
 
+#include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
+#include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
+#include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalIntercalibConstantsMC.h"
+#include "CondFormats/DataRecord/interface/EcalIntercalibConstantsMCRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalADCToGeVConstant.h"
+#include "CondFormats/DataRecord/interface/EcalADCToGeVConstantRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalLaserAlphas.h"
+#include "CondFormats/DataRecord/interface/EcalLaserAlphasRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalLaserAPDPNRatiosRef.h"
+#include "CondFormats/DataRecord/interface/EcalLaserAPDPNRatiosRefRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalLaserAPDPNRatios.h"
+#include "CondFormats/DataRecord/interface/EcalLaserAPDPNRatiosRcd.h"
+#include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbService.h"
+#include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbRecord.h"
+
 #include "TSystem.h"
 #include "TFile.h"
 #include "TProfile.h"
@@ -336,6 +353,30 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    }
 
+   edm::ESHandle<EcalADCToGeVConstant> pADCtoGeV;
+   iSetup.get<EcalADCToGeVConstantRcd>().get(pADCtoGeV);
+   const EcalADCToGeVConstant* adcToGeV = pADCtoGeV.product();
+
+   edm::ESHandle<EcalLaserAlphas> pAlpha;
+   iSetup.get<EcalLaserAlphasRcd>().get(pAlpha);
+   const EcalLaserAlphas* laserAlpha = pAlpha.product();
+
+   edm::ESHandle<EcalLaserAPDPNRatios> pAPDPNRatios;
+   iSetup.get<EcalLaserAPDPNRatiosRcd>().get(pAPDPNRatios);
+   const EcalLaserAPDPNRatios* laserRatio = pAPDPNRatios.product(); 
+
+   edm::ESHandle<EcalIntercalibConstants> pIcal;
+   iSetup.get<EcalIntercalibConstantsRcd>().get(pIcal);
+   const EcalIntercalibConstants* ical = pIcal.product();
+
+   edm::ESHandle<EcalIntercalibConstantsMC> pIcalMC;
+   iSetup.get<EcalIntercalibConstantsMCRcd>().get(pIcalMC);
+   const EcalIntercalibConstantsMC* icalMC = pIcalMC.product();
+
+   edm::ESHandle<EcalChannelStatus> pChannelStatus;
+   iSetup.get<EcalChannelStatusRcd>().get(pChannelStatus);
+   const EcalChannelStatus* chStatus = pChannelStatus.product();
+ 
    truePU=-1.;
    obsPU=-1.;
    edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
@@ -690,12 +731,15 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           caloParticle_simIz.push_back(iz); 
        } 
 
-       float calo_simEnergy=0.;  
+       float calo_simEnergy=0.; 
+       float calo_simEnergyGoodStatus=0.;  
        float calo_simEnergyWithES=0.;  
        for(auto const& hit: hitsAndEnergies_CaloPart[iCalo])
        {
            DetId id(hit.first);
+           int status = (*chStatus->getMap().find(id.rawId())).getStatusCode();
            if(id.subdetId()==EcalBarrel || id.subdetId()==EcalEndcap) calo_simEnergy += hit.second; 
+           if((id.subdetId()==EcalBarrel || id.subdetId()==EcalEndcap) && status<3) calo_simEnergyGoodStatus += hit.second; 
            if(id.subdetId()!=EcalBarrel && id.subdetId()!=EcalEndcap && id.subdetId() != EcalPreshower) continue;
                
            calo_simEnergyWithES += hit.second; 
@@ -736,9 +780,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               simHit_iphi[iCalo].push_back(iphi);
               simHit_iz[iCalo].push_back(iz); 
               simHit_iplane[iCalo].push_back(iplane); 
+              simHit_chStatus[iCalo].push_back(status); 
            }
        } 
        caloParticle_simEnergy.push_back(reduceFloat(calo_simEnergy,nBits_));
+       caloParticle_simEnergyGoodStatus.push_back(reduceFloat(calo_simEnergyGoodStatus,nBits_));
        caloParticle_simEnergyWithES.push_back(reduceFloat(calo_simEnergyWithES,nBits_));
    }
 
@@ -828,6 +874,15 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_iz.push_back(iz); 
           } 
            
+          std::pair<double,std::pair<double,double>> noise = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, true);       
+          pfCluster_noise.push_back(reduceFloat(noise.second.first,nBits_));
+          pfCluster_noiseUncalib.push_back(reduceFloat(noise.second.second,nBits_));
+          pfCluster_rawEnergyUncalib.push_back(reduceFloat(noise.first,nBits_));
+       
+          std::pair<double,std::pair<double,double>> noiseNoFractions = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, false);     
+          pfCluster_noiseNoFractions.push_back(reduceFloat(noiseNoFractions.second.first,nBits_));
+          pfCluster_noiseUncalibNoFractions.push_back(reduceFloat(noiseNoFractions.second.second,nBits_)); 
+
           if(saveShowerShapes_ && iPFCluster.layer() == PFLayer::ECAL_BARREL){
              widths_ = calculateCovariances(&iPFCluster, &(*(recHitsEB.product())), &(*_ebGeom));
              pfCluster_etaWidth.push_back(reduceFloat(widths_.first,nBits_));
@@ -924,9 +979,16 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              for(unsigned int i = 0; i < hitsAndEnergies_PFCluster.at(iPFCl).size(); i++){      
                  cell = geometry->getPosition(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first);
                  for(unsigned int hits=0; hits<hitsAndFractions.size(); hits++){
-                      if(hitsAndFractions.at(hits).first.rawId() == hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId())
+                     if(hitsAndFractions.at(hits).first.rawId() == hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId())
                          pfClusterHit_fraction[iPFCl].push_back(hitsAndFractions.at(hits).second);
-                 }
+                 } 
+                 float agv = 1.;
+                 float ic = *ical->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId()); 
+                 float icMC = *icalMC->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId());     
+                 double alpha = *laserAlpha->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId());
+                 double apdpn = (*laserRatio->getLaserMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId())).p2;
+                 float laserCorr = pow(apdpn,-alpha);
+                 int status = (*chStatus->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId())).getStatusCode();
                  pfClusterHit_eta[iPFCl].push_back(reduceFloat(cell.eta(),nBits_));
                  pfClusterHit_phi[iPFCl].push_back(reduceFloat(cell.phi(),nBits_));
                  if(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.subdetId()==EcalBarrel){ 
@@ -935,6 +997,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                     pfClusterHit_ieta[iPFCl].push_back(eb_id.ieta());
                     pfClusterHit_iphi[iPFCl].push_back(eb_id.iphi());
                     pfClusterHit_iz[iPFCl].push_back(0); 
+                    agv = adcToGeV->getEBValue();
                  }else if(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.subdetId()==EcalEndcap){  
                     int iz=-99;
                     EEDetId ee_id(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first);  
@@ -944,7 +1007,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                     if(ee_id.zside()<0) iz=-1;
                     if(ee_id.zside()>0) iz=1;   
                     pfClusterHit_iz[iPFCl].push_back(iz); 
-                 } 
+                    agv = adcToGeV->getEEValue();
+                 }    
+                 pfClusterHit_adcToGeV[iPFCl].push_back(reduceFloat(agv,nBits_)); 
+                 pfClusterHit_laserCorr[iPFCl].push_back(reduceFloat(laserCorr,nBits_)); 
+                 pfClusterHit_ic[iPFCl].push_back(reduceFloat(ic,nBits_)); 
+                 pfClusterHit_icMC[iPFCl].push_back(reduceFloat(icMC,nBits_)); 
+                 pfClusterHit_chStatus[iPFCl].push_back(status); 
              }
           }
           
@@ -2442,7 +2511,8 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("caloParticle_charge","std::vector<int>",&caloParticle_charge); 
       tree->Branch("caloParticle_genEnergy","std::vector<float>",&caloParticle_genEnergy);
       tree->Branch("caloParticle_simEnergyWithES","std::vector<float>",&caloParticle_simEnergyWithES); 
-      tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy);  
+      tree->Branch("caloParticle_simEnergy","std::vector<float>",&caloParticle_simEnergy);        
+      tree->Branch("caloParticle_simEnergyGoodStatus","std::vector<float>",&caloParticle_simEnergyGoodStatus);  
       tree->Branch("caloParticle_genPt","std::vector<float>",&caloParticle_genPt);
       tree->Branch("caloParticle_simPt","std::vector<float>",&caloParticle_simPt);
       tree->Branch("caloParticle_genEta","std::vector<float>",&caloParticle_genEta);
@@ -2519,6 +2589,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("simHit_iphi","std::vector<std::vector<int> >",&simHit_iphi);
          tree->Branch("simHit_iz","std::vector<std::vector<int> >",&simHit_iz);
          tree->Branch("simHit_iplane","std::vector<std::vector<int> >",&simHit_iplane);
+         tree->Branch("simHit_chStatus","std::vector<std::vector<int> >",&simHit_chStatus);
       }
    }
    if(saveRechits_){
@@ -2539,6 +2610,7 @@ void RecoSimDumper::setTree(TTree* tree)
    }
    if(savePFCluster_){
       tree->Branch("pfCluster_rawEnergy","std::vector<float>",&pfCluster_rawEnergy);
+      tree->Branch("pfCluster_rawEnergyUncalib","std::vector<float>",&pfCluster_rawEnergyUncalib);
       tree->Branch("pfCluster_energy","std::vector<float>",&pfCluster_energy);
       tree->Branch("pfCluster_rawPt","std::vector<float>",&pfCluster_rawPt); 
       tree->Branch("pfCluster_pt","std::vector<float>",&pfCluster_pt);  
@@ -2547,6 +2619,10 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("pfCluster_ieta","std::vector<int>",&pfCluster_ieta);
       tree->Branch("pfCluster_iphi","std::vector<int>",&pfCluster_iphi);   
       tree->Branch("pfCluster_iz","std::vector<int>",&pfCluster_iz);
+      tree->Branch("pfCluster_noise","std::vector<float>",&pfCluster_noise);
+      tree->Branch("pfCluster_noiseUncalib","std::vector<float>",&pfCluster_noiseUncalib);
+      tree->Branch("pfCluster_noiseNoFractions","std::vector<float>",&pfCluster_noiseNoFractions);
+      tree->Branch("pfCluster_noiseUncalibNoFractions","std::vector<float>",&pfCluster_noiseUncalibNoFractions);
       tree->Branch("pfCluster_nXtals","std::vector<double>",&pfCluster_nXtals);  
       if(saveSuperCluster_) tree->Branch("pfCluster_superClustersIndex","std::vector<std::vector<int> >",&pfCluster_superClustersIndex); 
       if(saveSuperCluster_ && useRetunedSC_) tree->Branch("pfCluster_retunedSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_retunedSuperClustersIndex);  
@@ -2593,6 +2669,11 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("pfClusterHit_ieta","std::vector<std::vector<int> >",&pfClusterHit_ieta);
          tree->Branch("pfClusterHit_iphi","std::vector<std::vector<int> >",&pfClusterHit_iphi);
          tree->Branch("pfClusterHit_iz","std::vector<std::vector<int> >",&pfClusterHit_iz);
+         tree->Branch("pfClusterHit_adcToGeV","std::vector<std::vector<float> >",&pfClusterHit_adcToGeV); 
+         tree->Branch("pfClusterHit_laserCorr","std::vector<std::vector<float> >",&pfClusterHit_laserCorr);    
+         tree->Branch("pfClusterHit_ic","std::vector<std::vector<float> >",&pfClusterHit_ic);        
+         tree->Branch("pfClusterHit_icMC","std::vector<std::vector<float> >",&pfClusterHit_icMC);
+         tree->Branch("pfClusterHit_chStatus","std::vector<std::vector<int> >",&pfClusterHit_chStatus);
       }   
    }
    if(saveSuperCluster_){
@@ -2938,6 +3019,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    caloParticle_charge.clear(); 
    caloParticle_genEnergy.clear(); 
    caloParticle_simEnergy.clear(); 
+   caloParticle_simEnergyGoodStatus.clear();  
    caloParticle_simEnergyWithES.clear(); 
    caloParticle_genPt.clear(); 
    caloParticle_simPt.clear(); 
@@ -3041,6 +3123,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    simHit_iphi.clear();
    simHit_iz.clear();
    simHit_iplane.clear();
+   simHit_chStatus.clear();
    if(saveSimhits_ && saveCaloParticles_){
       simHit_energy.resize(nCaloParticles);
       simHit_eta.resize(nCaloParticles);
@@ -3049,6 +3132,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       simHit_iphi.resize(nCaloParticles);
       simHit_iz.resize(nCaloParticles);
       simHit_iplane.resize(nCaloParticles);
+      simHit_chStatus.resize(nCaloParticles);
    }
 
    recHit_noPF_energy.clear();
@@ -3066,6 +3150,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfRecHit_unClustered_iz.clear();
 
    pfCluster_rawEnergy.clear();
+   pfCluster_rawEnergyUncalib.clear();
    pfCluster_energy.clear();
    pfCluster_rawPt.clear();
    pfCluster_pt.clear();
@@ -3074,6 +3159,10 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfCluster_ieta.clear();
    pfCluster_iphi.clear();
    pfCluster_iz.clear();
+   pfCluster_noise.clear();
+   pfCluster_noiseUncalib.clear();
+   pfCluster_noiseNoFractions.clear();
+   pfCluster_noiseUncalibNoFractions.clear();
    pfCluster_superClustersIndex.clear();
    pfCluster_retunedSuperClustersIndex.clear();
    pfCluster_deepSuperClustersIndex.clear(); 
@@ -3156,15 +3245,25 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfClusterHit_phi.clear();   
    pfClusterHit_ieta.clear();
    pfClusterHit_iphi.clear(); 
-   pfClusterHit_iz.clear();           
+   pfClusterHit_iz.clear();     
+   pfClusterHit_adcToGeV.clear();
+   pfClusterHit_ic.clear();   
+   pfClusterHit_icMC.clear();
+   pfClusterHit_laserCorr.clear(); 
+   pfClusterHit_chStatus.clear();           
    pfClusterHit_fraction.resize(nPFClusters);  
    pfClusterHit_rechitEnergy.resize(nPFClusters);  
    pfClusterHit_eta.resize(nPFClusters);  
    pfClusterHit_phi.resize(nPFClusters);     
    pfClusterHit_ieta.resize(nPFClusters);  
    pfClusterHit_iphi.resize(nPFClusters);   
-   pfClusterHit_iz.resize(nPFClusters);   
-  
+   pfClusterHit_iz.resize(nPFClusters);    
+   pfClusterHit_adcToGeV.resize(nPFClusters);
+   pfClusterHit_ic.resize(nPFClusters);
+   pfClusterHit_icMC.resize(nPFClusters);    
+   pfClusterHit_laserCorr.resize(nPFClusters);   
+   pfClusterHit_chStatus.resize(nPFClusters);   
+
    superCluster_rawEnergy.clear(); 
    superCluster_energy.clear(); 
    superCluster_eta.clear(); 
@@ -3862,6 +3961,57 @@ std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superClus
         if(std::isnan(scores.at(iVar))) std::cout << "score = " << iVar << " ---> NAN " << std::endl; 
 
     return scores;
+}
+
+std::pair<double,std::pair<double,double>> RecoSimDumper::getNoise(const reco::PFCluster* pfCluster, const std::vector<std::vector<std::pair<DetId, float> >> *hits_and_energies_CaloPart, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPartPU, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE, const EcalLaserAlphas* laserAlpha, const EcalLaserAPDPNRatios* laserRatio, const EcalIntercalibConstants* ical, const EcalIntercalibConstants* icalMC, bool useFractions=true)
+{
+    std::pair<double,std::pair<double,double>> noise;
+    
+    double recoE = 0.;
+    double simE = 0.;
+    double recoE_uncalib = 0.;
+    double simE_uncalib = 0.;
+    
+    const std::vector<std::pair<DetId,float> >* hitsAndFractions = &pfCluster->hitsAndFractions();  
+    for(const std::pair<DetId, float>& hit_Cluster : *hitsAndFractions){ 
+
+        double ic = *ical->getMap().find(hit_Cluster.first.rawId()); 
+        double icMC = *icalMC->getMap().find(hit_Cluster.first.rawId());     
+        double alpha = *laserAlpha->getMap().find(hit_Cluster.first.rawId());
+        double apdpn = (*laserRatio->getLaserMap().find(hit_Cluster.first.rawId())).p2;
+        double laserCorr = pow(apdpn,-alpha);
+
+        double fraction = 1.; 
+        if(useFractions) fraction = hit_Cluster.second; 
+        double icRatio = ic/icMC;
+
+        if(hit_Cluster.first.subdetId()==EcalBarrel){ 
+           recoE += fraction*(*recHitsEB->find(hit_Cluster.first)).energy();
+           recoE_uncalib += fraction*(*recHitsEB->find(hit_Cluster.first)).energy()/(ic*laserCorr);
+        }
+        if(hit_Cluster.first.subdetId()==EcalEndcap){ 
+           recoE += fraction*(*recHitsEE->find(hit_Cluster.first)).energy();
+           recoE_uncalib += fraction*(*recHitsEE->find(hit_Cluster.first)).energy()/(ic*laserCorr);   
+        }
+
+        for(unsigned int iCalo=0; iCalo<hits_and_energies_CaloPart->size(); iCalo++){
+            for(const std::pair<DetId, float>& hit_CaloPart : hits_and_energies_CaloPart->at(iCalo)){
+                if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
+                   simE+=icRatio*fraction*hit_CaloPart.second;
+                   simE_uncalib+=icRatio*fraction*hit_CaloPart.second/(ic*laserCorr);
+                } 
+            } 
+        }
+        for(const std::pair<DetId, float>& hit_CaloPart : *hits_and_energies_CaloPartPU){
+            if(hit_CaloPart.first.rawId() == hit_Cluster.first.rawId()){
+               simE+=icRatio*fraction*hit_CaloPart.second;
+               simE_uncalib+=icRatio*fraction*hit_CaloPart.second/(ic*laserCorr);
+            } 
+        } 
+    }  
+    
+    noise = std::make_pair(recoE_uncalib,std::make_pair(recoE-simE,recoE_uncalib-simE_uncalib)); 
+    return noise;
 }
 
 int RecoSimDumper::getMatchedIndex(std::vector<std::vector<double>>* scores, double selection, bool useMax, double scale, int iCl)
