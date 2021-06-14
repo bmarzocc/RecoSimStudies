@@ -89,6 +89,11 @@
 #include "CondFormats/DataRecord/interface/EcalLaserAPDPNRatiosRcd.h"
 #include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbService.h"
 #include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbRecord.h"
+#include "CondFormats/EcalObjects/interface/EcalPedestals.h"
+#include "CondFormats/DataRecord/interface/EcalPedestalsRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalMGPAGainRatio.h"
+#include "CondFormats/EcalObjects/interface/EcalGainRatios.h"
+#include "CondFormats/DataRecord/interface/EcalGainRatiosRcd.h"
 
 #include "TSystem.h"
 #include "TFile.h"
@@ -376,6 +381,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    edm::ESHandle<EcalChannelStatus> pChannelStatus;
    iSetup.get<EcalChannelStatusRcd>().get(pChannelStatus);
    const EcalChannelStatus* chStatus = pChannelStatus.product();
+
+   edm::ESHandle<EcalPedestals> pPeds;
+   iSetup.get<EcalPedestalsRcd>().get(pPeds);
+   const EcalPedestals* ped = pPeds.product();
+
+   edm::ESHandle<EcalGainRatios> pRatio;
+   iSetup.get<EcalGainRatiosRcd>().get(pRatio);
+   const EcalGainRatios* gr = pRatio.product();
  
    truePU=-1.;
    obsPU=-1.;
@@ -874,14 +887,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_iz.push_back(iz); 
           } 
            
-          std::pair<double,std::pair<double,double>> noise = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, true);       
-          pfCluster_noise.push_back(reduceFloat(noise.second.first,nBits_));
-          pfCluster_noiseUncalib.push_back(reduceFloat(noise.second.second,nBits_));
-          pfCluster_rawEnergyUncalib.push_back(reduceFloat(noise.first,nBits_));
+          std::vector<double> noise = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, ped, adcToGeV, gr, true);       
+          pfCluster_noise.push_back(reduceFloat(noise[1],nBits_));
+          pfCluster_noiseUncalib.push_back(reduceFloat(noise[2],nBits_));
+          pfCluster_noiseDB.push_back(reduceFloat(noise[3],nBits_));
+          pfCluster_noiseDBUncalib.push_back(reduceFloat(noise[4],nBits_));
+          pfCluster_rawEnergyUncalib.push_back(reduceFloat(noise[0],nBits_));
        
-          std::pair<double,std::pair<double,double>> noiseNoFractions = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, false);     
-          pfCluster_noiseNoFractions.push_back(reduceFloat(noiseNoFractions.second.first,nBits_));
-          pfCluster_noiseUncalibNoFractions.push_back(reduceFloat(noiseNoFractions.second.second,nBits_)); 
+          std::vector<double> noiseNoFractions = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, ped, adcToGeV, gr, false);     
+          pfCluster_noiseNoFractions.push_back(reduceFloat(noiseNoFractions[1],nBits_));
+          pfCluster_noiseUncalibNoFractions.push_back(reduceFloat(noiseNoFractions[2],nBits_)); 
+          pfCluster_noiseDBNoFractions.push_back(reduceFloat(noiseNoFractions[3],nBits_));
+          pfCluster_noiseDBUncalibNoFractions.push_back(reduceFloat(noiseNoFractions[4],nBits_)); 
 
           if(saveShowerShapes_ && iPFCluster.layer() == PFLayer::ECAL_BARREL){
              widths_ = calculateCovariances(&iPFCluster, &(*(recHitsEB.product())), &(*_ebGeom));
@@ -2623,6 +2640,10 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("pfCluster_noiseUncalib","std::vector<float>",&pfCluster_noiseUncalib);
       tree->Branch("pfCluster_noiseNoFractions","std::vector<float>",&pfCluster_noiseNoFractions);
       tree->Branch("pfCluster_noiseUncalibNoFractions","std::vector<float>",&pfCluster_noiseUncalibNoFractions);
+      tree->Branch("pfCluster_noiseDB","std::vector<float>",&pfCluster_noiseDB);
+      tree->Branch("pfCluster_noiseDBUncalib","std::vector<float>",&pfCluster_noiseDBUncalib);
+      tree->Branch("pfCluster_noiseDBNoFractions","std::vector<float>",&pfCluster_noiseDBNoFractions);
+      tree->Branch("pfCluster_noiseDBUncalibNoFractions","std::vector<float>",&pfCluster_noiseDBUncalibNoFractions);
       tree->Branch("pfCluster_nXtals","std::vector<double>",&pfCluster_nXtals);  
       if(saveSuperCluster_) tree->Branch("pfCluster_superClustersIndex","std::vector<std::vector<int> >",&pfCluster_superClustersIndex); 
       if(saveSuperCluster_ && useRetunedSC_) tree->Branch("pfCluster_retunedSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_retunedSuperClustersIndex);  
@@ -3163,6 +3184,10 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfCluster_noiseUncalib.clear();
    pfCluster_noiseNoFractions.clear();
    pfCluster_noiseUncalibNoFractions.clear();
+   pfCluster_noiseDB.clear();
+   pfCluster_noiseDBUncalib.clear();
+   pfCluster_noiseDBNoFractions.clear();
+   pfCluster_noiseDBUncalibNoFractions.clear();
    pfCluster_superClustersIndex.clear();
    pfCluster_retunedSuperClustersIndex.clear();
    pfCluster_deepSuperClustersIndex.clear(); 
@@ -3963,14 +3988,17 @@ std::vector<double> RecoSimDumper::getScores(const reco::SuperCluster* superClus
     return scores;
 }
 
-std::pair<double,std::pair<double,double>> RecoSimDumper::getNoise(const reco::PFCluster* pfCluster, const std::vector<std::vector<std::pair<DetId, float> >> *hits_and_energies_CaloPart, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPartPU, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE, const EcalLaserAlphas* laserAlpha, const EcalLaserAPDPNRatios* laserRatio, const EcalIntercalibConstants* ical, const EcalIntercalibConstants* icalMC, bool useFractions=true)
+std::vector<double> RecoSimDumper::getNoise(const reco::PFCluster* pfCluster, const std::vector<std::vector<std::pair<DetId, float> >> *hits_and_energies_CaloPart, const std::vector<std::pair<DetId, float> > *hits_and_energies_CaloPartPU, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE, const EcalLaserAlphas* laserAlpha, const EcalLaserAPDPNRatios* laserRatio, const EcalIntercalibConstants* ical, const EcalIntercalibConstants* icalMC, const EcalPedestals* ped, const EcalADCToGeVConstant* adcToGeV, const EcalGainRatios* gr, bool useFractions=true)
 {
-    std::pair<double,std::pair<double,double>> noise;
+    std::vector<double> noises;
+    noises.resize(5);
     
     double recoE = 0.;
     double simE = 0.;
     double recoE_uncalib = 0.;
     double simE_uncalib = 0.;
+    double noiseDB = 0.;
+    double noiseDB_uncalib = 0.;
     
     const std::vector<std::pair<DetId,float> >* hitsAndFractions = &pfCluster->hitsAndFractions();  
     for(const std::pair<DetId, float>& hit_Cluster : *hitsAndFractions){ 
@@ -3980,10 +4008,28 @@ std::pair<double,std::pair<double,double>> RecoSimDumper::getNoise(const reco::P
         double alpha = *laserAlpha->getMap().find(hit_Cluster.first.rawId());
         double apdpn = (*laserRatio->getLaserMap().find(hit_Cluster.first.rawId())).p2;
         double laserCorr = pow(apdpn,-alpha);
+        double pedestal = 1.;
+        double agv = 1.;
+        //double gain12Over6 = (*gr->getMap().find(hit_Cluster.first.rawId())).gain12Over6();
+        //double gain6Over1 = (*gr->getMap().find(hit_Cluster.first.rawId())).gain6Over1();
+        if(hit_Cluster.first.subdetId()==EcalBarrel){ 
+           agv = adcToGeV->getEBValue();
+           pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x12;
+           //if((*recHitsEB->find(hit_Cluster.first)).checkFlag(16)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x6 * gain12Over6;
+           //if((*recHitsEB->find(hit_Cluster.first)).checkFlag(17)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x1 * gain6Over1;
+        }else if(hit_Cluster.first.subdetId()==EcalEndcap){
+           agv = adcToGeV->getEEValue();
+           pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x12;
+           //if((*recHitsEE->find(hit_Cluster.first)).checkFlag(16)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x6 * gain12Over6;
+           //if((*recHitsEE->find(hit_Cluster.first)).checkFlag(17)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x1 * gain6Over1;
+        }
 
         double fraction = 1.; 
         if(useFractions) fraction = hit_Cluster.second; 
         double icRatio = ic/icMC;
+
+        noiseDB += pedestal*fraction*agv*laserCorr*ic;
+        noiseDB_uncalib += pedestal*fraction*agv;
 
         if(hit_Cluster.first.subdetId()==EcalBarrel){ 
            recoE += fraction*(*recHitsEB->find(hit_Cluster.first)).energy();
@@ -4010,8 +4056,13 @@ std::pair<double,std::pair<double,double>> RecoSimDumper::getNoise(const reco::P
         } 
     }  
     
-    noise = std::make_pair(recoE_uncalib,std::make_pair(recoE-simE,recoE_uncalib-simE_uncalib)); 
-    return noise;
+    noises[0] = recoE_uncalib;
+    noises[1] = recoE-simE;
+    noises[2] = recoE_uncalib-simE_uncalib;
+    noises[3] = noiseDB;
+    noises[4] = noiseDB_uncalib;
+
+    return noises;
 }
 
 int RecoSimDumper::getMatchedIndex(std::vector<std::vector<double>>* scores, double selection, bool useMax, double scale, int iCl)
