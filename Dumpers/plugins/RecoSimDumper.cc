@@ -563,7 +563,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       caloParticleOOTPU_xtalIphi.clear();   
       caloParticleOOTPU_xtalIz.clear();   
       caloParticleOOTPU_xtalIplane.clear(); 
-      for(const auto& iCalo : *(puCaloParticle.product()))
+      for(const auto& iCalo : *(ootpuCaloParticle.product()))
       {
           const auto& simClusters = iCalo.simClusters();
           auto hits_and_fractions = simClusters[0]->hits_and_fractions();
