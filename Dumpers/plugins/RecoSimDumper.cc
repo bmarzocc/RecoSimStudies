@@ -427,15 +427,15 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    for(const auto& iGen : *(genParticles.product()))
    {
        if(iGen.numberOfMothers()!=0) continue;
-       
-       addDaughters(&genParts_tmp,genPart_index,genPart_index);    
+
        genParticle_pdgId.push_back(iGen.pdgId()); 
        genParticle_status.push_back(iGen.status()); 
        genParticle_energy.push_back(iGen.energy()); 
        genParticle_pt.push_back(iGen.pt());
        genParticle_eta.push_back(iGen.eta());
        genParticle_phi.push_back(iGen.phi());
-
+     
+       addDaughters(&genParts_tmp,genPart_index,genPart_index);    
        genParts.push_back(iGen); 
        genPart_index++;
    } 
