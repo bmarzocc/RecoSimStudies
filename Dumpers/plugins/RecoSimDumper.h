@@ -2,32 +2,17 @@
 #define RecoSimStudies_Dumpers_RecoSimDumper_H
 
 // system include files
-#include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "CommonTools/Utils/interface/TFileDirectory.h"
-
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDConsumerBase.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 
-#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "DataFormats/Common/interface/Handle.h"
-#include "FWCore/Framework/interface/LooperFactory.h"
-#include "FWCore/Framework/interface/ESProducerLooper.h"
-#include "FWCore/Framework/interface/EDFilter.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "FWCore/Framework/interface/ESProducts.h"
-#include "FWCore/Framework/interface/Event.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/FWLite/interface/Event.h"
 #include "DataFormats/FWLite/interface/Handle.h"
-
 #include "FWCore/FWLite/interface/FWLiteEnabler.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 //#include "FWCore/PythonParameterSet/interface/MakeParameterSets.h"
@@ -35,7 +20,7 @@
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloTopologyRecord.h"
 #include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
@@ -137,7 +122,7 @@
 #include <Math/VectorUtil.h>
 //#include <boost/tokenizer.hpp>
 
-class RecoSimDumper : public edm::EDAnalyzer
+class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
       public:
          explicit RecoSimDumper(const edm::ParameterSet&);
@@ -228,8 +213,8 @@ class RecoSimDumper : public edm::EDAnalyzer
       TTree* tree;
       std::vector<std::map<uint32_t,float> > caloParticleXtals_;
       std::pair<double,double> widths_;
-      std::vector<float> locCov_;
-      std::vector<float> full5x5_locCov_;
+      std::array<float, 3> locCov_;
+      std::array<float, 3> full5x5_locCov_;
       std::vector<float> showerShapes_;
       std::map<int,std::vector<int>> genDaughters;
       

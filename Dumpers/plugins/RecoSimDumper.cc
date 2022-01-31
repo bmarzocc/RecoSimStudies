@@ -31,7 +31,7 @@
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+#include "Geometry/Records/interface/CaloTopologyRecord.h"
 #include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "Geometry/EcalAlgo/interface/EcalBarrelGeometry.h"
@@ -139,6 +139,8 @@ using namespace reco;
 //
 RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
 {
+   usesResource(TFileService::kSharedResource);
+
    pileupSummaryToken_            = consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("pileupSummary"));
    vtxToken_                      = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
    rhoToken_                      = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoCollection"));
@@ -1153,8 +1155,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
    
    //Save SuperClusters 
-   locCov_.clear();
-   full5x5_locCov_.clear();
    if(saveSuperCluster_){
       int iSC=0;
       //std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
@@ -1549,8 +1549,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    //Save retunedSuperClusters 
    //std::cout << "-----> retunedSuperClusters <-----" << std::endl;  
-   locCov_.clear();
-   full5x5_locCov_.clear();
    if(saveSuperCluster_ && useRetunedSC_){
       int iSC=0;
       //std::cout << "retunedSuperClustersEB size: " << (retunedSuperClusterEB.product())->size() << std::endl;
@@ -1944,8 +1942,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    //Save deepSuperClusters 
    //std::cout << "-----> deepSuperClusters <-----" << std::endl;  
-   locCov_.clear();
-   full5x5_locCov_.clear();
    if(saveSuperCluster_ && useDeepSC_){
       int iSC=0;
       //std::cout << "deepSuperClustersEB size: " << (deepSuperClusterEB.product())->size() << std::endl;
@@ -3762,8 +3758,6 @@ std::vector<float> RecoSimDumper::getShowerShapes(reco::CaloCluster* caloBC, con
 {
     std::vector<float> shapes;
     shapes.resize(38); 
-    locCov_.clear();
-    full5x5_locCov_.clear();
     locCov_ = EcalClusterTools::localCovariances(*caloBC, recHits, topology);
     full5x5_locCov_ = noZS::EcalClusterTools::localCovariances(*caloBC, recHits, topology);
     

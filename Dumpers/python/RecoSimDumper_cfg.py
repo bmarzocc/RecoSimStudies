@@ -4,12 +4,12 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 
 options = VarParsing.VarParsing('standard')
 options.register('inputFile',
-                 'test/step3.root',
+                 'file:test/step3.root',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
                 "inputFile")
 options.register('outputFile',
-                 'output.root',
+                 'file:output.root',
                  VarParsing.VarParsing.multiplicity.singleton,
                  VarParsing.VarParsing.varType.string,
                 "outputFile")
@@ -33,7 +33,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 1 )
                                                                        
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),                       
-    fileNames = cms.untracked.vstring("file:"+options.inputFile),
+    fileNames = cms.untracked.vstring(options.inputFile),
     secondaryFileNames = cms.untracked.vstring()
     ) 
 
