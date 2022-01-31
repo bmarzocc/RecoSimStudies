@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: step2 --mc --eventcontent RECOSIM --runUnscheduled --datatier GEN-SIM-RECO --conditions 112X_mcRun3_2021_realistic_v16 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI,PAT --nThreads 8 --geometry DB:Extended --era Run3 --fileout file:step3.root --filein file:step2.root
+# with command line options: --python_filename EGM-Run3Summer21DR-00042_2_cfg.py --eventcontent RECOSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM-RECO --fileout file:step3.root --conditions 120X_mcRun3_2021_realistic_v6 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI,PAT --geometry DB:Extended --filein file:step2.root --era Run3 --no_exec --mc
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -20,7 +20,6 @@ options.register('outputFile',
                 "outputFile")
                 
 options.parseArguments()
-
 
 from Configuration.Eras.Era_Run3_cff import Run3
 
@@ -51,7 +50,7 @@ process.maxEvents = cms.untracked.PSet(
 
 # Input source
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:'+options.inputFile),
+    fileNames = cms.untracked.vstring('file:step2.root'),
     secondaryFileNames = cms.untracked.vstring()
 )
 
@@ -62,17 +61,19 @@ process.options = cms.untracked.PSet(
     SkipEvent = cms.untracked.vstring(),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
+    deleteNonConsumedUnscheduledModules = cms.untracked.bool(True),
+    dumpOptions = cms.untracked.bool(False),
     emptyRunLumiMode = cms.obsolete.untracked.string,
     eventSetup = cms.untracked.PSet(
         forceNumberOfConcurrentIOVs = cms.untracked.PSet(
             allowAnyLabel_=cms.required.untracked.uint32
         ),
-        numberOfConcurrentIOVs = cms.untracked.uint32(1)
+        numberOfConcurrentIOVs = cms.untracked.uint32(0)
     ),
     fileMode = cms.untracked.string('FULLMERGE'),
     forceEventSetupCacheClearOnNewRun = cms.untracked.bool(False),
     makeTriggerResults = cms.obsolete.untracked.bool,
-    numberOfConcurrentLuminosityBlocks = cms.untracked.uint32(1),
+    numberOfConcurrentLuminosityBlocks = cms.untracked.uint32(0),
     numberOfConcurrentRuns = cms.untracked.uint32(1),
     numberOfStreams = cms.untracked.uint32(0),
     numberOfThreads = cms.untracked.uint32(1),
@@ -84,7 +85,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('step2 nevts:1'),
+    annotation = cms.untracked.string('--python_filename nevts:1'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -100,6 +101,7 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     outputCommands = process.RECOSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
+
 process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *_addPileupInfo_*_*',                       
                                              'keep *_genParticles_*_*',
@@ -117,12 +119,11 @@ process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *EGamma*_*_*_*', 
                                              'keep *_*EGamma*_*_*',
                                              'keep *_*towerMaker*_*_*'])
-
 # Additional output definition
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '112X_mcRun3_2021_realistic_v16', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '120X_mcRun3_2021_realistic_v6', '')
 
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)
@@ -130,35 +131,35 @@ process.L1Reco_step = cms.Path(process.L1Reco)
 process.reconstruction_step = cms.Path(process.reconstruction)
 process.recosim_step = cms.Path(process.recosim)
 process.eventinterpretaion_step = cms.Path(process.EIsequence)
-process.Flag_trackingFailureFilter = cms.Path(process.goodVertices+process.trackingFailureFilter)
-process.Flag_goodVertices = cms.Path(process.primaryVertexFilter)
+process.Flag_BadChargedCandidateFilter = cms.Path(process.BadChargedCandidateFilter)
+process.Flag_BadChargedCandidateSummer16Filter = cms.Path(process.BadChargedCandidateSummer16Filter)
+process.Flag_BadPFMuonDzFilter = cms.Path(process.BadPFMuonDzFilter)
+process.Flag_BadPFMuonFilter = cms.Path(process.BadPFMuonFilter)
+process.Flag_BadPFMuonSummer16Filter = cms.Path(process.BadPFMuonSummer16Filter)
+process.Flag_CSCTightHalo2015Filter = cms.Path(process.CSCTightHalo2015Filter)
 process.Flag_CSCTightHaloFilter = cms.Path(process.CSCTightHaloFilter)
-process.Flag_trkPOGFilters = cms.Path(process.trkPOGFilters)
-process.Flag_HcalStripHaloFilter = cms.Path(process.HcalStripHaloFilter)
-process.Flag_trkPOG_logErrorTooManyClusters = cms.Path(~process.logErrorTooManyClusters)
-process.Flag_hfNoisyHitsFilter = cms.Path(process.hfNoisyHitsFilter)
+process.Flag_CSCTightHaloTrkMuUnvetoFilter = cms.Path(process.CSCTightHaloTrkMuUnvetoFilter)
+process.Flag_EcalDeadCellBoundaryEnergyFilter = cms.Path(process.EcalDeadCellBoundaryEnergyFilter)
 process.Flag_EcalDeadCellTriggerPrimitiveFilter = cms.Path(process.EcalDeadCellTriggerPrimitiveFilter)
-process.Flag_ecalLaserCorrFilter = cms.Path(process.ecalLaserCorrFilter)
-process.Flag_globalSuperTightHalo2016Filter = cms.Path(process.globalSuperTightHalo2016Filter)
-process.Flag_eeBadScFilter = cms.Path(process.eeBadScFilter)
+process.Flag_HBHENoiseFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseFilter)
+process.Flag_HBHENoiseIsoFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseIsoFilter)
+process.Flag_HcalStripHaloFilter = cms.Path(process.HcalStripHaloFilter)
 process.Flag_METFilters = cms.Path(process.metFilters)
 process.Flag_chargedHadronTrackResolutionFilter = cms.Path(process.chargedHadronTrackResolutionFilter)
-process.Flag_globalTightHalo2016Filter = cms.Path(process.globalTightHalo2016Filter)
-process.Flag_CSCTightHaloTrkMuUnvetoFilter = cms.Path(process.CSCTightHaloTrkMuUnvetoFilter)
-process.Flag_HBHENoiseIsoFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseIsoFilter)
-process.Flag_BadChargedCandidateSummer16Filter = cms.Path(process.BadChargedCandidateSummer16Filter)
-process.Flag_hcalLaserEventFilter = cms.Path(process.hcalLaserEventFilter)
-process.Flag_BadPFMuonFilter = cms.Path(process.BadPFMuonFilter)
 process.Flag_ecalBadCalibFilter = cms.Path(process.ecalBadCalibFilter)
-process.Flag_HBHENoiseFilter = cms.Path(process.HBHENoiseFilterResultProducer+process.HBHENoiseFilter)
-process.Flag_trkPOG_toomanystripclus53X = cms.Path(~process.toomanystripclus53X)
-process.Flag_EcalDeadCellBoundaryEnergyFilter = cms.Path(process.EcalDeadCellBoundaryEnergyFilter)
-process.Flag_BadChargedCandidateFilter = cms.Path(process.BadChargedCandidateFilter)
-process.Flag_trkPOG_manystripclus53X = cms.Path(~process.manystripclus53X)
-process.Flag_BadPFMuonSummer16Filter = cms.Path(process.BadPFMuonSummer16Filter)
+process.Flag_ecalLaserCorrFilter = cms.Path(process.ecalLaserCorrFilter)
+process.Flag_eeBadScFilter = cms.Path(process.eeBadScFilter)
+process.Flag_globalSuperTightHalo2016Filter = cms.Path(process.globalSuperTightHalo2016Filter)
+process.Flag_globalTightHalo2016Filter = cms.Path(process.globalTightHalo2016Filter)
+process.Flag_goodVertices = cms.Path(process.primaryVertexFilter)
+process.Flag_hcalLaserEventFilter = cms.Path(process.hcalLaserEventFilter)
+process.Flag_hfNoisyHitsFilter = cms.Path(process.hfNoisyHitsFilter)
 process.Flag_muonBadTrackFilter = cms.Path(process.muonBadTrackFilter)
-process.Flag_CSCTightHalo2015Filter = cms.Path(process.CSCTightHalo2015Filter)
-process.Flag_BadPFMuonDzFilter = cms.Path(process.BadPFMuonDzFilter)
+process.Flag_trackingFailureFilter = cms.Path(process.goodVertices+process.trackingFailureFilter)
+process.Flag_trkPOGFilters = cms.Path(process.trkPOGFilters)
+process.Flag_trkPOG_logErrorTooManyClusters = cms.Path(~process.logErrorTooManyClusters)
+process.Flag_trkPOG_manystripclus53X = cms.Path(~process.manystripclus53X)
+process.Flag_trkPOG_toomanystripclus53X = cms.Path(~process.toomanystripclus53X)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 
@@ -168,11 +169,15 @@ process.schedule.associate(process.patTask)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
-#Setup FWK for multithreaded
-process.options.numberOfThreads=cms.untracked.uint32(8)
-process.options.numberOfStreams=cms.untracked.uint32(0)
-process.options.numberOfConcurrentLuminosityBlocks=cms.untracked.uint32(1)
+# customisation of the process.
 
+# Automatic addition of the customisation function from Configuration.DataProcessing.Utils
+from Configuration.DataProcessing.Utils import addMonitoring 
+
+#call to customisation function addMonitoring imported from Configuration.DataProcessing.Utils
+process = addMonitoring(process)
+
+# End of customisation functions
 
 # customisation of the process.
 
