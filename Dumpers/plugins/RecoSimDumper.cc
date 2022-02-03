@@ -2,31 +2,17 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CommonTools/Utils/interface/TFileDirectory.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/ESWatcher.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDConsumerBase.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
-
-#include "FWCore/Framework/interface/EDProducer.h"
+//#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "DataFormats/Common/interface/Handle.h"
-#include "FWCore/Framework/interface/LooperFactory.h"
-#include "FWCore/Framework/interface/ESProducerLooper.h"
-#include "FWCore/Framework/interface/EDFilter.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "FWCore/Framework/interface/ESProducts.h"
-#include "FWCore/Framework/interface/Event.h"
-
-#include "DataFormats/FWLite/interface/Event.h"
-#include "DataFormats/FWLite/interface/Handle.h"
-
-#include "FWCore/FWLite/interface/FWLiteEnabler.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-//#include "FWCore/PythonParameterSet/interface/MakeParameterSets.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
@@ -137,7 +123,17 @@ using namespace reco;
 //
 // constructors and destructor
 //
-RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig)
+RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
+   caloTopologyToken_(esConsumes()),
+   caloGeometryToken_(esConsumes()),
+   ADCtoGeVToken_(esConsumes()),
+   alphaToken_(esConsumes()),
+   APDPNRatiosToken_(esConsumes()),
+   icalToken_(esConsumes()),
+   icalMCToken_(esConsumes()),
+   channelStatusToken_(esConsumes()),
+   pedsToken_(esConsumes()),
+   ratioToken_(esConsumes())
 {
    usesResource(TFileService::kSharedResource);
 
@@ -204,14 +200,12 @@ RecoSimDumper::~RecoSimDumper()
 // ------------ method called to for each event  ------------
 void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 {
-
    //calo geometry
-   edm::ESHandle<CaloGeometry> caloGeometry;
-   iSetup.get<CaloGeometryRecord>().get(caloGeometry);
-   const CaloGeometry *geometry = caloGeometry.product();
-   _ebGeom = caloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
-   _eeGeom = caloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalEndcap);
-   _esGeom = caloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalPreshower);
+   edm::ESHandle<CaloGeometry> pCaloGeometry = iSetup.getHandle(caloGeometryToken_);
+   geometry = pCaloGeometry.product();
+   _ebGeom = pCaloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+   _eeGeom = pCaloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalEndcap);
+   _esGeom = pCaloGeometry->getSubdetectorGeometry(DetId::Ecal, EcalPreshower);
    if (_esGeom) {
     for (uint32_t ic = 0; ic < _esGeom->getValidDetIds().size() && (!_esPlus || !_esMinus); ++ic) {
       const double z = _esGeom->getGeometry(_esGeom->getValidDetIds()[ic])->getPosition().z();
@@ -220,10 +214,33 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     }
    }
 
-   edm::ESHandle<CaloTopology> caloTopology;
-   iSetup.get<CaloTopologyRecord>().get(caloTopology);
-   const CaloTopology* topology = caloTopology.product();
-   
+   edm::ESHandle<CaloTopology> pCaloTopology = iSetup.getHandle(caloTopologyToken_); 
+   topology = pCaloTopology.product();
+
+   edm::ESHandle<EcalADCToGeVConstant> pADCtoGeV = iSetup.getHandle(ADCtoGeVToken_);
+   adcToGeV = pADCtoGeV.product();
+
+   edm::ESHandle<EcalLaserAlphas> pAlpha = iSetup.getHandle(alphaToken_); 
+   laserAlpha = pAlpha.product();
+
+   edm::ESHandle<EcalLaserAPDPNRatios> pAPDPNRatios = iSetup.getHandle(APDPNRatiosToken_); 
+   laserRatio = pAPDPNRatios.product(); 
+
+   edm::ESHandle<EcalIntercalibConstants> pIcal = iSetup.getHandle(icalToken_); 
+   ical = pIcal.product();
+
+   edm::ESHandle<EcalIntercalibConstantsMC> pIcalMC = iSetup.getHandle(icalMCToken_); 
+   icalMC = pIcalMC.product();
+
+   edm::ESHandle<EcalChannelStatus> pChannelStatus = iSetup.getHandle(channelStatusToken_); 
+   chStatus = pChannelStatus.product();
+
+   edm::ESHandle<EcalPedestals> pPeds = iSetup.getHandle(pedsToken_); 
+   ped = pPeds.product();
+ 
+   edm::ESHandle<EcalGainRatios> pRatio = iSetup.getHandle(ratioToken_);  
+   gr = pRatio.product();
+
    edm::Handle<double> rhos;
    ev.getByToken(rhoToken_,rhos);
    if (!rhos.isValid()) {
@@ -360,38 +377,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    }
 
-   edm::ESHandle<EcalADCToGeVConstant> pADCtoGeV;
-   iSetup.get<EcalADCToGeVConstantRcd>().get(pADCtoGeV);
-   const EcalADCToGeVConstant* adcToGeV = pADCtoGeV.product();
-
-   edm::ESHandle<EcalLaserAlphas> pAlpha;
-   iSetup.get<EcalLaserAlphasRcd>().get(pAlpha);
-   const EcalLaserAlphas* laserAlpha = pAlpha.product();
-
-   edm::ESHandle<EcalLaserAPDPNRatios> pAPDPNRatios;
-   iSetup.get<EcalLaserAPDPNRatiosRcd>().get(pAPDPNRatios);
-   const EcalLaserAPDPNRatios* laserRatio = pAPDPNRatios.product(); 
-
-   edm::ESHandle<EcalIntercalibConstants> pIcal;
-   iSetup.get<EcalIntercalibConstantsRcd>().get(pIcal);
-   const EcalIntercalibConstants* ical = pIcal.product();
-
-   edm::ESHandle<EcalIntercalibConstantsMC> pIcalMC;
-   iSetup.get<EcalIntercalibConstantsMCRcd>().get(pIcalMC);
-   const EcalIntercalibConstantsMC* icalMC = pIcalMC.product();
-
-   edm::ESHandle<EcalChannelStatus> pChannelStatus;
-   iSetup.get<EcalChannelStatusRcd>().get(pChannelStatus);
-   const EcalChannelStatus* chStatus = pChannelStatus.product();
-
-   edm::ESHandle<EcalPedestals> pPeds;
-   iSetup.get<EcalPedestalsRcd>().get(pPeds);
-   const EcalPedestals* ped = pPeds.product();
-
-   edm::ESHandle<EcalGainRatios> pRatio;
-   iSetup.get<EcalGainRatiosRcd>().get(pRatio);
-   const EcalGainRatios* gr = pRatio.product();
- 
    truePU=-1.;
    obsPU=-1.;
    edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;

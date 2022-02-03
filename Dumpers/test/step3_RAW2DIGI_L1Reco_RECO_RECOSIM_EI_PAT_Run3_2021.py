@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: --python_filename EGM-Run3Summer21DR-00042_2_cfg.py --eventcontent RECOSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM-RECO --fileout file:step3.root --conditions 120X_mcRun3_2021_realistic_v6 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI,PAT --geometry DB:Extended --filein file:step2.root --era Run3 --no_exec --mc
+# with command line options: --python_filename EGM-Run3Summer21DR-00042_2_cfg.py --eventcontent RECOSIM --customise Configuration/DataProcessing/Utils.addMonitoring --datatier GEN-SIM-RECO --fileout file:step3.root --conditions 123X_mcRun3_2021_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,EI,PAT --geometry DB:Extended --filein file:step2.root --era Run3,ctpps_2018 --no_exec --mc
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -22,8 +22,9 @@ options.register('outputFile',
 options.parseArguments()
 
 from Configuration.Eras.Era_Run3_cff import Run3
+from Configuration.Eras.Modifier_ctpps_2018_cff import ctpps_2018
 
-process = cms.Process('RECO',Run3)
+process = cms.Process('RECO',Run3,ctpps_2018)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -44,7 +45,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1),
+    input = cms.untracked.int32(5),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -119,11 +120,12 @@ process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *EGamma*_*_*_*', 
                                              'keep *_*EGamma*_*_*',
                                              'keep *_*towerMaker*_*_*'])
+
 # Additional output definition
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '120X_mcRun3_2021_realistic_v6', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '123X_mcRun3_2021_realistic_v4', '')
 
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)

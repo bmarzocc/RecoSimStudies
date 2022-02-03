@@ -6,31 +6,17 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CommonTools/Utils/interface/TFileDirectory.h"
 
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/ESWatcher.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDConsumerBase.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
-
-#include "FWCore/Framework/interface/EDProducer.h"
+//#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "DataFormats/Common/interface/Handle.h"
-#include "FWCore/Framework/interface/LooperFactory.h"
-#include "FWCore/Framework/interface/ESProducerLooper.h"
-#include "FWCore/Framework/interface/EDFilter.h"
-#include "FWCore/Framework/interface/ESHandle.h"
-#include "FWCore/Framework/interface/ESProducts.h"
-#include "FWCore/Framework/interface/Event.h"
-
-#include "DataFormats/FWLite/interface/Event.h"
-#include "DataFormats/FWLite/interface/Handle.h"
-
-#include "FWCore/FWLite/interface/FWLiteEnabler.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-//#include "FWCore/PythonParameterSet/interface/MakeParameterSets.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -72,17 +58,16 @@
 #include <Math/VectorUtil.h>
 //#include <boost/tokenizer.hpp>
 
-class GenDumper : public edm::EDAnalyzer
+class GenDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
       public:
          explicit GenDumper(const edm::ParameterSet&);
 	 ~GenDumper();
   
-  
       private:
-	 virtual void beginJob() ;
-	 virtual void analyze(const edm::Event&, const edm::EventSetup&);
-         virtual void endJob() ;
+	 void beginJob() override;
+	 void analyze(const edm::Event&, const edm::EventSetup&) override;
+         void endJob() override;
         
       // ----------additional functions-------------------
       void setTree(TTree* tree);

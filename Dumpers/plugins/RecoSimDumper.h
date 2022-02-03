@@ -2,20 +2,21 @@
 #define RecoSimStudies_Dumpers_RecoSimDumper_H
 
 // system include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/one/EDAnalyzer.h"
-
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "CommonTools/Utils/interface/TFileDirectory.h"
 
-#include "DataFormats/FWLite/interface/Event.h"
-#include "DataFormats/FWLite/interface/Handle.h"
-#include "FWCore/FWLite/interface/FWLiteEnabler.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/ESWatcher.h"
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+//#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-//#include "FWCore/PythonParameterSet/interface/MakeParameterSets.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
@@ -130,9 +131,9 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
   
   
       private:
-	 virtual void beginJob() ;
-	 virtual void analyze(const edm::Event&, const edm::EventSetup&);
-         virtual void endJob() ;
+	 void beginJob() override;
+	 void analyze(const edm::Event&, const edm::EventSetup&) override;
+         void endJob() override;
         
       // ----------additional functions-------------------
       float reduceFloat(float val, int bits);
@@ -155,6 +156,28 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       GlobalPoint calculateAndSetPositionActual(const std::vector<std::pair<DetId, float> > *hits_and_energies_CP, double _param_T0_EB, double _param_T0_EE, double _param_T0_ES, double _param_W0, double _param_X0, double _minAllowedNorm, bool useES);
       
       // ----------collection tokens-------------------
+      edm::ESGetToken<CaloTopology, CaloTopologyRecord> caloTopologyToken_;
+      edm::ESGetToken<CaloGeometry, CaloGeometryRecord> caloGeometryToken_;
+      edm::ESGetToken<EcalADCToGeVConstant, EcalADCToGeVConstantRcd> ADCtoGeVToken_;
+      edm::ESGetToken<EcalLaserAlphas, EcalLaserAlphasRcd> alphaToken_;
+      edm::ESGetToken<EcalLaserAPDPNRatios, EcalLaserAPDPNRatiosRcd> APDPNRatiosToken_;
+      edm::ESGetToken<EcalIntercalibConstants, EcalIntercalibConstantsRcd> icalToken_;
+      edm::ESGetToken<EcalIntercalibConstantsMC, EcalIntercalibConstantsMCRcd> icalMCToken_;
+      edm::ESGetToken<EcalChannelStatus, EcalChannelStatusRcd> channelStatusToken_;
+      edm::ESGetToken<EcalPedestals, EcalPedestalsRcd> pedsToken_;
+      edm::ESGetToken<EcalGainRatios, EcalGainRatiosRcd> ratioToken_;
+
+      const CaloGeometry* geometry;  
+      const CaloTopology* topology;
+      const EcalADCToGeVConstant* adcToGeV;
+      const EcalLaserAlphas* laserAlpha;
+      const EcalLaserAPDPNRatios* laserRatio;
+      const EcalIntercalibConstants* ical;
+      const EcalIntercalibConstantsMC* icalMC;
+      const EcalChannelStatus* chStatus;
+      const EcalPedestals* ped; 
+      const EcalGainRatios* gr;
+
       edm::EDGetTokenT<double> rhoToken_;
       edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
