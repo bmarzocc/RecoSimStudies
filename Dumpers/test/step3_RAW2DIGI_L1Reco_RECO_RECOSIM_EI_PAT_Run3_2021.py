@@ -45,7 +45,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(5),
+    input = cms.untracked.int32(-1),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -103,6 +103,9 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0)
 )
 
+#process.prunedTpClusterProducer.throwOnMissingCollections = cms.bool(False)
+#process.prunedTrackMCMatch.throwOnMissingTPCollection = cms.bool(False)
+#process.RECOSIMoutput.outputCommands.extend(['drop *_muonSimClassifier_*_*'])
 process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *_addPileupInfo_*_*',                       
                                              'keep *_genParticles_*_*',
@@ -119,13 +122,44 @@ process.RECOSIMoutput.outputCommands.extend(['drop *',
                                              'keep *_*ecal*_*_*',  
                                              'keep *EGamma*_*_*_*', 
                                              'keep *_*EGamma*_*_*',
+                                             'keep *egamma*_*_*_*', 
+                                             'keep *_*egamma*_*_*',
+                                             'keep *Electron*_*_*_*', 
+                                             'keep *_*Electron*_*_*', 
+                                             'keep *electron*_*_*_*', 
+                                             'keep *_*electron*_*_*', 
+                                             'keep *Photon*_*_*_*', 
+                                             'keep *_*Photon*_*_*', 
+                                             'keep *photon*_*_*_*', 
+                                             'keep *_*photon*_*_*',  
+                                             'keep recoPFClusters_particleFlowClusterECAL_*_*',
+                                             'keep recoPFClusters_particleFlowClusterHCAL_*_*',
+                                             'keep recoPFClusters_particleFlowClusterHO_*_*',
+                                             'keep recoPFClusters_particleFlowClusterHF_*_*',
+                                             'keep recoPFClusters_particleFlowClusterPS_*_*',
+                                             'keep recoPFBlocks_particleFlowBlock_*_*',
+                                             'keep recoPFCandidates_particleFlowEGamma_*_*',
+                                             'keep recoPFCandidates_particleFlowTmp_electrons_*',
+                                             'keep recoPFDisplacedVertexs_particleFlowDisplacedVertex_*_*',
+                                             'keep recoTrackExtras_ckfOutInTracksFromConversions_*_*', 
+                                             'keep recoTrackExtras_ckfInOutTracksFromConversions_*_*', 
+                                             'keep TrackingRecHitsOwned_ckfOutInTracksFromConversions_*_*', 
+                                             'keep TrackingRecHitsOwned_ckfInOutTracksFromConversions_*_*',
+                                             'keep recoTrackExtras_uncleanedOnlyCkfOutInTracksFromConversions_*_*', 
+                                             'keep recoTrackExtras_uncleanedOnlyCkfInOutTracksFromConversions_*_*', 
+                                             'keep TrackingRecHitsOwned_uncleanedOnlyCkfOutInTracksFromConversions_*_*', 
+                                             'keep TrackingRecHitsOwned_uncleanedOnlyCkfInOutTracksFromConversions_*_*',
                                              'keep *_*towerMaker*_*_*'])
+
+
+from SimMuon.MCTruth.muonSimClassificationByHits_cff import *
+muonSimClassificationByHitsTask.remove(muonSimClassifier)
 
 # Additional output definition
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '123X_mcRun3_2021_realistic_v4', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '123X_mcRun3_2021_realistic_v11', '')
 
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)

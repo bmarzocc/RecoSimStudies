@@ -2,11 +2,11 @@
 
 1) Install:
 
-    * scram project CMSSW_12_3_0
-    * cd CMSSW_12_3_0/src/
+    * scram project CMSSW_12_3_0_pre5
+    * cd CMSSW_12_3_0_pre5/src/
     * cmsenv
     * git cms-init
-    * git cms-merge-topic bmarzocc:GraphSC_CMSSW_12_3_0 #if you produce DeepSC in RECO step
+    * git cms-merge-topic valsdav:GraphSC_CMSSW_12_3_0_pre5 #if you produce DeepSC in RECO step
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * cd RecoSimStudies
     * git checkout CMSSW_12_3_0

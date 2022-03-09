@@ -613,10 +613,6 @@ void drawGraph(TGraphErrors* gr_SuperCluster_tmp, float Mustache_val, std::strin
    gr_SuperCluster->GetXaxis()->SetTitle(xtitle.c_str()); 
    gr_SuperCluster->GetYaxis()->SetTitle(ytitle.c_str()); 
 
-   TLine* Mustache_line = new TLine(0.3,1., 1.,1.);
-   Mustache_line->SetLineWidth(2);
-   Mustache_line->SetLineColor(kGreen+1); 
-   
    float min = y_min;
    float max = y_max;
    if(y_min<0. || y_max<0.){
@@ -635,11 +631,9 @@ void drawGraph(TGraphErrors* gr_SuperCluster_tmp, float Mustache_val, std::strin
    legend -> SetTextFont(42);  
    legend -> SetTextSize(0.03);
    legend -> AddEntry(gr_SuperCluster,refLegend.c_str(),"L");
-   legend -> AddEntry(Mustache_line,valLegend.c_str(),"L");
-
+   
    TCanvas* c = new TCanvas();
    gr_SuperCluster->Draw("AL");
-   Mustache_line->Draw("L, same");
    legend -> Draw("same");
    c->SaveAs(std::string(Name+".png").c_str(),"png");
    c->SaveAs(std::string(Name+".pdf").c_str(),"pdf");	
