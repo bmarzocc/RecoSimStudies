@@ -10,6 +10,7 @@
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * cd RecoSimStudies
     * git checkout CMSSW_12_3_0
+    * cp -r Dumpers/data/DeepSCModels ../RecoEcal/EgammaClusterProducers/data/
     * cd -
     * scram b -j 5
 
