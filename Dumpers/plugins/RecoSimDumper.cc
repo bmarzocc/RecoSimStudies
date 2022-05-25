@@ -1146,6 +1146,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       for(const auto& iSuperCluster : *(superClusterEB.product())){  
 
           superCluster_rawEnergy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
+          superCluster_rawESEnergy.push_back(reduceFloat(iSuperCluster.preshowerEnergy(),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
@@ -1328,6 +1329,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           iSC_tmp++;
         
           superCluster_rawEnergy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
+          superCluster_rawESEnergy.push_back(reduceFloat(iSuperCluster.preshowerEnergy(),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
           superCluster_eta.push_back(reduceFloat(iSuperCluster.eta(),nBits_));
           superCluster_phi.push_back(reduceFloat(iSuperCluster.phi(),nBits_));
@@ -1540,6 +1542,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEB.product())){  
 
           retunedSuperCluster_rawEnergy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
+          retunedSuperCluster_rawESEnergy.push_back(reduceFloat(iRetunedSuperCluster.preshowerEnergy(),nBits_));
           retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_)); 
           retunedSuperCluster_eta.push_back(reduceFloat(iRetunedSuperCluster.eta(),nBits_));
           retunedSuperCluster_phi.push_back(reduceFloat(iRetunedSuperCluster.phi(),nBits_));
@@ -1721,6 +1724,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           iSC_tmp++;
         
           retunedSuperCluster_rawEnergy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
+          retunedSuperCluster_rawESEnergy.push_back(reduceFloat(iRetunedSuperCluster.preshowerEnergy(),nBits_));
           retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_));
           retunedSuperCluster_eta.push_back(reduceFloat(iRetunedSuperCluster.eta(),nBits_));
           retunedSuperCluster_phi.push_back(reduceFloat(iRetunedSuperCluster.phi(),nBits_));
@@ -1933,6 +1937,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       for(const auto& iDeepSuperCluster : *(deepSuperClusterEB.product())){  
 
           deepSuperCluster_rawEnergy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));
+          deepSuperCluster_rawESEnergy.push_back(reduceFloat(iDeepSuperCluster.preshowerEnergy(),nBits_));
           deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
           deepSuperCluster_eta.push_back(reduceFloat(iDeepSuperCluster.eta(),nBits_));
           deepSuperCluster_phi.push_back(reduceFloat(iDeepSuperCluster.phi(),nBits_));
@@ -2114,6 +2119,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           iSC_tmp++;
         
           deepSuperCluster_rawEnergy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));     
+          deepSuperCluster_rawESEnergy.push_back(reduceFloat(iDeepSuperCluster.preshowerEnergy(),nBits_));
           deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
           deepSuperCluster_eta.push_back(reduceFloat(iDeepSuperCluster.eta(),nBits_));
           deepSuperCluster_phi.push_back(reduceFloat(iDeepSuperCluster.phi(),nBits_));
@@ -2680,6 +2686,7 @@ void RecoSimDumper::setTree(TTree* tree)
    }
    if(saveSuperCluster_){
       tree->Branch("superCluster_rawEnergy","std::vector<float> ",&superCluster_rawEnergy);     
+      tree->Branch("superCluster_rawESEnergy","std::vector<float> ",&superCluster_rawESEnergy);     
       tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
       tree->Branch("superCluster_eta","std::vector<float>",&superCluster_eta);
       tree->Branch("superCluster_phi","std::vector<float>",&superCluster_phi);  
@@ -2732,6 +2739,7 @@ void RecoSimDumper::setTree(TTree* tree)
       }
       if(useRetunedSC_){   
          tree->Branch("retunedSuperCluster_rawEnergy","std::vector<float> ",&retunedSuperCluster_rawEnergy);
+         tree->Branch("retunedSuperCluster_rawESEnergy","std::vector<float> ",&retunedSuperCluster_rawESEnergy);
          tree->Branch("retunedSuperCluster_energy","std::vector<float> ",&retunedSuperCluster_energy);
          tree->Branch("retunedSuperCluster_eta","std::vector<float>",&retunedSuperCluster_eta);
          tree->Branch("retunedSuperCluster_phi","std::vector<float>",&retunedSuperCluster_phi);  
@@ -2785,6 +2793,7 @@ void RecoSimDumper::setTree(TTree* tree)
       } 
       if(useDeepSC_){
          tree->Branch("deepSuperCluster_rawEnergy","std::vector<float> ",&deepSuperCluster_rawEnergy);
+         tree->Branch("deepSuperCluster_rawESEnergy","std::vector<float> ",&deepSuperCluster_rawESEnergy);
          tree->Branch("deepSuperCluster_energy","std::vector<float> ",&deepSuperCluster_energy);
          tree->Branch("deepSuperCluster_eta","std::vector<float>",&deepSuperCluster_eta);
          tree->Branch("deepSuperCluster_phi","std::vector<float>",&deepSuperCluster_phi);  
@@ -3271,6 +3280,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfClusterHit_chStatus.resize(nPFClusters);   
 
    superCluster_rawEnergy.clear(); 
+   superCluster_rawESEnergy.clear(); 
    superCluster_energy.clear(); 
    superCluster_eta.clear(); 
    superCluster_phi.clear();  
@@ -3363,6 +3373,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    }
    
    retunedSuperCluster_rawEnergy.clear(); 
+   retunedSuperCluster_rawESEnergy.clear(); 
    retunedSuperCluster_energy.clear(); 
    retunedSuperCluster_eta.clear(); 
    retunedSuperCluster_phi.clear();  
@@ -3455,6 +3466,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    }
 
    deepSuperCluster_rawEnergy.clear(); 
+   deepSuperCluster_rawESEnergy.clear(); 
    deepSuperCluster_energy.clear(); 
    deepSuperCluster_eta.clear(); 
    deepSuperCluster_phi.clear();  
