@@ -2,8 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: --python_filename step3_RECO_DeepSC_cfg.py --eventcontent RECOSIM --datatier GEN-SIM-RECO --fileout file:step3.root --conditions 123X_mcRun3_2021_realistic_v11 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein file:step2.root --era Run3,ctpps_2018 --procModifier run3_ecalclustering --no_exec --mc
-
+# with command line options: --python_filename step3_RECO_Mustache_cfg.py --eventcontent RECOSIM --datatier GEN-SIM-RECO --fileout file:step3.root --conditions 123X_mcRun3_2021_realistic_v11 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein file:step2.root --era Run3,ctpps_2018 --no_exec --mc --procModifier ecal_deepsc
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -22,11 +21,12 @@ options.register('outputFile',
                 
 options.parseArguments()
 
+
 from Configuration.Eras.Era_Run3_cff import Run3
 from Configuration.Eras.Modifier_ctpps_2018_cff import ctpps_2018
-from Configuration.ProcessModifiers.run3_ecalclustering_cff import run3_ecalclustering
+from Configuration.ProcessModifiers.ecal_deepsc_cff import ecal_deepsc
 
-process = cms.Process('RECO',Run3,ctpps_2018,run3_ecalclustering)
+process = cms.Process('RECO',Run3,ctpps_2018,ecal_deepsc)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -46,7 +46,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1),
+    input = cms.untracked.int32(10),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -61,6 +61,7 @@ process.options = cms.untracked.PSet(
     IgnoreCompletely = cms.untracked.vstring(),
     Rethrow = cms.untracked.vstring(),
     SkipEvent = cms.untracked.vstring(),
+    accelerators = cms.untracked.vstring('*'),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
     deleteNonConsumedUnscheduledModules = cms.untracked.bool(True),
@@ -163,6 +164,81 @@ process.mySCReg = cms.ESSource("PoolDBESSource",
 )
 '''
 process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
+
+
+process.myPhoReg = cms.ESSource("PoolDBESSource",
+     toGet = cms.VPSet(
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
+         tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
+         tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
+         tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
+         tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+     ) 
+)
+process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
+
+
+'''
+process.myEleReg = cms.ESSource("PoolDBESSource",
+     toGet = cms.VPSet(
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
+         tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
+         tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
+         tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
+         tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
+         tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
+         tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
+         tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
+         tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db"))
+     ) 
+)
+process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
+'''
+
+#process.myICs = cms.ESSource("PoolDBESSource",
+#     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+#     toGet = cms.VPSet(
+#         cms.PSet(
+#             record = cms.string('EcalIntercalibConstantsRcd'),
+#             tag = cms.string('EcalIntercalibConstants_MC_Digi_2018')
+#         )
+#     )
+#)
+#process.es_prefer_icReco = cms.ESPrefer("PoolDBESSource","myICs")
 
 process.myPFRechitThres = cms.ESSource("PoolDBESSource",
      connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),

@@ -41,11 +41,16 @@
 #include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
 #include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
-#include "DataFormats/EgammaCandidates/interface/PhotonCore.h"
 #include "DataFormats/EgammaReco/interface/ElectronSeed.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
+#include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
+#include "DataFormats/EgammaCandidates/interface/PhotonCore.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronCore.h"
+#include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
@@ -150,6 +155,11 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    pfClusterToken_                = consumes<std::vector<reco::PFCluster> >(iConfig.getParameter<edm::InputTag>("pfClusterCollection")); 
    ebSuperClusterToken_           = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebSuperClusterCollection"));
    eeSuperClusterToken_           = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeSuperClusterCollection"));
+   useGedParticles_               = iConfig.getParameter<bool>("useGedParticles"); 
+   if(useGedParticles_){
+      gsfElectronToken_           = consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("gsfElectronCollection"));
+      gedPhotonToken_             = consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("gedPhotonCollection"));
+   }
    useRetunedSC_                  = iConfig.getParameter<bool>("useRetunedSC");  
    if(useRetunedSC_){
       ebRetunedSuperClusterToken_ = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebRetunedSuperClusterCollection"));
@@ -173,6 +183,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    savePFRechits_                 = iConfig.getParameter<bool>("savePFRechits"); 
    savePFCluster_                 = iConfig.getParameter<bool>("savePFCluster");
    savePFClusterhits_             = iConfig.getParameter<bool>("savePFClusterhits");
+   saveGedParticles_              = iConfig.getParameter<bool>("saveGedParticles");
    saveSuperCluster_              = iConfig.getParameter<bool>("saveSuperCluster");
    saveShowerShapes_              = iConfig.getParameter<bool>("saveShowerShapes");
    
@@ -376,6 +387,21 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           return;
       }
    }
+
+   /*
+   edm::Handle<reco::GsfElectron> gsfElectron;
+   ev.getByToken(gsfElectronToken_, gsfElectron);
+   if (!gsfElectron.isValid()) {
+       std::cerr << "Analyze --> gsfElectron not found" << std::endl; 
+       return;
+   }
+   
+   edm::Handle<reco::Photon> gedPhoton;
+   ev.getByToken(gedPhotonToken_, gedPhoton);
+   if (!gedPhoton.isValid()) {
+       std::cerr << "Analyze --> gedPhoton not found" << std::endl; 
+       return;
+   }*/ 
 
    truePU=-1.;
    obsPU=-1.;
@@ -812,7 +838,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
            }   
        } 
    } 
-   
+
    //save hitsAndEnergies for each CaloParticle, PFcluster and SuperCluster
    if(savePFCluster_){
       for(const auto& iPFCluster : *(pfClusters.product())){  
@@ -1139,12 +1165,116 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    } 
    
+   if(useGedParticles_)
+   {
+      //save gsfElectron infos
+      int iEle=0;
+      for(const auto& iElectron : ev.get(gsfElectronToken_)){ 
+       
+          electron_index.push_back(iEle);
+          electron_seedRawId.push_back(iElectron.superCluster()->seed()->seed().rawId());
+          electron_et.push_back(reduceFloat(iElectron.et(),nBits_));
+          electron_energy.push_back(reduceFloat(iElectron.energy(),nBits_));
+          electron_energyErr.push_back(reduceFloat(iElectron.p4Error(reco::GsfElectron::P4_COMBINATION),nBits_));
+          electron_ecalEnergy.push_back(reduceFloat(iElectron.ecalEnergy(),nBits_));
+          electron_ecalEnergyErr.push_back(reduceFloat(iElectron.ecalEnergyError(),nBits_));
+          electron_eta.push_back(reduceFloat(iElectron.eta(),nBits_));
+          electron_phi.push_back(reduceFloat(iElectron.phi(),nBits_));
+          electron_trkEtaMode.push_back(reduceFloat(iElectron.gsfTrack()->etaMode(),nBits_));
+          electron_trkPhiMode.push_back(reduceFloat(iElectron.gsfTrack()->phiMode(),nBits_));
+          electron_trkPMode.push_back(reduceFloat(iElectron.gsfTrack()->pMode(),nBits_));
+          electron_trkPModeErr.push_back(reduceFloat(std::abs(iElectron.gsfTrack()->qoverpModeError())*iElectron.gsfTrack()->pMode()*iElectron.gsfTrack()->pMode(),nBits_));
+          electron_trkPInn.push_back(reduceFloat(iElectron.gsfTrack()->p(),nBits_));
+          electron_trkPtInn.push_back(reduceFloat(iElectron.gsfTrack()->pt(),nBits_));
+          electron_trkPVtx.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumAtVtx().Mag2()),nBits_));
+          electron_trkPOut.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumOut().Mag2()),nBits_));
+          electron_trkChi2.push_back(reduceFloat(iElectron.gsfTrack()->chi2(),nBits_));
+          electron_trkNDof.push_back(reduceFloat(iElectron.gsfTrack()->ndof(),nBits_));
+          electron_fbrem.push_back(reduceFloat(iElectron.fbrem(),nBits_));
+          electron_hademTow.push_back(reduceFloat(iElectron.hcalOverEcalBc(),nBits_));
+          electron_hademCone.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));
+          electron_ecalDrivenSeed.push_back(reduceFloat(iElectron.ecalDrivenSeed(),nBits_));
+          electron_nrSatCrys.push_back(reduceFloat(iElectron.nSaturatedXtals(),nBits_));
+          electron_scRawEnergy.push_back(reduceFloat(iElectron.superCluster()->rawEnergy(),nBits_));
+          electron_scRawESEnergy.push_back(reduceFloat(iElectron.superCluster()->preshowerEnergy(),nBits_));
+
+          reco::GsfElectron::ShowerShape eleSS = iElectron.full5x5_showerShape();
+          double eLeftRightSum  = eleSS.eLeft + eleSS.eRight;
+          double eLeftRightDiff = eleSS.eLeft - eleSS.eRight;
+          double eTopBottomSum  = eleSS.eTop + eleSS.eBottom;
+          double eTopBottomDiff  = eleSS.eTop - eleSS.eBottom;
+          electron_e3x3.push_back(reduceFloat(eleSS.r9*iElectron.superCluster()->rawEnergy(),nBits_));
+          electron_e5x5.push_back(reduceFloat(eleSS.e5x5,nBits_));
+          electron_eMax.push_back(reduceFloat(eleSS.eMax,nBits_));
+          electron_e2nd.push_back(reduceFloat(eleSS.e2nd,nBits_));
+          electron_eLeft.push_back(reduceFloat(eleSS.eLeft,nBits_));
+          electron_eRight.push_back(reduceFloat(eleSS.eRight,nBits_));
+          electron_eLeftRightDiffSumRatio.push_back(reduceFloat(eLeftRightSum !=0.f ? eLeftRightDiff/eLeftRightSum : 0.f,nBits_));
+          electron_eTop.push_back(reduceFloat(eleSS.eTop,nBits_));
+          electron_eBottom.push_back(reduceFloat(eleSS.eBottom,nBits_));
+          electron_eTopBottomDiffSumRatio.push_back(reduceFloat(eTopBottomSum !=0.f ? eTopBottomDiff/eTopBottomSum : 0.f,nBits_));
+          electron_e2x5Bottom.push_back(reduceFloat(eleSS.e2x5Bottom,nBits_));
+          electron_e2x5Top.push_back(reduceFloat(eleSS.e2x5Top,nBits_));
+          electron_e2x5Left.push_back(reduceFloat(eleSS.e2x5Left,nBits_));
+          electron_e2x5Right.push_back(reduceFloat(eleSS.e2x5Right,nBits_));
+          electron_sigmaIEtaIEta.push_back(reduceFloat(eleSS.sigmaIetaIeta,nBits_));
+          electron_sigmaIEtaIPhi.push_back(reduceFloat(eleSS.sigmaIetaIphi,nBits_));
+          electron_sigmaIPhiIPhi.push_back(reduceFloat(eleSS.sigmaIphiIphi,nBits_));   
+    
+          iEle++; 
+      }
+
+      //save gedPhoton infos
+      int iPho=0;
+      for(const auto& iPhoton : ev.get(gedPhotonToken_)){ 
+       
+          photon_index.push_back(iPho);
+          photon_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
+          photon_et.push_back(reduceFloat(iPhoton.et(),nBits_));
+          photon_energy.push_back(reduceFloat(iPhoton.energy(),nBits_));
+          photon_energyErr.push_back(reduceFloat(iPhoton.getCorrectedEnergyError(reco::Photon::regression2),nBits_));
+          photon_eta.push_back(reduceFloat(iPhoton.eta(),nBits_));
+          photon_phi.push_back(reduceFloat(iPhoton.phi(),nBits_));
+          photon_hademTow.push_back(reduceFloat(iPhoton.hadTowOverEm(),nBits_));
+          photon_hademCone.push_back(reduceFloat(iPhoton.hadronicOverEm(),nBits_));
+          photon_nrSatCrys.push_back(reduceFloat(iPhoton.nSaturatedXtals(),nBits_));
+          photon_scRawEnergy.push_back(reduceFloat(iPhoton.superCluster()->rawEnergy(),nBits_));
+          photon_scRawESEnergy.push_back(reduceFloat(iPhoton.superCluster()->preshowerEnergy(),nBits_));
+
+          reco::Photon::ShowerShape phoSS = iPhoton.full5x5_showerShapeVariables();
+          double eLeftRightSum  = phoSS.eLeft + phoSS.eRight;
+          double eLeftRightDiff = phoSS.eLeft - phoSS.eRight;
+          double eTopBottomSum  = phoSS.eTop + phoSS.eBottom;
+          double eTopBottomDiff  = phoSS.eTop - phoSS.eBottom;
+          photon_e3x3.push_back(reduceFloat(phoSS.e3x3,nBits_));
+          photon_e5x5.push_back(reduceFloat(phoSS.e5x5,nBits_));
+          photon_eMax.push_back(reduceFloat(phoSS.maxEnergyXtal,nBits_));
+          photon_e2nd.push_back(reduceFloat(phoSS.e2nd,nBits_));
+          photon_eLeft.push_back(reduceFloat(phoSS.eLeft,nBits_));
+          photon_eRight.push_back(reduceFloat(phoSS.eRight,nBits_));
+          photon_eLeftRightDiffSumRatio.push_back(reduceFloat(eLeftRightSum !=0.f ? eLeftRightDiff/eLeftRightSum : 0.f,nBits_));
+          photon_eTop.push_back(reduceFloat(phoSS.eTop,nBits_));
+          photon_eBottom.push_back(reduceFloat(phoSS.eBottom,nBits_));
+          photon_eTopBottomDiffSumRatio.push_back(reduceFloat(eTopBottomSum !=0.f ? eTopBottomDiff/eTopBottomSum : 0.f,nBits_));
+          photon_e2x5Bottom.push_back(reduceFloat(phoSS.e2x5Bottom,nBits_));
+          photon_e2x5Top.push_back(reduceFloat(phoSS.e2x5Top,nBits_));
+          photon_e2x5Left.push_back(reduceFloat(phoSS.e2x5Left,nBits_));
+          photon_e2x5Right.push_back(reduceFloat(phoSS.e2x5Right,nBits_));
+          photon_sigmaIEtaIEta.push_back(reduceFloat(phoSS.sigmaIetaIeta,nBits_));
+          photon_sigmaIEtaIPhi.push_back(reduceFloat(phoSS.sigmaIetaIphi,nBits_));
+          photon_sigmaIPhiIPhi.push_back(reduceFloat(phoSS.sigmaIphiIphi,nBits_));     
+
+          iPho++; 
+      }
+   }
+ 
    //Save SuperClusters 
    if(saveSuperCluster_){
       int iSC=0;
       //std::cout << "SuperClustersEB size: " << (superClusterEB.product())->size() << std::endl;
       for(const auto& iSuperCluster : *(superClusterEB.product())){  
 
+          superCluster_seedRawId.push_back(iSuperCluster.seed()->seed().rawId());
           superCluster_rawEnergy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
           superCluster_rawESEnergy.push_back(reduceFloat(iSuperCluster.preshowerEnergy(),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
@@ -1328,6 +1458,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           iSC_tmp++;
         
+          superCluster_seedRawId.push_back(iSuperCluster.seed()->seed().rawId());
           superCluster_rawEnergy.push_back(reduceFloat(iSuperCluster.rawEnergy(),nBits_));
           superCluster_rawESEnergy.push_back(reduceFloat(iSuperCluster.preshowerEnergy(),nBits_));
           superCluster_energy.push_back(reduceFloat(iSuperCluster.energy(),nBits_));
@@ -1541,6 +1672,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "retunedSuperClustersEB size: " << (retunedSuperClusterEB.product())->size() << std::endl;
       for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEB.product())){  
 
+          retunedSuperCluster_seedRawId.push_back(iRetunedSuperCluster.seed()->seed().rawId());   
           retunedSuperCluster_rawEnergy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
           retunedSuperCluster_rawESEnergy.push_back(reduceFloat(iRetunedSuperCluster.preshowerEnergy(),nBits_));
           retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_)); 
@@ -1723,6 +1855,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           iSC_tmp++;
         
+          retunedSuperCluster_seedRawId.push_back(iRetunedSuperCluster.seed()->seed().rawId());
           retunedSuperCluster_rawEnergy.push_back(reduceFloat(iRetunedSuperCluster.rawEnergy(),nBits_));
           retunedSuperCluster_rawESEnergy.push_back(reduceFloat(iRetunedSuperCluster.preshowerEnergy(),nBits_));
           retunedSuperCluster_energy.push_back(reduceFloat(iRetunedSuperCluster.energy(),nBits_));
@@ -1936,6 +2069,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //std::cout << "deepSuperClustersEB size: " << (deepSuperClusterEB.product())->size() << std::endl;
       for(const auto& iDeepSuperCluster : *(deepSuperClusterEB.product())){  
 
+          deepSuperCluster_seedRawId.push_back(iDeepSuperCluster.seed()->seed().rawId());
           deepSuperCluster_rawEnergy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));
           deepSuperCluster_rawESEnergy.push_back(reduceFloat(iDeepSuperCluster.preshowerEnergy(),nBits_));
           deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
@@ -2118,6 +2252,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           iSC_tmp++;
         
+          deepSuperCluster_seedRawId.push_back(iDeepSuperCluster.seed()->seed().rawId());
           deepSuperCluster_rawEnergy.push_back(reduceFloat(iDeepSuperCluster.rawEnergy(),nBits_));     
           deepSuperCluster_rawESEnergy.push_back(reduceFloat(iDeepSuperCluster.preshowerEnergy(),nBits_));
           deepSuperCluster_energy.push_back(reduceFloat(iDeepSuperCluster.energy(),nBits_));
@@ -2684,7 +2819,84 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("pfClusterHit_chStatus","std::vector<std::vector<int> >",&pfClusterHit_chStatus);
       }   
    }
+   
+   if(saveGedParticles_){
+      tree->Branch("electron_index","std::vector<int> ",&electron_index);    
+      tree->Branch("electron_seedRawId","std::vector<uint32_t> ",&electron_seedRawId);     
+      tree->Branch("electron_et","std::vector<float> ",&electron_et);     
+      tree->Branch("electron_energy","std::vector<float> ",&electron_energy);   
+      tree->Branch("electron_energyErr","std::vector<float> ",&electron_energyErr);   
+      tree->Branch("electron_ecalEnergy","std::vector<float> ",&electron_ecalEnergy); 
+      tree->Branch("electron_ecalEnergyErr","std::vector<float> ",&electron_ecalEnergyErr);  
+      tree->Branch("electron_eta","std::vector<float> ",&electron_eta); 
+      tree->Branch("electron_phi","std::vector<float> ",&electron_phi); 
+      tree->Branch("electron_trkEtaMode","std::vector<float> ",&electron_trkEtaMode);   
+      tree->Branch("electron_trkPhiMode","std::vector<float> ",&electron_trkPhiMode); 
+      tree->Branch("electron_trkPMode","std::vector<float> ",&electron_trkPMode);  
+      tree->Branch("electron_trkPModeErr","std::vector<float> ",&electron_trkPModeErr); 
+      tree->Branch("electron_trkPInn","std::vector<float> ",&electron_trkPInn); 
+      tree->Branch("electron_trkPtInn","std::vector<float> ",&electron_trkPtInn);   
+      tree->Branch("electron_trkPVtx","std::vector<float> ",&electron_trkPVtx); 
+      tree->Branch("electron_trkPOut","std::vector<float> ",&electron_trkPOut);  
+      tree->Branch("electron_trkChi2","std::vector<float> ",&electron_trkChi2); 
+      tree->Branch("electron_trkNDof","std::vector<float> ",&electron_trkNDof);  
+      tree->Branch("electron_fbrem","std::vector<float> ",&electron_fbrem);   
+      tree->Branch("electron_hademTow","std::vector<float> ",&electron_hademTow); 
+      tree->Branch("electron_hademCone","std::vector<float> ",&electron_hademCone);  
+      tree->Branch("electron_ecalDrivenSeed","std::vector<float> ",&electron_ecalDrivenSeed); 
+      tree->Branch("electron_nrSatCrys","std::vector<float> ",&electron_nrSatCrys); 
+      tree->Branch("electron_scRawEnergy","std::vector<float> ",&electron_scRawEnergy);   
+      tree->Branch("electron_scRawESEnergy","std::vector<float> ",&electron_scRawESEnergy); 
+      tree->Branch("electron_e3x3","std::vector<float> ",&electron_e3x3);  
+      tree->Branch("electron_e5x5","std::vector<float> ",&electron_e5x5); 
+      tree->Branch("electron_eMax","std::vector<float> ",&electron_eMax);  
+      tree->Branch("electron_e2nd","std::vector<float> ",&electron_e2nd);   
+      tree->Branch("electron_eLeft","std::vector<float> ",&electron_eLeft); 
+      tree->Branch("electron_eRight","std::vector<float> ",&electron_eRight);  
+      tree->Branch("electron_eLeftRightDiffSumRatio","std::vector<float> ",&electron_eLeftRightDiffSumRatio); 
+      tree->Branch("electron_eTop","std::vector<float> ",&electron_eTop); 
+      tree->Branch("electron_eBottom","std::vector<float> ",&electron_eBottom);   
+      tree->Branch("electron_eTopBottomDiffSumRatio","std::vector<float> ",&electron_eTopBottomDiffSumRatio); 
+      tree->Branch("electron_e2x5Bottom","std::vector<float> ",&electron_e2x5Bottom);  
+      tree->Branch("electron_e2x5Top","std::vector<float> ",&electron_e2x5Top); 
+      tree->Branch("electron_e2x5Left","std::vector<float> ",&electron_e2x5Left); 
+      tree->Branch("electron_e2x5Right","std::vector<float> ",&electron_e2x5Right);   
+      tree->Branch("electron_sigmaIEtaIEta","std::vector<float> ",&electron_sigmaIEtaIEta); 
+      tree->Branch("electron_sigmaIEtaIPhi","std::vector<float> ",&electron_sigmaIEtaIPhi);  
+      tree->Branch("electron_sigmaIPhiIPhi","std::vector<float> ",&electron_sigmaIPhiIPhi); 
+      tree->Branch("photon_index","std::vector<int> ",&photon_index);    
+      tree->Branch("photon_seedRawId","std::vector<uint32_t> ",&photon_seedRawId);     
+      tree->Branch("photon_et","std::vector<float> ",&photon_et); 
+      tree->Branch("photon_energy","std::vector<float> ",&photon_energy);  
+      tree->Branch("photon_energyErr","std::vector<float> ",&photon_energyErr); 
+      tree->Branch("photon_eta","std::vector<float> ",&photon_eta); 
+      tree->Branch("photon_phi","std::vector<float> ",&photon_phi);   
+      tree->Branch("photon_hademTow","std::vector<float> ",&photon_hademTow); 
+      tree->Branch("photon_hademCone","std::vector<float> ",&photon_hademCone);  
+      tree->Branch("photon_nrSatCrys","std::vector<float> ",&photon_nrSatCrys); 
+      tree->Branch("photon_scRawEnergy","std::vector<float> ",&photon_scRawEnergy); 
+      tree->Branch("photon_scRawESEnergy","std::vector<float> ",&photon_scRawESEnergy); 
+      tree->Branch("photon_e3x3","std::vector<float> ",&photon_e3x3);  
+      tree->Branch("photon_e5x5","std::vector<float> ",&photon_e5x5); 
+      tree->Branch("photon_eMax","std::vector<float> ",&photon_eMax);  
+      tree->Branch("photon_e2nd","std::vector<float> ",&photon_e2nd);   
+      tree->Branch("photon_eLeft","std::vector<float> ",&photon_eLeft); 
+      tree->Branch("photon_eRight","std::vector<float> ",&photon_eRight);  
+      tree->Branch("photon_eLeftRightDiffSumRatio","std::vector<float> ",&photon_eLeftRightDiffSumRatio); 
+      tree->Branch("photon_eTop","std::vector<float> ",&photon_eTop); 
+      tree->Branch("photon_eBottom","std::vector<float> ",&photon_eBottom);   
+      tree->Branch("photon_eTopBottomDiffSumRatio","std::vector<float> ",&photon_eTopBottomDiffSumRatio); 
+      tree->Branch("photon_e2x5Bottom","std::vector<float> ",&photon_e2x5Bottom);  
+      tree->Branch("photon_e2x5Top","std::vector<float> ",&photon_e2x5Top); 
+      tree->Branch("photon_e2x5Left","std::vector<float> ",&photon_e2x5Left); 
+      tree->Branch("photon_e2x5Right","std::vector<float> ",&photon_e2x5Right);   
+      tree->Branch("photon_sigmaIEtaIEta","std::vector<float> ",&photon_sigmaIEtaIEta); 
+      tree->Branch("photon_sigmaIEtaIPhi","std::vector<float> ",&photon_sigmaIEtaIPhi);  
+      tree->Branch("photon_sigmaIPhiIPhi","std::vector<float> ",&photon_sigmaIPhiIPhi); 
+   }
+ 
    if(saveSuperCluster_){
+      tree->Branch("superCluster_seedRawId","std::vector<uint32_t> ",&superCluster_seedRawId);     
       tree->Branch("superCluster_rawEnergy","std::vector<float> ",&superCluster_rawEnergy);     
       tree->Branch("superCluster_rawESEnergy","std::vector<float> ",&superCluster_rawESEnergy);     
       tree->Branch("superCluster_energy","std::vector<float> ",&superCluster_energy);
@@ -2738,6 +2950,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
       }
       if(useRetunedSC_){   
+         tree->Branch("retunedSuperCluster_seedRawId","std::vector<uint32_t> ",&retunedSuperCluster_seedRawId);  
          tree->Branch("retunedSuperCluster_rawEnergy","std::vector<float> ",&retunedSuperCluster_rawEnergy);
          tree->Branch("retunedSuperCluster_rawESEnergy","std::vector<float> ",&retunedSuperCluster_rawESEnergy);
          tree->Branch("retunedSuperCluster_energy","std::vector<float> ",&retunedSuperCluster_energy);
@@ -2792,6 +3005,7 @@ void RecoSimDumper::setTree(TTree* tree)
          }
       } 
       if(useDeepSC_){
+         tree->Branch("deepSuperCluster_seedRawId","std::vector<uint32_t> ",&deepSuperCluster_seedRawId); 
          tree->Branch("deepSuperCluster_rawEnergy","std::vector<float> ",&deepSuperCluster_rawEnergy);
          tree->Branch("deepSuperCluster_rawESEnergy","std::vector<float> ",&deepSuperCluster_rawESEnergy);
          tree->Branch("deepSuperCluster_energy","std::vector<float> ",&deepSuperCluster_energy);
@@ -3279,6 +3493,81 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfClusterHit_laserCorr.resize(nPFClusters);   
    pfClusterHit_chStatus.resize(nPFClusters);   
 
+   electron_index.clear();
+   electron_seedRawId.clear();
+   electron_et.clear();
+   electron_energy.clear();
+   electron_energyErr.clear();
+   electron_ecalEnergy.clear();
+   electron_ecalEnergyErr.clear();
+   electron_eta.clear();
+   electron_phi.clear();
+   electron_trkEtaMode.clear();
+   electron_trkPhiMode.clear();
+   electron_trkPMode.clear();
+   electron_trkPModeErr.clear();
+   electron_trkPInn.clear();
+   electron_trkPtInn.clear();
+   electron_trkPVtx.clear();
+   electron_trkPOut.clear();
+   electron_trkChi2.clear();
+   electron_trkNDof.clear();
+   electron_fbrem.clear();
+   electron_hademTow.clear();
+   electron_hademCone.clear();
+   electron_ecalDrivenSeed.clear();
+   electron_nrSatCrys.clear();
+   electron_scRawEnergy.clear();
+   electron_scRawESEnergy.clear();
+   electron_e3x3.clear();
+   electron_e5x5.clear();
+   electron_eMax.clear();
+   electron_e2nd.clear();
+   electron_eLeft.clear();
+   electron_eRight.clear();
+   electron_eLeftRightDiffSumRatio.clear();
+   electron_eTop.clear();
+   electron_eBottom.clear();
+   electron_eTopBottomDiffSumRatio.clear();
+   electron_e2x5Bottom.clear();
+   electron_e2x5Top.clear();
+   electron_e2x5Left.clear();
+   electron_e2x5Right.clear();
+   electron_sigmaIEtaIEta.clear();
+   electron_sigmaIEtaIPhi.clear();
+   electron_sigmaIPhiIPhi.clear();  
+
+   photon_index.clear();  
+   photon_seedRawId.clear();  
+   photon_et.clear();  
+   photon_energy.clear();  
+   photon_energyErr.clear();  
+   photon_eta.clear();  
+   photon_phi.clear();  
+   photon_hademTow.clear();  
+   photon_hademCone.clear();  
+   photon_nrSatCrys.clear();  
+   photon_scRawEnergy.clear();  
+   photon_scRawESEnergy.clear(); 
+   photon_e3x3.clear();
+   photon_e5x5.clear();
+   photon_eMax.clear();
+   photon_e2nd.clear();
+   photon_eLeft.clear();
+   photon_eRight.clear();
+   photon_eLeftRightDiffSumRatio.clear();
+   photon_eTop.clear();
+   photon_eBottom.clear();
+   photon_eTopBottomDiffSumRatio.clear();
+   photon_e2x5Bottom.clear();
+   photon_e2x5Top.clear();
+   photon_e2x5Left.clear();
+   photon_e2x5Right.clear();
+   photon_sigmaIEtaIEta.clear();
+   photon_sigmaIEtaIPhi.clear();
+   photon_sigmaIPhiIPhi.clear();  
+   
+   superCluster_seedRawId.clear();
    superCluster_rawEnergy.clear(); 
    superCluster_rawESEnergy.clear(); 
    superCluster_energy.clear(); 
@@ -3372,6 +3661,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nSuperClusters); 
    }
    
+   retunedSuperCluster_seedRawId.clear();
    retunedSuperCluster_rawEnergy.clear(); 
    retunedSuperCluster_rawESEnergy.clear(); 
    retunedSuperCluster_energy.clear(); 
@@ -3465,6 +3755,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
       retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU.resize(nRetunedSuperClusters);  
    }
 
+   deepSuperCluster_seedRawId.clear();
    deepSuperCluster_rawEnergy.clear(); 
    deepSuperCluster_rawESEnergy.clear(); 
    deepSuperCluster_energy.clear(); 

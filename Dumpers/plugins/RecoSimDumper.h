@@ -47,11 +47,16 @@
 #include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
 #include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
-#include "DataFormats/EgammaCandidates/interface/PhotonCore.h"
 #include "DataFormats/EgammaReco/interface/ElectronSeed.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
+#include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
+#include "DataFormats/EgammaCandidates/interface/PhotonCore.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronCore.h"
+#include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
@@ -189,6 +194,8 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       edm::EDGetTokenT<EcalRecHitCollection> eeRechitToken_; 
       edm::EDGetTokenT<std::vector<reco::PFRecHit>  > pfRecHitToken_; 
       edm::EDGetTokenT<std::vector<reco::PFCluster> > pfClusterToken_; 
+      edm::EDGetTokenT<reco::GsfElectronCollection> gsfElectronToken_;
+      edm::EDGetTokenT<reco::PhotonCollection> gedPhotonToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebSuperClusterToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeSuperClusterToken_; 
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebRetunedSuperClusterToken_;
@@ -209,6 +216,7 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       bool _esMinus;
       
       // ----------config inputs-------------------
+      bool useGedParticles_;
       bool useRetunedSC_;
       bool useDeepSC_;
       bool doCompression_;
@@ -224,7 +232,8 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       bool savePFRechits_;   
       bool savePFCluster_;    
       bool savePFClusterhits_;   
-      bool saveSuperCluster_;     
+      bool saveSuperCluster_;  
+      bool saveGedParticles_;     
       bool saveShowerShapes_;   
       
       // ----------DNN inputs-------------------
@@ -473,6 +482,79 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<double> pfCluster_simEnergy_sharedXtalsOOTPU; 
       std::vector<double> pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU;  
       std::vector<double> pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU; 
+      std::vector<int> electron_index;
+      std::vector<uint32_t> electron_seedRawId;
+      std::vector<float> electron_et;
+      std::vector<float> electron_energy;
+      std::vector<float> electron_energyErr;
+      std::vector<float> electron_ecalEnergy;
+      std::vector<float> electron_ecalEnergyErr;
+      std::vector<float> electron_eta;
+      std::vector<float> electron_phi;
+      std::vector<float> electron_trkEtaMode;
+      std::vector<float> electron_trkPhiMode;
+      std::vector<float> electron_trkPMode;
+      std::vector<float> electron_trkPModeErr;
+      std::vector<float> electron_trkPInn;
+      std::vector<float> electron_trkPtInn;
+      std::vector<float> electron_trkPVtx;
+      std::vector<float> electron_trkPOut;
+      std::vector<float> electron_trkChi2;
+      std::vector<float> electron_trkNDof;
+      std::vector<float> electron_fbrem;
+      std::vector<float> electron_hademTow;
+      std::vector<float> electron_hademCone;
+      std::vector<float> electron_ecalDrivenSeed;
+      std::vector<float> electron_nrSatCrys;
+      std::vector<float> electron_scRawEnergy;
+      std::vector<float> electron_scRawESEnergy;
+      std::vector<float> electron_e3x3;
+      std::vector<float> electron_e5x5;
+      std::vector<float> electron_eMax;
+      std::vector<float> electron_e2nd;
+      std::vector<float> electron_eLeft;
+      std::vector<float> electron_eRight;
+      std::vector<float> electron_eLeftRightDiffSumRatio;
+      std::vector<float> electron_eTop;
+      std::vector<float> electron_eBottom;
+      std::vector<float> electron_eTopBottomDiffSumRatio;
+      std::vector<float> electron_e2x5Bottom;
+      std::vector<float> electron_e2x5Top;
+      std::vector<float> electron_e2x5Left;
+      std::vector<float> electron_e2x5Right;
+      std::vector<float> electron_sigmaIEtaIEta;
+      std::vector<float> electron_sigmaIEtaIPhi;
+      std::vector<float> electron_sigmaIPhiIPhi; 
+      std::vector<int> photon_index;
+      std::vector<uint32_t> photon_seedRawId;
+      std::vector<float> photon_et;
+      std::vector<float> photon_energy;
+      std::vector<float> photon_energyErr;
+      std::vector<float> photon_eta;
+      std::vector<float> photon_phi;
+      std::vector<float> photon_hademTow;
+      std::vector<float> photon_hademCone;
+      std::vector<float> photon_nrSatCrys;
+      std::vector<float> photon_scRawEnergy;
+      std::vector<float> photon_scRawESEnergy;
+      std::vector<float> photon_e3x3;
+      std::vector<float> photon_e5x5;
+      std::vector<float> photon_eMax;
+      std::vector<float> photon_e2nd;
+      std::vector<float> photon_eLeft;
+      std::vector<float> photon_eRight;
+      std::vector<float> photon_eLeftRightDiffSumRatio;
+      std::vector<float> photon_eTop;
+      std::vector<float> photon_eBottom;
+      std::vector<float> photon_eTopBottomDiffSumRatio;
+      std::vector<float> photon_e2x5Bottom;
+      std::vector<float> photon_e2x5Top;
+      std::vector<float> photon_e2x5Left;
+      std::vector<float> photon_e2x5Right;
+      std::vector<float> photon_sigmaIEtaIEta;
+      std::vector<float> photon_sigmaIEtaIPhi;
+      std::vector<float> photon_sigmaIPhiIPhi; 
+      std::vector<uint32_t> superCluster_seedRawId;
       std::vector<float> superCluster_rawEnergy;
       std::vector<float> superCluster_rawESEnergy;
       std::vector<float> superCluster_energy;
@@ -557,6 +639,7 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<std::vector<float> > superCluster_psCluster_energy;
       std::vector<std::vector<float> > superCluster_psCluster_eta;
       std::vector<std::vector<float> > superCluster_psCluster_phi;
+      std::vector<uint32_t> retunedSuperCluster_seedRawId;
       std::vector<float> retunedSuperCluster_rawEnergy;
       std::vector<float> retunedSuperCluster_rawESEnergy;
       std::vector<float> retunedSuperCluster_energy;
@@ -641,6 +724,7 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_energy;
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_eta;
       std::vector<std::vector<float> > retunedSuperCluster_psCluster_phi;
+      std::vector<uint32_t> deepSuperCluster_seedRawId;
       std::vector<float> deepSuperCluster_rawEnergy;
       std::vector<float> deepSuperCluster_rawESEnergy;
       std::vector<float> deepSuperCluster_energy; 
@@ -725,6 +809,8 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<std::vector<float> > deepSuperCluster_psCluster_energy;
       std::vector<std::vector<float> > deepSuperCluster_psCluster_eta;
       std::vector<std::vector<float> > deepSuperCluster_psCluster_phi;
+      std::vector<uint32_t> gsfElectron_seedRawId;
+      std::vector<uint32_t> gsfPhoton_seedRawId;
       std::vector<double> dR_genScore;
       std::vector<double> dR_simScore;
       std::vector<double> sim_nSharedXtals;

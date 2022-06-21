@@ -20,6 +20,9 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     pfClusterCollection             = cms.InputTag("particleFlowClusterECAL","","RECO"),
     ebSuperClusterCollection        = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALBarrel","RECO"), 
     eeSuperClusterCollection        = cms.InputTag("particleFlowSuperClusterECAL","particleFlowSuperClusterECALEndcapWithPreshower","RECO"), 
+    gsfElectronCollection           = cms.InputTag("gedGsfElectrons","","RECO"), 
+    gedPhotonCollection             = cms.InputTag("gedPhotons","","RECO"), 
+    useGedParticles                 = cms.bool(True),  #run on gedGsfElectrons and gedPhotons
     useRetunedSC                    = cms.bool(False),  #run on new RetunedSCs
     useDeepSC                       = cms.bool(False),  #run on new DeepSCs
     ebRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALBarrelMustacheNewParams","RECO"), 
@@ -41,6 +44,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     savePFRechits                   = cms.bool(True), #save pfRecHits information
     savePFCluster                   = cms.bool(True),  #save pfClusters information
     savePFClusterhits               = cms.bool(True), #save pfClustershits information
+    saveGedParticles                = cms.bool(True),  #save gedGsfElectrons and gedPhotons information
     saveSuperCluster                = cms.bool(True),  #save superClusters information
     saveShowerShapes                = cms.bool(True),  #save showerShapes information
 )
