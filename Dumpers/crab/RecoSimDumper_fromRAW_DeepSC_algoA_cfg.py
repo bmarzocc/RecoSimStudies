@@ -139,32 +139,7 @@ process.mySCReg = cms.ESSource("PoolDBESSource",
          connect = cms.string("sqlite_file:scReg_2022GammasDeepSCAlgoA.db")),
      )
 )
-
-
-'''
-process.mySCReg = cms.ESSource("PoolDBESSource",
-     toGet = cms.VPSet(
-       cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
-         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
-       cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
-         tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
-      cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
-         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
-      cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
-         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
-     )
-)
-'''
 process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
-
 
 process.myPhoReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
@@ -188,8 +163,29 @@ process.myPhoReg = cms.ESSource("PoolDBESSource",
 )
 process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
 
-
 '''
+process.mySCReg = cms.ESSource("PoolDBESSource",
+     toGet = cms.VPSet(
+       cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
+         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
+       cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
+         tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
+         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
+         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
+     )
+)
+process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
+
 process.myEleReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
