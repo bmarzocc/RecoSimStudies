@@ -2,8 +2,8 @@
 
 1) Install:
 
-    * scram project CMSSW_12_3_0_pre5
-    * cd CMSSW_12_3_0_pre5/src/
+    * scram project CMSSW_12_5_0_pre1
+    * cd CMSSW_12_5_0_pre1/src/
     * cmsenv
     * git cms-init
     * git cms-merge-topic valsdav:GraphSC_CMSSW_12_3_0_pre5 #if you produce DeepSC in RECO step

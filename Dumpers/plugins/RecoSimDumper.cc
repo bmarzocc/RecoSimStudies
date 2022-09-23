@@ -46,16 +46,22 @@
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonCore.h"
+#include "DataFormats/EgammaCandidates/interface/Conversion.h"
+#include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronCore.h"
 #include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+#include "CommonTools/Egamma/interface/EffectiveAreas.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "RecoSimStudies/Dumpers/plugins/RecoSimDumper.h"
@@ -155,23 +161,19 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    pfClusterToken_                = consumes<std::vector<reco::PFCluster> >(iConfig.getParameter<edm::InputTag>("pfClusterCollection")); 
    ebSuperClusterToken_           = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebSuperClusterCollection"));
    eeSuperClusterToken_           = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeSuperClusterCollection"));
-   useGedParticles_               = iConfig.getParameter<bool>("useGedParticles"); 
-   if(useGedParticles_){
-      gsfElectronToken_           = consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("gsfElectronCollection"));
-      gedPhotonToken_             = consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("gedPhotonCollection"));
-   }
-   useRetunedSC_                  = iConfig.getParameter<bool>("useRetunedSC");  
-   if(useRetunedSC_){
-      ebRetunedSuperClusterToken_ = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebRetunedSuperClusterCollection"));
-      eeRetunedSuperClusterToken_ = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeRetunedSuperClusterCollection"));
-   } 
-   useDeepSC_                     = iConfig.getParameter<bool>("useDeepSC");  
-   if(useDeepSC_){
-      ebDeepSuperClusterToken_    = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebDeepSuperClusterCollection"));
-      eeDeepSuperClusterToken_    = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeDeepSuperClusterCollection"));
-   }
-   doCompression_                 = iConfig.getParameter<bool>("doCompression");
+   ebRetunedSuperClusterToken_    = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebRetunedSuperClusterCollection"));
+   eeRetunedSuperClusterToken_    = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeRetunedSuperClusterCollection"));
+   ebDeepSuperClusterToken_       = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebDeepSuperClusterCollection"));
+   eeDeepSuperClusterToken_       = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeDeepSuperClusterCollection"));
+   gsfElectronToken_              = consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("gsfElectronCollection"));
+   patElectronToken_              = consumes<std::vector<pat::Electron> >(iConfig.getParameter<edm::InputTag>("patElectronCollection"));
+   patPhotonToken_                = consumes<std::vector<pat::Photon> >(iConfig.getParameter<edm::InputTag>("patPhotonCollection")); 
+   gedPhotonToken_                = consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("gedPhotonCollection"));
+   patMETToken_                   = consumes<std::vector<pat::MET> >(iConfig.getParameter<edm::InputTag>("patMETCollection"));
+   
    nBits_                         = iConfig.getParameter<int>("nBits");
+   doCompression_                 = iConfig.getParameter<bool>("doCompression");
+   isMC_                          = iConfig.getParameter<bool>("isMC"); 
    saveGenParticles_              = iConfig.getParameter<bool>("saveGenParticles");
    saveCaloParticles_             = iConfig.getParameter<bool>("saveCaloParticles");
    saveCaloParticlesPU_           = iConfig.getParameter<bool>("saveCaloParticlesPU");
@@ -183,10 +185,30 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    savePFRechits_                 = iConfig.getParameter<bool>("savePFRechits"); 
    savePFCluster_                 = iConfig.getParameter<bool>("savePFCluster");
    savePFClusterhits_             = iConfig.getParameter<bool>("savePFClusterhits");
+   saveShowerShapes_              = iConfig.getParameter<bool>("saveShowerShapes"); 
+   saveSuperCluster_              = iConfig.getParameter<bool>("saveSuperCluster"); 
+   saveRetunedSC_                 = iConfig.getParameter<bool>("saveRetunedSC");  
+   saveDeepSC_                    = iConfig.getParameter<bool>("saveDeepSC");  
    saveGedParticles_              = iConfig.getParameter<bool>("saveGedParticles");
-   saveSuperCluster_              = iConfig.getParameter<bool>("saveSuperCluster");
-   saveShowerShapes_              = iConfig.getParameter<bool>("saveShowerShapes");
-   
+   savePatParticles_              = iConfig.getParameter<bool>("savePatParticles"); 
+
+   egmCutBasedElectronIDVeto_     = iConfig.getParameter<std::string>("egmCutBasedElectronIDVeto"); 
+   egmCutBasedElectronIDloose_    = iConfig.getParameter<std::string>("egmCutBasedElectronIDloose");  
+   egmCutBasedElectronIDmedium_   = iConfig.getParameter<std::string>("egmCutBasedElectronIDmedium"); 
+   egmCutBasedElectronIDtight_    = iConfig.getParameter<std::string>("egmCutBasedElectronIDtight");   
+   egmMVAElectronIDloose_         = iConfig.getParameter<std::string>("egmMVAElectronIDloose");  
+   egmMVAElectronIDmedium_        = iConfig.getParameter<std::string>("egmMVAElectronIDmedium"); 
+   egmMVAElectronIDtight_         = iConfig.getParameter<std::string>("egmMVAElectronIDtight");   
+   egmMVAElectronIDlooseNoIso_    = iConfig.getParameter<std::string>("egmMVAElectronIDlooseNoIso");  
+   egmMVAElectronIDmediumNoIso_   = iConfig.getParameter<std::string>("egmMVAElectronIDmediumNoIso"); 
+   egmMVAElectronIDtightNoIso_    = iConfig.getParameter<std::string>("egmMVAElectronIDtightNoIso");
+   heepElectronID_                = iConfig.getParameter<std::string>("heepElectronID");   
+   egmCutBasedPhotonIDloose_      = iConfig.getParameter<std::string>("egmCutBasedPhotonIDloose");  
+   egmCutBasedPhotonIDmedium_     = iConfig.getParameter<std::string>("egmCutBasedPhotonIDmedium"); 
+   egmCutBasedPhotonIDtight_      = iConfig.getParameter<std::string>("egmCutBasedPhotonIDtight"); 
+   egmMVAPhotonIDmedium_          = iConfig.getParameter<std::string>("egmMVAPhotonIDmedium"); 
+   egmMVAPhotonIDtight_           = iConfig.getParameter<std::string>("egmMVAPhotonIDtight");      
+  
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
       nBits_=23;
@@ -240,8 +262,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    edm::ESHandle<EcalIntercalibConstants> pIcal = iSetup.getHandle(icalToken_); 
    ical = pIcal.product();
 
-   edm::ESHandle<EcalIntercalibConstantsMC> pIcalMC = iSetup.getHandle(icalMCToken_); 
-   icalMC = pIcalMC.product();
+   if(isMC_){ 
+    edm::ESHandle<EcalIntercalibConstantsMC> pIcalMC = iSetup.getHandle(icalMCToken_); 
+    icalMC = pIcalMC.product();
+   }
 
    edm::ESHandle<EcalChannelStatus> pChannelStatus = iSetup.getHandle(channelStatusToken_); 
    chStatus = pChannelStatus.product();
@@ -252,6 +276,60 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    edm::ESHandle<EcalGainRatios> pRatio = iSetup.getHandle(ratioToken_);  
    gr = pRatio.product();
 
+   //MC-only info and collections
+   truePU=-1.;
+   obsPU=-1.;
+   edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
+   edm::Handle<std::vector<reco::GenParticle> > genParticles;
+   edm::Handle<std::vector<CaloParticle> > caloParticles;
+   edm::Handle<std::vector<CaloParticle> > puCaloParticle;
+   edm::Handle<std::vector<CaloParticle> > ootpuCaloParticle;
+
+   if(isMC_){    
+    ev.getByToken(pileupSummaryToken_, PupInfo);
+    if (PupInfo.isValid()) 
+    {
+       for(auto &pu : *PupInfo){
+           if(pu.getBunchCrossing() == 0 ){
+              truePU = pu.getTrueNumInteractions();
+              obsPU = pu.getPU_NumInteractions();
+              break;
+           } 
+       } 
+    }else{
+       std::cerr << "Analyze --> PupInfo not found" << std::endl;
+    }
+
+    ev.getByToken(genToken_,genParticles);
+    if (!genParticles.isValid()) {
+       std::cerr << "Analyze --> genParticles not found" << std::endl; 
+       return;
+    }
+   
+    ev.getByToken(caloPartToken_,caloParticles);
+    if (!caloParticles.isValid() && isMC_) {
+       std::cerr << "Analyze --> caloParticles not found" << std::endl; 
+       return;
+    }
+   
+    if(saveCaloParticlesPU_) {  
+      ev.getByToken(puCaloPartToken_,puCaloParticle);
+      if (!puCaloParticle.isValid()) {
+          std::cerr << "Analyze --> puCaloParticle not found" << std::endl; 
+          return;
+      }
+    }
+
+    if(saveCaloParticlesOOTPU_) {  
+      ev.getByToken(ootpuCaloPartToken_,ootpuCaloParticle);
+      if (!ootpuCaloParticle.isValid()) {
+          std::cerr << "Analyze --> ootpuCaloParticle not found" << std::endl; 
+          return;
+      }
+    }
+   }
+
+   //Other collections
    edm::Handle<double> rhos;
    ev.getByToken(rhoToken_,rhos);
    if (!rhos.isValid()) {
@@ -265,55 +343,19 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        std::cerr << "Analyze --> vertices not found" << std::endl; 
        return;
    }
-
-   edm::Handle<std::vector<reco::GenParticle> > genParticles;
-   ev.getByToken(genToken_,genParticles);
-   if (!genParticles.isValid()) {
-       std::cerr << "Analyze --> genParticles not found" << std::endl; 
-       return;
-   }
-
-   edm::Handle<std::vector<CaloParticle> > caloParticles;
-   ev.getByToken(caloPartToken_,caloParticles);
-   if (!caloParticles.isValid()) {
-       std::cerr << "Analyze --> caloParticles not found" << std::endl; 
-       return;
-   }
-   
-   edm::Handle<std::vector<CaloParticle> > puCaloParticle;
-   if(saveCaloParticlesPU_) {  
-      ev.getByToken(puCaloPartToken_,puCaloParticle);
-      if (!puCaloParticle.isValid()) {
-          std::cerr << "Analyze --> puCaloParticle not found" << std::endl; 
-          return;
-      }
-   }
-
-   edm::Handle<std::vector<CaloParticle> > ootpuCaloParticle;
-   if(saveCaloParticlesOOTPU_) {  
-      ev.getByToken(ootpuCaloPartToken_,ootpuCaloParticle);
-      if (!ootpuCaloParticle.isValid()) {
-          std::cerr << "Analyze --> ootpuCaloParticle not found" << std::endl; 
-          return;
-      }
-   }
-
+    
    edm::Handle<EcalRecHitCollection> recHitsEB;
-   if(saveRechits_) {  
-      ev.getByToken(ebRechitToken_, recHitsEB);
-      if (!recHitsEB.isValid()) {
-          std::cerr << "Analyze --> recHitsEB not found" << std::endl; 
-          return;
-      }
+   ev.getByToken(ebRechitToken_, recHitsEB);
+   if (!recHitsEB.isValid()) {
+       std::cerr << "Analyze --> recHitsEB not found" << std::endl; 
+       return;
    }
 
    edm::Handle<EcalRecHitCollection> recHitsEE;
-   if(saveRechits_) {
-      ev.getByToken(eeRechitToken_, recHitsEE);
-      if (!recHitsEE.isValid()) {
-          std::cerr << "Analyze --> recHitsEE not found" << std::endl; 
-          return;
-      }
+   ev.getByToken(eeRechitToken_, recHitsEE);
+   if (!recHitsEE.isValid()) {
+       std::cerr << "Analyze --> recHitsEE not found" << std::endl; 
+       return;
    } 
 
    edm::Handle<std::vector<reco::PFRecHit> > pfRecHits;
@@ -335,16 +377,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > superClusterEB;
+   edm::Handle<std::vector<reco::SuperCluster> > superClusterEE;
    if(saveSuperCluster_) {
       ev.getByToken(ebSuperClusterToken_, superClusterEB);
       if (!superClusterEB.isValid()) {
           std::cerr << "Analyze --> superClusterEB not found" << std::endl; 
           return;
       }
-   } 
-
-   edm::Handle<std::vector<reco::SuperCluster> > superClusterEE;
-   if(saveSuperCluster_) {
       ev.getByToken(eeSuperClusterToken_, superClusterEE);
       if (!superClusterEE.isValid()) {
           std::cerr << "Analyze --> superClusterEE not found" << std::endl; 
@@ -353,16 +392,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    }
 
    edm::Handle<std::vector<reco::SuperCluster> > retunedSuperClusterEB;
-   if(saveSuperCluster_ && useRetunedSC_) {
+   edm::Handle<std::vector<reco::SuperCluster> > retunedSuperClusterEE;
+   if(saveRetunedSC_) {
       ev.getByToken(ebRetunedSuperClusterToken_, retunedSuperClusterEB);
       if (!retunedSuperClusterEB.isValid()) {
           std::cerr << "Analyze --> retunedSuperClusterEB not found" << std::endl; 
           return;
       }
-   } 
-
-   edm::Handle<std::vector<reco::SuperCluster> > retunedSuperClusterEE;
-   if(saveSuperCluster_ && useRetunedSC_) {
       ev.getByToken(eeRetunedSuperClusterToken_, retunedSuperClusterEE);
       if (!retunedSuperClusterEE.isValid()) {
           std::cerr << "Analyze --> retunedSuperClusterEE not found" << std::endl; 
@@ -371,16 +407,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    } 
 
    edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterEB;
-   if(saveSuperCluster_ && useDeepSC_) {
+   edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterEE;
+   if(saveDeepSC_) {
       ev.getByToken(ebDeepSuperClusterToken_, deepSuperClusterEB);
       if (!deepSuperClusterEB.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterEB not found" << std::endl; 
           return;
       }
-   } 
-
-   edm::Handle<std::vector<reco::SuperCluster> > deepSuperClusterEE;
-   if(saveSuperCluster_ && useDeepSC_) {
       ev.getByToken(eeDeepSuperClusterToken_, deepSuperClusterEE);
       if (!deepSuperClusterEE.isValid()) {
           std::cerr << "Analyze --> deepSuperClusterEE not found" << std::endl; 
@@ -388,38 +421,42 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    }
 
-   /*
-   edm::Handle<reco::GsfElectron> gsfElectron;
-   ev.getByToken(gsfElectronToken_, gsfElectron);
-   if (!gsfElectron.isValid()) {
-       std::cerr << "Analyze --> gsfElectron not found" << std::endl; 
-       return;
-   }
-   
-   edm::Handle<reco::Photon> gedPhoton;
-   ev.getByToken(gedPhotonToken_, gedPhoton);
-   if (!gedPhoton.isValid()) {
-       std::cerr << "Analyze --> gedPhoton not found" << std::endl; 
-       return;
-   }*/ 
-
-   truePU=-1.;
-   obsPU=-1.;
-   edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
-   ev.getByToken(pileupSummaryToken_, PupInfo);
-   if (PupInfo.isValid()) 
-   {
-       for(auto &pu : *PupInfo){
-           if(pu.getBunchCrossing() == 0 ){
-              truePU = pu.getTrueNumInteractions();
-              obsPU = pu.getPU_NumInteractions();
-              break;
-           } 
-       } 
-   }else{
-       std::cerr << "Analyze --> PupInfo not found" << std::endl;
+   edm::Handle<std::vector<reco::GsfElectron> > gsfElectron;
+   edm::Handle<std::vector<reco::Photon> > gedPhoton;
+   if(saveGedParticles_){
+      ev.getByToken(gsfElectronToken_, gsfElectron);
+      if (!gsfElectron.isValid()) {
+          std::cerr << "Analyze --> gsfElectron not found" << std::endl; 
+          return;
+      }
+      ev.getByToken(gedPhotonToken_, gedPhoton);
+      if (!gedPhoton.isValid()) {
+          std::cerr << "Analyze --> gedPhoton not found" << std::endl; 
+          return;
+      }
    } 
-  
+
+   edm::Handle<std::vector<pat::Electron> > patElectron;
+   edm::Handle<std::vector<pat::Photon> > patPhoton;
+   edm::Handle< std::vector<pat::MET> > patMET;
+   if(savePatParticles_) {
+      ev.getByToken(patElectronToken_,patElectron);
+      if (!patElectron.isValid()) {
+          std::cerr << "Analyze --> patElectrons not found" << std::endl; 
+          return;
+      }
+      ev.getByToken(patPhotonToken_,patPhoton);
+      if (!patPhoton.isValid()) {
+          std::cerr << "Analyze --> patPhotons not found" << std::endl; 
+          return;
+      }
+      ev.getByToken(patMETToken_,patMET);
+      if (!patMET.isValid()) {
+          std::cerr << "Analyze --> patMET not found" << std::endl; 
+          return;
+      }
+   }
+
    runId = ev.id().run();
    lumiId = ev.luminosityBlock();
    eventId = ev.id().event();
@@ -434,11 +471,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    genParticle_phi.clear();
    genDaughters.clear();
    std::vector<GenParticle> genParts;
-   const auto& genParts_tmp = *(genParticles.product());
+   
+   if(isMC_){ 
 
-   int genPart_index = 0;
-   for(const auto& iGen : *(genParticles.product()))
-   {
+    const auto& genParts_tmp = *(genParticles.product());
+    int genPart_index = 0;
+
+    for(const auto& iGen : *(genParticles.product()))
+    {
        if(iGen.numberOfMothers()!=0) continue;
 
        genParticle_pdgId.push_back(iGen.pdgId()); 
@@ -451,7 +491,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        addDaughters(&genParts_tmp,genPart_index,genPart_index);    
        genParts.push_back(iGen); 
        genPart_index++;
-   } 
+    } 
+   }
 
    int nGenParticles = genParts.size(); 
    genParticle_size = nGenParticles; 
@@ -465,8 +506,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    std::vector<CaloParticle> caloParts;
    std::vector<GlobalPoint> caloParts_position;
    caloParticle_size = 0;
-   for(const auto& iCalo : *(caloParticles.product()))
-   {
+
+   if(isMC_){  
+    for(const auto& iCalo : *(caloParticles.product()))
+    {
        caloParticle_size++;
        std::vector<std::pair<DetId, float> > caloParticle_hitsAndEnergies = *getHitsAndEnergiesCaloPart(&iCalo,-1.);
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(&caloParticle_hitsAndEnergies, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,true);
@@ -478,12 +521,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        hitsAndEnergies_CaloPart.push_back(caloParticle_hitsAndEnergies);
        caloParts_position.push_back(caloParticle_position);
        caloParts.push_back(iCalo); 
+    }
    }
-   
+ 
    int nCaloParticles = caloParts.size(); 
    //std::cout << "CaloParticles size  : " << nCaloParticles << " - " << caloParticle_size << " - " << caloParticlePU_size << " - " << caloParticleOOTPU_size << " - " << nVtx << std::endl;
 
-   if(saveCaloParticlesPU_)
+   if(saveCaloParticlesPU_ && isMC_)
    {
       caloParticlePU_xtalEnergy.clear();
       caloParticlePU_xtalEta.clear();
@@ -567,7 +611,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }   
    }
 
-   if(saveCaloParticlesOOTPU_)
+   if(saveCaloParticlesOOTPU_ && isMC_)
    {
       caloParticleOOTPU_xtalEnergy.clear();
       caloParticleOOTPU_xtalEta.clear();
@@ -651,23 +695,26 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }   
       
    } 
-  
+ 
    int nSuperClustersEB = 0;
    int nSuperClustersEE = 0;
    int nRetunedSuperClustersEB = 0;
    int nRetunedSuperClustersEE = 0;
    int nDeepSuperClustersEB = 0;
    int nDeepSuperClustersEE = 0;
-   int nPFClusters = (pfClusters.product())->size();
+   int nPFClusters = 0;
+   if(savePFCluster_){
+      nPFClusters = (pfClusters.product())->size();
+   }
    if(saveSuperCluster_){
       nSuperClustersEB = (superClusterEB.product())->size();
       nSuperClustersEE = (superClusterEE.product())->size();
    }
-   if(useRetunedSC_ && saveSuperCluster_){
+   if(saveRetunedSC_){
       nRetunedSuperClustersEB = (retunedSuperClusterEB.product())->size();
       nRetunedSuperClustersEE = (retunedSuperClusterEE.product())->size();
    }
-   if(useDeepSC_ && saveSuperCluster_){ 
+   if(saveDeepSC_){ 
       nDeepSuperClustersEB = (deepSuperClusterEB.product())->size();
       nDeepSuperClustersEE = (deepSuperClusterEE.product())->size();
    }
@@ -685,13 +732,15 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    std::vector<float> energies; 
    hits_CaloParticle.clear();
    energies_CaloParticle.clear();
-  
-   for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
+ 
+   if(isMC_){
+    for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
    
        caloParticle_index.push_back(iCalo); 
        caloParticle_nXtals.push_back(hitsAndEnergies_CaloPart.at(iCalo).size()); 
    
-       int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;    
+       int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;   
+       const auto& genParts_tmp = *(genParticles.product()); 
        auto genParticle = genParts_tmp[genIndex]; 
        int partonIndex = -1;
        if(genParticle.numberOfMothers()!=0) partonIndex = getGenMother(&genParts_tmp,genIndex); 
@@ -812,10 +861,12 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        caloParticle_simEnergy.push_back(reduceFloat(calo_simEnergy,nBits_));
        caloParticle_simEnergyGoodStatus.push_back(reduceFloat(calo_simEnergyGoodStatus,nBits_));
        caloParticle_simEnergyWithES.push_back(reduceFloat(calo_simEnergyWithES,nBits_));
+    }
    }
 
-   //check shared crystals among caloParticles  
-   for(unsigned int i=0; i<hitsAndEnergies_CaloPart.size(); i++){
+   //check shared crystals among caloParticles 
+   if(isMC_){ 
+    for(unsigned int i=0; i<hitsAndEnergies_CaloPart.size(); i++){
        for(unsigned int j=0; j<hitsAndEnergies_CaloPart.size(); j++)
        {
            if(i>j || i==j) continue;
@@ -837,9 +888,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               caloParticle_sharedEnergyFrac2.push_back(reduceFloat(sharedEnergy2/caloParticle_simEnergyWithES.at(j),nBits_));  
            }   
        } 
-   } 
+    } 
+   }
 
-   //save hitsAndEnergies for each CaloParticle, PFcluster and SuperCluster
+   //save hitsAndEnergies for each PFcluster and SuperCluster
    if(savePFCluster_){
       for(const auto& iPFCluster : *(pfClusters.product())){  
           reco::CaloCluster caloBC(iPFCluster);
@@ -854,14 +906,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
          hitsAndEnergies_SuperClusterEE.push_back(*getHitsAndEnergiesSC(&iSuperCluster,&(*(recHitsEB.product())), &(*(recHitsEE.product()))));
    }
 
-   if(saveSuperCluster_ && useRetunedSC_){
+   if(saveRetunedSC_){
      for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEB.product())) 
          hitsAndEnergies_RetunedSuperClusterEB.push_back(*getHitsAndEnergiesSC(&iRetunedSuperCluster,&(*(recHitsEB.product())), &(*(recHitsEE.product()))));
      for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEE.product())) 
          hitsAndEnergies_RetunedSuperClusterEE.push_back(*getHitsAndEnergiesSC(&iRetunedSuperCluster,&(*(recHitsEB.product())), &(*(recHitsEE.product()))));
    }
 
-   if(saveSuperCluster_ && useDeepSC_){
+   if(saveDeepSC_){
      for(const auto& iSuperCluster : *(deepSuperClusterEB.product())) 
          hitsAndEnergies_DeepSuperClusterEB.push_back(*getHitsAndEnergiesSC(&iSuperCluster,&(*(recHitsEB.product())), &(*(recHitsEE.product()))));
      for(const auto& iSuperCluster : *(deepSuperClusterEE.product())) 
@@ -900,18 +952,20 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_iz.push_back(iz); 
           } 
            
-          std::vector<double> noise = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, ped, adcToGeV, gr, true);       
-          pfCluster_noise.push_back(reduceFloat(noise[1],nBits_));
-          pfCluster_noiseUncalib.push_back(reduceFloat(noise[2],nBits_));
-          pfCluster_noiseDB.push_back(reduceFloat(noise[3],nBits_));
-          pfCluster_noiseDBUncalib.push_back(reduceFloat(noise[4],nBits_));
-          pfCluster_rawEnergyUncalib.push_back(reduceFloat(noise[0],nBits_));
+          if(isMC_){
+             std::vector<double> noise = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, ped, adcToGeV, gr, true);       
+             pfCluster_noise.push_back(reduceFloat(noise[1],nBits_));
+             pfCluster_noiseUncalib.push_back(reduceFloat(noise[2],nBits_));
+             pfCluster_noiseDB.push_back(reduceFloat(noise[3],nBits_));
+             pfCluster_noiseDBUncalib.push_back(reduceFloat(noise[4],nBits_));
+             pfCluster_rawEnergyUncalib.push_back(reduceFloat(noise[0],nBits_));
        
-          std::vector<double> noiseNoFractions = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, ped, adcToGeV, gr, false);     
-          pfCluster_noiseNoFractions.push_back(reduceFloat(noiseNoFractions[1],nBits_));
-          pfCluster_noiseUncalibNoFractions.push_back(reduceFloat(noiseNoFractions[2],nBits_)); 
-          pfCluster_noiseDBNoFractions.push_back(reduceFloat(noiseNoFractions[3],nBits_));
-          pfCluster_noiseDBUncalibNoFractions.push_back(reduceFloat(noiseNoFractions[4],nBits_)); 
+             std::vector<double> noiseNoFractions = getNoise(&iPFCluster,&hitsAndEnergies_CaloPart,&hitsAndEnergies_CaloPartPU.at(0), &(*(recHitsEB.product())), &(*(recHitsEE.product())), laserAlpha, laserRatio, ical, icalMC, ped, adcToGeV, gr, false);     
+             pfCluster_noiseNoFractions.push_back(reduceFloat(noiseNoFractions[1],nBits_));
+             pfCluster_noiseUncalibNoFractions.push_back(reduceFloat(noiseNoFractions[2],nBits_)); 
+             pfCluster_noiseDBNoFractions.push_back(reduceFloat(noiseNoFractions[3],nBits_));
+             pfCluster_noiseDBUncalibNoFractions.push_back(reduceFloat(noiseNoFractions[4],nBits_)); 
+          }
 
           if(saveShowerShapes_ && iPFCluster.layer() == PFLayer::ECAL_BARREL){
              widths_ = calculateCovariances(&iPFCluster, &(*(recHitsEB.product())), &(*_ebGeom));
@@ -1003,7 +1057,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_full5x5_sigmaIphiIphi.push_back(reduceFloat(showerShapes_[37],nBits_)); 
           }  
           
-          if(savePFClusterhits_){
+          if(savePFClusterhits_ && savePFCluster_){
              //for save PFClusterHit    
              const std::vector<std::pair<DetId,float> > &hitsAndFractions = iPFCluster.hitsAndFractions();  
              for(unsigned int i = 0; i < hitsAndEnergies_PFCluster.at(iPFCl).size(); i++){      
@@ -1014,7 +1068,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
                  } 
                  float agv = 1.;
                  float ic = *ical->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId()); 
-                 float icMC = *icalMC->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId());     
+                 float icMC = 1.;
+                 if(isMC_) icMC = *icalMC->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId());     
                  double alpha = *laserAlpha->getMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId());
                  double apdpn = (*laserRatio->getLaserMap().find(hitsAndEnergies_PFCluster.at(iPFCl).at(i).first.rawId())).p2;
                  float laserCorr = pow(apdpn,-alpha);
@@ -1048,7 +1103,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }
           
           //compute scores     
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iPFCluster.eta(),iPFCluster.phi())); 
@@ -1058,7 +1113,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&pfCluster_dR_genScore, 999., false, 0., iPFCl));
           } 
         
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -1079,7 +1134,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iPFCl] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -1100,7 +1155,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iPFCl] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
 
-          if(saveCaloParticles_){ 
+          if(saveCaloParticles_ && isMC_){ 
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -1150,10 +1205,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
 
       //save inverse of matchings
-      if(saveGenParticles_){ 
+      if(saveGenParticles_ && isMC_){ 
          fillParticleMatchedIndex(&genParticle_pfCluster_dR_genScore_MatchedIndex,&pfCluster_dR_genScore_MatchedIndex);
       } 
-      if(saveCaloParticles_){ 
+      if(saveCaloParticles_ && isMC_){ 
          fillParticleMatchedIndex(&caloParticle_pfCluster_dR_simScore_MatchedIndex,&pfCluster_dR_simScore_MatchedIndex);
          fillParticleMatchedIndex(&caloParticle_pfCluster_sim_nSharedXtals_MatchedIndex,&pfCluster_sim_nSharedXtals_MatchedIndex); 
          fillParticleMatchedIndex(&caloParticle_pfCluster_sim_fraction_noHitsFraction_MatchedIndex,&pfCluster_sim_fraction_noHitsFraction_MatchedIndex);  
@@ -1165,105 +1220,488 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    } 
    
-   if(useGedParticles_)
+   if(saveGedParticles_)
    {
       //save gsfElectron infos
       int iEle=0;
-      for(const auto& iElectron : ev.get(gsfElectronToken_)){ 
+      for(const auto& iElectron : *(gsfElectron.product())){ 
        
-          electron_index.push_back(iEle);
-          electron_seedRawId.push_back(iElectron.superCluster()->seed()->seed().rawId());
-          electron_et.push_back(reduceFloat(iElectron.et(),nBits_));
-          electron_energy.push_back(reduceFloat(iElectron.energy(),nBits_));
-          electron_energyErr.push_back(reduceFloat(iElectron.p4Error(reco::GsfElectron::P4_COMBINATION),nBits_));
-          electron_ecalEnergy.push_back(reduceFloat(iElectron.ecalEnergy(),nBits_));
-          electron_ecalEnergyErr.push_back(reduceFloat(iElectron.ecalEnergyError(),nBits_));
-          electron_eta.push_back(reduceFloat(iElectron.eta(),nBits_));
-          electron_phi.push_back(reduceFloat(iElectron.phi(),nBits_));
-          electron_trkEtaMode.push_back(reduceFloat(iElectron.gsfTrack()->etaMode(),nBits_));
-          electron_trkPhiMode.push_back(reduceFloat(iElectron.gsfTrack()->phiMode(),nBits_));
-          electron_trkPMode.push_back(reduceFloat(iElectron.gsfTrack()->pMode(),nBits_));
-          electron_trkPModeErr.push_back(reduceFloat(std::abs(iElectron.gsfTrack()->qoverpModeError())*iElectron.gsfTrack()->pMode()*iElectron.gsfTrack()->pMode(),nBits_));
-          electron_trkPInn.push_back(reduceFloat(iElectron.gsfTrack()->p(),nBits_));
-          electron_trkPtInn.push_back(reduceFloat(iElectron.gsfTrack()->pt(),nBits_));
-          electron_trkPVtx.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumAtVtx().Mag2()),nBits_));
-          electron_trkPOut.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumOut().Mag2()),nBits_));
-          electron_trkChi2.push_back(reduceFloat(iElectron.gsfTrack()->chi2(),nBits_));
-          electron_trkNDof.push_back(reduceFloat(iElectron.gsfTrack()->ndof(),nBits_));
-          electron_fbrem.push_back(reduceFloat(iElectron.fbrem(),nBits_));
-          electron_hademTow.push_back(reduceFloat(iElectron.hcalOverEcalBc(),nBits_));
-          electron_hademCone.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));
-          electron_ecalDrivenSeed.push_back(reduceFloat(iElectron.ecalDrivenSeed(),nBits_));
-          electron_nrSatCrys.push_back(reduceFloat(iElectron.nSaturatedXtals(),nBits_));
-          electron_scRawEnergy.push_back(reduceFloat(iElectron.superCluster()->rawEnergy(),nBits_));
-          electron_scRawESEnergy.push_back(reduceFloat(iElectron.superCluster()->preshowerEnergy(),nBits_));
+          reco::SuperClusterRef scRef = iElectron.superCluster();
 
-          reco::GsfElectron::ShowerShape eleSS = iElectron.full5x5_showerShape();
-          double eLeftRightSum  = eleSS.eLeft + eleSS.eRight;
-          double eLeftRightDiff = eleSS.eLeft - eleSS.eRight;
-          double eTopBottomSum  = eleSS.eTop + eleSS.eBottom;
-          double eTopBottomDiff  = eleSS.eTop - eleSS.eBottom;
-          electron_e3x3.push_back(reduceFloat(eleSS.r9*iElectron.superCluster()->rawEnergy(),nBits_));
-          electron_e5x5.push_back(reduceFloat(eleSS.e5x5,nBits_));
-          electron_eMax.push_back(reduceFloat(eleSS.eMax,nBits_));
-          electron_e2nd.push_back(reduceFloat(eleSS.e2nd,nBits_));
-          electron_eLeft.push_back(reduceFloat(eleSS.eLeft,nBits_));
-          electron_eRight.push_back(reduceFloat(eleSS.eRight,nBits_));
-          electron_eLeftRightDiffSumRatio.push_back(reduceFloat(eLeftRightSum !=0.f ? eLeftRightDiff/eLeftRightSum : 0.f,nBits_));
-          electron_eTop.push_back(reduceFloat(eleSS.eTop,nBits_));
-          electron_eBottom.push_back(reduceFloat(eleSS.eBottom,nBits_));
-          electron_eTopBottomDiffSumRatio.push_back(reduceFloat(eTopBottomSum !=0.f ? eTopBottomDiff/eTopBottomSum : 0.f,nBits_));
-          electron_e2x5Bottom.push_back(reduceFloat(eleSS.e2x5Bottom,nBits_));
-          electron_e2x5Top.push_back(reduceFloat(eleSS.e2x5Top,nBits_));
-          electron_e2x5Left.push_back(reduceFloat(eleSS.e2x5Left,nBits_));
-          electron_e2x5Right.push_back(reduceFloat(eleSS.e2x5Right,nBits_));
-          electron_sigmaIEtaIEta.push_back(reduceFloat(eleSS.sigmaIetaIeta,nBits_));
-          electron_sigmaIEtaIPhi.push_back(reduceFloat(eleSS.sigmaIetaIphi,nBits_));
-          electron_sigmaIPhiIPhi.push_back(reduceFloat(eleSS.sigmaIphiIphi,nBits_));   
+          double swissCross = -999.;
+          double eMax = -999.;
+          double e2x2 = -999.;
+          double e3x3 = -999.;
+          double e5x5 = -999.; 
+          double full5x5_e2x2 = -999.; 
+          double full5x5_e3x3 = -999.; 
+          double full5x5_e5x5 = -999.;  
+          double full5x5_eMax = -999.; 
+ 
+          reco::GsfElectron::ShowerShape eleSS = iElectron.showerShape(); 
+          reco::GsfElectron::ShowerShape full5x5_eleSS = iElectron.full5x5_showerShape();
+          const std::vector<std::pair<DetId,float> > &hits= iElectron.superCluster()->hitsAndFractions();
+          if(iElectron.isEB())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEB.product())));  
+             swissCross = EcalTools::swissCross(id.first,*(recHitsEB.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));      
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));     
+          }
+          if(iElectron.isEE())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEE.product())));  
+             swissCross = EcalTools::swissCross(id.first,*(recHitsEE.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));      
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));     
+          }
+
+          gsfElectron_index.push_back(iEle);
+          gsfElectron_seedRawId.push_back(iElectron.superCluster()->seed()->seed().rawId());
+          gsfElectron_isEB.push_back(iElectron.isEB()); 
+          gsfElectron_isEE.push_back(iElectron.isEE());  
+          gsfElectron_classification.push_back(iElectron.classification()); 
+          gsfElectron_nPFClusters.push_back(iElectron.superCluster()->clusters().size());
+          gsfElectron_p.push_back(reduceFloat(iElectron.trackMomentumAtVtx().R(),nBits_));
+          gsfElectron_pt.push_back(reduceFloat(TMath::Sqrt(iElectron.trackMomentumAtVtx().Perp2()),nBits_));
+          gsfElectron_et.push_back(reduceFloat(iElectron.et(),nBits_));
+          gsfElectron_energy.push_back(reduceFloat(iElectron.energy(),nBits_));
+          gsfElectron_energyErr.push_back(reduceFloat(iElectron.p4Error(reco::GsfElectron::P4_COMBINATION),nBits_));
+          gsfElectron_ecalEnergy.push_back(reduceFloat(iElectron.ecalEnergy(),nBits_));
+          gsfElectron_ecalEnergyErr.push_back(reduceFloat(iElectron.ecalEnergyError(),nBits_));
+          gsfElectron_eta.push_back(reduceFloat(iElectron.eta(),nBits_));
+          gsfElectron_phi.push_back(reduceFloat(iElectron.phi(),nBits_));
+          gsfElectron_trkEtaMode.push_back(reduceFloat(iElectron.gsfTrack()->etaMode(),nBits_));
+          gsfElectron_trkPhiMode.push_back(reduceFloat(iElectron.gsfTrack()->phiMode(),nBits_));
+          gsfElectron_trkPMode.push_back(reduceFloat(iElectron.gsfTrack()->pMode(),nBits_));
+          gsfElectron_trkPModeErr.push_back(reduceFloat(std::abs(iElectron.gsfTrack()->qoverpModeError())*iElectron.gsfTrack()->pMode()*iElectron.gsfTrack()->pMode(),nBits_));
+          gsfElectron_trkPInn.push_back(reduceFloat(iElectron.gsfTrack()->p(),nBits_));
+          gsfElectron_trkPtInn.push_back(reduceFloat(iElectron.gsfTrack()->pt(),nBits_));
+          gsfElectron_trkPVtx.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumAtVtx().Mag2()),nBits_));
+          gsfElectron_trkPOut.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumOut().Mag2()),nBits_));
+          gsfElectron_trkChi2.push_back(reduceFloat(iElectron.gsfTrack()->chi2(),nBits_));
+          gsfElectron_trkNDof.push_back(reduceFloat(iElectron.gsfTrack()->ndof(),nBits_));
+          gsfElectron_fbrem.push_back(reduceFloat(iElectron.fbrem(),nBits_));
+          gsfElectron_hademTow.push_back(reduceFloat(iElectron.hcalOverEcalBc(),nBits_));
+          gsfElectron_hademCone.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));
+          gsfElectron_ecalDrivenSeed.push_back(reduceFloat(iElectron.ecalDrivenSeed(),nBits_));
+          gsfElectron_nrSatCrys.push_back(reduceFloat(iElectron.nSaturatedXtals(),nBits_));
+          gsfElectron_refinedSCRawEnergy.push_back(reduceFloat(iElectron.superCluster()->rawEnergy(),nBits_));
+          gsfElectron_refinedSCRawESEnergy.push_back(reduceFloat(iElectron.superCluster()->preshowerEnergy(),nBits_));
+          gsfElectron_refinedSCSwissCross.push_back(reduceFloat(swissCross,nBits_));  
+          gsfElectron_refinedSCEtaWidth.push_back(reduceFloat(iElectron.superCluster()->etaWidth(),nBits_));  
+          gsfElectron_refinedSCPhiWidth.push_back(reduceFloat(iElectron.superCluster()->phiWidth(),nBits_)); 
+          gsfElectron_refinedSCEMax.push_back(reduceFloat(eMax,nBits_));  
+          gsfElectron_refinedSCE2x2.push_back(reduceFloat(e2x2,nBits_));
+          gsfElectron_refinedSCE3x3.push_back(reduceFloat(e3x3,nBits_));
+          gsfElectron_refinedSCE5x5.push_back(reduceFloat(e5x5,nBits_));
+          gsfElectron_refinedSCR9.push_back(reduceFloat(e3x3/scRef->rawEnergy(),nBits_));
+          gsfElectron_refinedSCSigmaIEtaIEta.push_back(reduceFloat(eleSS.sigmaIetaIeta,nBits_));
+          gsfElectron_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(eleSS.sigmaIetaIphi,nBits_));
+          gsfElectron_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(eleSS.sigmaIphiIphi,nBits_));   
+          gsfElectron_full5x5_refinedSCEMax.push_back(reduceFloat(full5x5_eMax,nBits_));  
+          gsfElectron_full5x5_refinedSCE2x2.push_back(reduceFloat(full5x5_e2x2,nBits_));
+          gsfElectron_full5x5_refinedSCE3x3.push_back(reduceFloat(full5x5_e3x3,nBits_));
+          gsfElectron_full5x5_refinedSCE5x5.push_back(reduceFloat(full5x5_e5x5,nBits_));
+          gsfElectron_full5x5_refinedSCR9.push_back(reduceFloat(full5x5_e3x3/scRef->rawEnergy(),nBits_));
+          gsfElectron_full5x5_refinedSCSigmaIEtaIEta.push_back(reduceFloat(full5x5_eleSS.sigmaIetaIeta,nBits_));
+          gsfElectron_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIetaIphi,nBits_));
+          gsfElectron_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIphiIphi,nBits_)); 
+          gsfElectron_HoE.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));   
+          gsfElectron_trkIso.push_back(reduceFloat(iElectron.dr04TkSumPt(),nBits_));    
+          gsfElectron_ecalIso.push_back(reduceFloat(iElectron.dr04EcalRecHitSumEt(),nBits_));   
+          gsfElectron_hcalIso.push_back(reduceFloat(iElectron.dr04HcalTowerSumEt(),nBits_));  
+          gsfElectron_pfPhotonIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumPhotonEt,nBits_));      
+          gsfElectron_pfChargedHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumChargedHadronPt,nBits_));      
+          gsfElectron_pfNeutralHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumNeutralHadronEt,nBits_));   
     
           iEle++; 
       }
 
       //save gedPhoton infos
       int iPho=0;
-      for(const auto& iPhoton : ev.get(gedPhotonToken_)){ 
+      for(const auto& iPhoton : *(gedPhoton.product())){ 
        
-          photon_index.push_back(iPho);
-          photon_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
-          photon_et.push_back(reduceFloat(iPhoton.et(),nBits_));
-          photon_energy.push_back(reduceFloat(iPhoton.energy(),nBits_));
-          photon_energyErr.push_back(reduceFloat(iPhoton.getCorrectedEnergyError(reco::Photon::regression2),nBits_));
-          photon_eta.push_back(reduceFloat(iPhoton.eta(),nBits_));
-          photon_phi.push_back(reduceFloat(iPhoton.phi(),nBits_));
-          photon_hademTow.push_back(reduceFloat(iPhoton.hadTowOverEm(),nBits_));
-          photon_hademCone.push_back(reduceFloat(iPhoton.hadronicOverEm(),nBits_));
-          photon_nrSatCrys.push_back(reduceFloat(iPhoton.nSaturatedXtals(),nBits_));
-          photon_scRawEnergy.push_back(reduceFloat(iPhoton.superCluster()->rawEnergy(),nBits_));
-          photon_scRawESEnergy.push_back(reduceFloat(iPhoton.superCluster()->preshowerEnergy(),nBits_));
+          reco::SuperClusterRef scRef = iPhoton.superCluster();
+          reco::PhotonCoreRef phoCoreRef = iPhoton.photonCore();
 
-          reco::Photon::ShowerShape phoSS = iPhoton.full5x5_showerShapeVariables();
-          double eLeftRightSum  = phoSS.eLeft + phoSS.eRight;
-          double eLeftRightDiff = phoSS.eLeft - phoSS.eRight;
-          double eTopBottomSum  = phoSS.eTop + phoSS.eBottom;
-          double eTopBottomDiff  = phoSS.eTop - phoSS.eBottom;
-          photon_e3x3.push_back(reduceFloat(phoSS.e3x3,nBits_));
-          photon_e5x5.push_back(reduceFloat(phoSS.e5x5,nBits_));
-          photon_eMax.push_back(reduceFloat(phoSS.maxEnergyXtal,nBits_));
-          photon_e2nd.push_back(reduceFloat(phoSS.e2nd,nBits_));
-          photon_eLeft.push_back(reduceFloat(phoSS.eLeft,nBits_));
-          photon_eRight.push_back(reduceFloat(phoSS.eRight,nBits_));
-          photon_eLeftRightDiffSumRatio.push_back(reduceFloat(eLeftRightSum !=0.f ? eLeftRightDiff/eLeftRightSum : 0.f,nBits_));
-          photon_eTop.push_back(reduceFloat(phoSS.eTop,nBits_));
-          photon_eBottom.push_back(reduceFloat(phoSS.eBottom,nBits_));
-          photon_eTopBottomDiffSumRatio.push_back(reduceFloat(eTopBottomSum !=0.f ? eTopBottomDiff/eTopBottomSum : 0.f,nBits_));
-          photon_e2x5Bottom.push_back(reduceFloat(phoSS.e2x5Bottom,nBits_));
-          photon_e2x5Top.push_back(reduceFloat(phoSS.e2x5Top,nBits_));
-          photon_e2x5Left.push_back(reduceFloat(phoSS.e2x5Left,nBits_));
-          photon_e2x5Right.push_back(reduceFloat(phoSS.e2x5Right,nBits_));
-          photon_sigmaIEtaIEta.push_back(reduceFloat(phoSS.sigmaIetaIeta,nBits_));
-          photon_sigmaIEtaIPhi.push_back(reduceFloat(phoSS.sigmaIetaIphi,nBits_));
-          photon_sigmaIPhiIPhi.push_back(reduceFloat(phoSS.sigmaIphiIphi,nBits_));     
+          double swissCross = -999.;
+          double eMax = -999.;
+          double e2x2 = -999.;
+          double e3x3 = -999.;
+          double e5x5 = -999.; 
+          double full5x5_e2x2 = -999.; 
+          double full5x5_e3x3 = -999.; 
+          double full5x5_e5x5 = -999.;  
+          double full5x5_eMax = -999.; 
 
+          reco::Photon::ShowerShape phoSS = iPhoton.showerShapeVariables();   
+          reco::Photon::ShowerShape full5x5_phoSS = iPhoton.full5x5_showerShapeVariables(); 
+          const std::vector<std::pair<DetId,float> > &hits= iPhoton.superCluster()->hitsAndFractions();
+          if(iPhoton.isEB())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEB.product())));  
+             swissCross = EcalTools::swissCross(id.first,*(recHitsEB.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));      
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));      
+          }
+          if(iPhoton.isEE())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEE.product())));  
+             swissCross = EcalTools::swissCross(id.first,*(recHitsEE.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));      
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));         
+          }
+
+          gedPhoton_index.push_back(iPho);  
+          gedPhoton_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
+          gedPhoton_isEB.push_back(iPhoton.isEB());
+          gedPhoton_isEE.push_back(iPhoton.isEE()); 
+          gedPhoton_nPFClusters.push_back(iPhoton.superCluster()->clusters().size());
+          gedPhoton_hasConversionTracks.push_back(iPhoton.hasConversionTracks());
+          gedPhoton_nConversions.push_back(phoCoreRef->conversions().size());
+          gedPhoton_nConversionsOneLeg.push_back(phoCoreRef->conversionsOneLeg().size());
+          gedPhoton_et.push_back(reduceFloat(iPhoton.et(),nBits_));
+          gedPhoton_energy.push_back(reduceFloat(iPhoton.energy(),nBits_));
+          gedPhoton_energyErr.push_back(reduceFloat(iPhoton.getCorrectedEnergyError(reco::Photon::regression2),nBits_));
+          gedPhoton_ecalEnergy.push_back(reduceFloat(iPhoton.energyCorrections().phoEcalEnergy,nBits_));
+          gedPhoton_ecalEnergyErr.push_back(reduceFloat(iPhoton.energyCorrections().phoEcalEnergyError,nBits_));
+          gedPhoton_eta.push_back(reduceFloat(iPhoton.eta(),nBits_));
+          gedPhoton_phi.push_back(reduceFloat(iPhoton.phi(),nBits_));
+          gedPhoton_hademTow.push_back(reduceFloat(iPhoton.hadTowOverEm(),nBits_));
+          gedPhoton_hademCone.push_back(reduceFloat(iPhoton.hadronicOverEm(),nBits_));
+          gedPhoton_nrSatCrys.push_back(reduceFloat(iPhoton.nSaturatedXtals(),nBits_));
+          gedPhoton_refinedSCRawEnergy.push_back(reduceFloat(iPhoton.superCluster()->rawEnergy(),nBits_));
+          gedPhoton_refinedSCRawESEnergy.push_back(reduceFloat(iPhoton.superCluster()->preshowerEnergy(),nBits_));
+          gedPhoton_refinedSCSwissCross.push_back(reduceFloat(swissCross,nBits_));  
+          gedPhoton_refinedSCEtaWidth.push_back(reduceFloat(iPhoton.superCluster()->etaWidth(),nBits_));  
+          gedPhoton_refinedSCPhiWidth.push_back(reduceFloat(iPhoton.superCluster()->phiWidth(),nBits_)); 
+          gedPhoton_refinedSCEMax.push_back(reduceFloat(eMax,nBits_));  
+          gedPhoton_refinedSCE2x2.push_back(reduceFloat(e2x2,nBits_));
+          gedPhoton_refinedSCE3x3.push_back(reduceFloat(e3x3,nBits_));
+          gedPhoton_refinedSCE5x5.push_back(reduceFloat(e5x5,nBits_));
+          gedPhoton_refinedSCR9.push_back(reduceFloat(e3x3/scRef->rawEnergy(),nBits_));
+          gedPhoton_refinedSCSigmaIEtaIEta.push_back(reduceFloat(phoSS.sigmaIetaIeta,nBits_));
+          gedPhoton_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(phoSS.sigmaIetaIphi,nBits_));
+          gedPhoton_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(phoSS.sigmaIphiIphi,nBits_));    
+          gedPhoton_full5x5_refinedSCEMax.push_back(reduceFloat(full5x5_eMax,nBits_));  
+          gedPhoton_full5x5_refinedSCE2x2.push_back(reduceFloat(full5x5_e2x2,nBits_));
+          gedPhoton_full5x5_refinedSCE3x3.push_back(reduceFloat(full5x5_e3x3,nBits_));
+          gedPhoton_full5x5_refinedSCE5x5.push_back(reduceFloat(full5x5_e5x5,nBits_));
+          gedPhoton_full5x5_refinedSCR9.push_back(reduceFloat(full5x5_e3x3/scRef->rawEnergy(),nBits_));        
+          gedPhoton_full5x5_refinedSCSigmaIEtaIEta.push_back(reduceFloat(full5x5_phoSS.sigmaIetaIeta,nBits_));
+          gedPhoton_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIetaIphi,nBits_));
+          gedPhoton_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIphiIphi,nBits_));    
+          gedPhoton_HoE.push_back(reduceFloat(iPhoton.hcalOverEcal(),nBits_));    
+          gedPhoton_trkIso.push_back(reduceFloat(iPhoton.trkSumPtSolidConeDR04(),nBits_));    
+          gedPhoton_ecalIso.push_back(reduceFloat(iPhoton.ecalRecHitSumEtConeDR04(),nBits_));   
+          gedPhoton_hcalIso.push_back(reduceFloat(iPhoton.hcalTowerSumEtConeDR04(),nBits_));  
+          gedPhoton_pfPhotonIso.push_back(reduceFloat(iPhoton.photonIso(),nBits_));      
+          gedPhoton_pfChargedHadronIso.push_back(reduceFloat(iPhoton.chargedHadronIso(),nBits_));      
+          gedPhoton_pfNeutralHadronIso.push_back(reduceFloat(iPhoton.neutralHadronIso(),nBits_));      
+
+          iPho++; 
+      }
+   }
+
+   if(savePatParticles_)
+   { 
+      //save Mll info
+      reco::Candidate::LorentzVector L1;
+      reco::Candidate::LorentzVector L2;
+      bool found1 = false;
+      bool found2 = false;
+ 
+      mll = -999.;
+      for(const auto& iElectron : *(patElectron.product())){  
+          if(found1 == false){
+             L1 = iElectron.p4();
+             found1 = true;
+          }else if(found2 == false){
+             L2 = iElectron.p4();
+             found2 = true;
+             mll = reduceFloat((L1+L2).mass(),nBits_);
+          }
+      } 
+
+      //save MET infos
+      pat::METRef metP = pat::METRef(patMET,0);
+      patMET_sumEt = reduceFloat(metP->sumEt(),nBits_);
+      patMET_et   = reduceFloat(metP->corPt(),nBits_); 
+ 
+      //save patElectron infos
+      int iEle=0;
+      for(const auto& iElectron : *(patElectron.product())){ 
+ 
+          reco::SuperClusterRef scRef = iElectron.superCluster();
+          reco::SuperCluster sc = *scRef;
+
+          double R  = TMath::Sqrt(scRef->x()*scRef->x() + scRef->y()*scRef->y() +scRef->z()*scRef->z());
+          double Rt = TMath::Sqrt(scRef->x()*scRef->x() + scRef->y()*scRef->y());
+
+          double SwissCross = -999.;
+          double e3x3 = -999.;
+          double e2x2 = -999.;
+          double e5x5 = -999.;  
+          double eMax = -999.;
+          double full5x5_e3x3 = -999.;
+          double full5x5_e2x2 = -999.;
+          double full5x5_e5x5 = -999.;  
+          double full5x5_eMax = -999.; 
+         
+          reco::GsfElectron::ShowerShape eleSS = iElectron.showerShape();
+          reco::GsfElectron::ShowerShape full5x5_eleSS = iElectron.full5x5_showerShape();
+          const std::vector<std::pair<DetId,float> > &hits= iElectron.superCluster()->hitsAndFractions();
+          if(iElectron.isEB())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEB.product())));   
+             SwissCross = EcalTools::swissCross(id.first,*(recHitsEB.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));             
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));
+          }
+          if(iElectron.isEE())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEE.product())));   
+             SwissCross = EcalTools::swissCross(id.first,*(recHitsEE.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));
+          }
+
+          double cphi = (iElectron.p4().x() * metP->corPx() + iElectron.p4().y() * metP->corPy()) / (metP->corPt()*iElectron.p4().Pt());
+          double Mt = sqrt(2 * iElectron.p4().Et() * metP->corPt() * (1-cphi));
+          double dphiMET = deltaPhi(metP->corPhi(),iElectron.p4().phi());
+
+          patElectron_index.push_back(iEle);
+          patElectron_seedRawId.push_back(iElectron.superCluster()->seed()->seed().rawId());
+          patElectron_classification.push_back(iElectron.classification());
+          patElectron_nPFClusters.push_back(iElectron.superCluster()->clusters().size());
+          patElectron_charge.push_back(iElectron.charge()); 
+          patElectron_isEB.push_back(iElectron.isEB()); 
+          patElectron_isEE.push_back(iElectron.isEE()); 
+          patElectron_eta.push_back(reduceFloat(iElectron.p4().eta(),nBits_));
+          patElectron_phi.push_back(reduceFloat(iElectron.p4().phi(),nBits_));
+          patElectron_p.push_back(reduceFloat(iElectron.trackMomentumAtVtx().R(),nBits_));
+          patElectron_pt.push_back(reduceFloat(TMath::Sqrt(iElectron.trackMomentumAtVtx().Perp2()),nBits_));
+          patElectron_pIn.push_back(reduceFloat(iElectron.trackMomentumAtVtx().R(),nBits_));
+          patElectron_pOut.push_back(reduceFloat(iElectron.trackMomentumOut().R(),nBits_));
+          patElectron_pAtCalo.push_back(reduceFloat(iElectron.trackMomentumAtCalo().R(),nBits_));
+          patElectron_deltaEtaIn.push_back(reduceFloat(iElectron.deltaEtaSuperClusterTrackAtVtx(),nBits_));
+          patElectron_deltaPhiIn.push_back(reduceFloat(iElectron.deltaPhiSuperClusterTrackAtVtx(),nBits_));
+          patElectron_deltaEtaSeedClusterAtCalo.push_back(reduceFloat(iElectron.deltaEtaSeedClusterTrackAtCalo(),nBits_));
+          patElectron_deltaEtaEleClusterAtCalo.push_back(reduceFloat(iElectron.deltaEtaEleClusterTrackAtCalo(),nBits_));
+          patElectron_deltaPhiEleClusterAtCalo.push_back(reduceFloat(iElectron.deltaPhiEleClusterTrackAtCalo(),nBits_));
+          patElectron_deltaPhiSeedClusterAtCalo.push_back(reduceFloat(iElectron.deltaPhiSeedClusterTrackAtCalo(),nBits_));
+          patElectron_misHits.push_back(iElectron.gsfTrack()->hitPattern().numberOfAllTrackerHits(reco::HitPattern::TRACK_HITS));
+          patElectron_nAmbiguousGsfTracks.push_back(iElectron.ambiguousGsfTracksSize());
+          patElectron_fbrem.push_back(reduceFloat(iElectron.fbrem(),nBits_));
+          patElectron_energy.push_back(reduceFloat(iElectron.energy(),nBits_));
+          patElectron_energyErr.push_back(reduceFloat(iElectron.p4Error(reco::GsfElectron::P4_COMBINATION),nBits_));
+          patElectron_ecalEnergy.push_back(reduceFloat(iElectron.ecalEnergy(),nBits_));
+          patElectron_ecalEnergyErr.push_back(reduceFloat(iElectron.ecalEnergyError(),nBits_));
+          patElectron_et.push_back(reduceFloat(iElectron.p4().Et(),nBits_));
+          patElectron_mt.push_back(reduceFloat(Mt,nBits_));
+          patElectron_dphiMET.push_back(reduceFloat(dphiMET,nBits_));
+          patElectron_refinedSCEta.push_back(reduceFloat(scRef->eta(),nBits_));
+          patElectron_refinedSCPhi.push_back(reduceFloat(scRef->phi(),nBits_));
+          patElectron_refinedSCEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
+          patElectron_refinedSCRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
+          patElectron_refinedSCESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
+          patElectron_refinedSCEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
+          patElectron_refinedSCPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
+          patElectron_refinedSCEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
+          patElectron_refinedSCEoP.push_back(reduceFloat(scRef->energy()/iElectron.trackMomentumAtVtx().R(),nBits_)); 
+          patElectron_refinedSCSwissCross.push_back(reduceFloat(SwissCross,nBits_)); 
+          patElectron_refinedSCE2x2.push_back(reduceFloat(e2x2,nBits_)); 
+          patElectron_refinedSCE3x3.push_back(reduceFloat(e3x3,nBits_)); 
+          patElectron_refinedSCE5x5.push_back(reduceFloat(e5x5,nBits_)); 
+          patElectron_refinedSCEMax.push_back(reduceFloat(eMax,nBits_)); 
+          patElectron_refinedSCR9.push_back(reduceFloat(e3x3/scRef->rawEnergy(),nBits_)); 
+          patElectron_refinedSCSigmaIEtaIEta.push_back(reduceFloat(eleSS.sigmaIetaIeta,nBits_));
+          patElectron_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(eleSS.sigmaIetaIphi,nBits_));
+          patElectron_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(eleSS.sigmaIphiIphi,nBits_));  
+          patElectron_full5x5_refinedSCE2x2.push_back(reduceFloat(full5x5_e2x2,nBits_)); 
+          patElectron_full5x5_refinedSCE3x3.push_back(reduceFloat(full5x5_e3x3,nBits_)); 
+          patElectron_full5x5_refinedSCE5x5.push_back(reduceFloat(full5x5_e5x5,nBits_)); 
+          patElectron_full5x5_refinedSCEMax.push_back(reduceFloat(full5x5_eMax,nBits_));
+          patElectron_full5x5_refinedSCR9.push_back(reduceFloat(full5x5_e3x3/scRef->rawEnergy(),nBits_));
+          patElectron_full5x5_refinedSCSigmaIEtaIEta.push_back(reduceFloat(full5x5_eleSS.sigmaIetaIeta,nBits_));
+          patElectron_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIetaIphi,nBits_));
+          patElectron_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIphiIphi,nBits_));  
+          patElectron_HoE.push_back(reduceFloat(iElectron.hadronicOverEm(),nBits_)); 
+          patElectron_trkIso.push_back(reduceFloat(iElectron.dr04TkSumPt(),nBits_));    
+          patElectron_ecalIso.push_back(reduceFloat(iElectron.dr04EcalRecHitSumEt(),nBits_));   
+          patElectron_hcalIso.push_back(reduceFloat(iElectron.dr04HcalTowerSumEt(),nBits_));  
+          patElectron_pfPhotonIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumPhotonEt,nBits_));      
+          patElectron_pfChargedHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumChargedHadronPt,nBits_));      
+          patElectron_pfNeutralHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumNeutralHadronEt,nBits_));   
+          patElectron_egmCutBasedElectronIDVeto.push_back(iElectron.electronID(egmCutBasedElectronIDVeto_.c_str()));
+          patElectron_egmCutBasedElectronIDloose.push_back(iElectron.electronID(egmCutBasedElectronIDloose_.c_str()));
+          patElectron_egmCutBasedElectronIDmedium.push_back(iElectron.electronID(egmCutBasedElectronIDmedium_.c_str()));
+          patElectron_egmCutBasedElectronIDtight.push_back(iElectron.electronID(egmCutBasedElectronIDtight_.c_str()));
+          patElectron_egmMVAElectronIDloose.push_back(iElectron.electronID(egmMVAElectronIDloose_.c_str()));
+          patElectron_egmMVAElectronIDmedium.push_back(iElectron.electronID(egmMVAElectronIDmedium_.c_str()));
+          patElectron_egmMVAElectronIDtight.push_back(iElectron.electronID(egmMVAElectronIDtight_.c_str()));
+          patElectron_egmMVAElectronIDlooseNoIso.push_back(iElectron.electronID(egmMVAElectronIDlooseNoIso_.c_str()));
+          patElectron_egmMVAElectronIDmediumNoIso.push_back(iElectron.electronID(egmMVAElectronIDmediumNoIso_.c_str()));
+          patElectron_egmMVAElectronIDtightNoIso.push_back(iElectron.electronID(egmMVAElectronIDtightNoIso_.c_str()));
+          patElectron_heepElectronID.push_back(iElectron.electronID(heepElectronID_.c_str()));
+          
+          iEle++; 
+      }
+
+      //save patPhoton infos
+      int iPho=0;
+      for(const auto& iPhoton : *(patPhoton.product())){ 
+ 
+          reco::SuperClusterRef scRef = iPhoton.superCluster();
+          reco::SuperCluster sc = *scRef;
+          reco::PhotonCoreRef phoCoreRef = iPhoton.photonCore();
+
+          double R  = TMath::Sqrt(scRef->x()*scRef->x() + scRef->y()*scRef->y() +scRef->z()*scRef->z());
+          double Rt = TMath::Sqrt(scRef->x()*scRef->x() + scRef->y()*scRef->y());
+
+          double SwissCross = -999.;
+          double e3x3 = -999.;
+          double e2x2 = -999.;
+          double e5x5 = -999.;  
+          double eMax = -999.;
+          double full5x5_e3x3 = -999.;
+          double full5x5_e2x2 = -999.;
+          double full5x5_e5x5 = -999.;  
+          double full5x5_eMax = -999.; 
+         
+          reco::Photon::ShowerShape phoSS = iPhoton.showerShapeVariables(); 
+          reco::Photon::ShowerShape full5x5_phoSS = iPhoton.full5x5_showerShapeVariables();    
+          const std::vector<std::pair<DetId,float> > &hits= iPhoton.superCluster()->hitsAndFractions();
+          if(iPhoton.isEB())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEB.product())));   
+
+             SwissCross = EcalTools::swissCross(id.first,*(recHitsEB.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEB.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEB.product())));
+          }
+          if(iPhoton.isEE())
+          {
+             std::pair<DetId, float> id = EcalClusterTools::getMaximum(hits,&(*(recHitsEE.product())));   
+
+             SwissCross = EcalTools::swissCross(id.first,*(recHitsEE.product()),0.);
+             e2x2 = EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             e3x3 = EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             e5x5 = EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             eMax = EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));
+             full5x5_e2x2 = noZS::EcalClusterTools::e2x2( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e3x3 = noZS::EcalClusterTools::e3x3( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_e5x5 = noZS::EcalClusterTools::e5x5( *scRef, &(*(recHitsEE.product())), topology);
+             full5x5_eMax = noZS::EcalClusterTools::eMax( *scRef, &(*(recHitsEE.product())));
+          }
+
+          double cphi = (iPhoton.p4().x() * metP->corPx() + iPhoton.p4().y() * metP->corPy()) / (metP->corPt()*iPhoton.p4().Pt());
+          double Mt = sqrt(2 * iPhoton.p4().Et() * metP->corPt() * (1-cphi));
+          double dphiMET = deltaPhi(metP->corPhi(),iPhoton.p4().phi());
+
+          patPhoton_index.push_back(iEle);
+          patPhoton_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
+          patPhoton_nPFClusters.push_back(iPhoton.superCluster()->clusters().size());
+          patPhoton_isEB.push_back(iPhoton.isEB()); 
+          patPhoton_isEE.push_back(iPhoton.isEE()); 
+          patPhoton_passElectronVeto.push_back(iPhoton.passElectronVeto()); 
+          patPhoton_hasPixelSeed.push_back(iPhoton.hasPixelSeed());  
+          patPhoton_hasConversionTracks.push_back(iPhoton.hasConversionTracks());
+          patPhoton_nConversions.push_back(phoCoreRef->conversions().size());
+          patPhoton_nConversionsOneLeg.push_back(phoCoreRef->conversionsOneLeg().size()); 
+          patPhoton_eta.push_back(reduceFloat(iPhoton.p4().eta(),nBits_));
+          patPhoton_phi.push_back(reduceFloat(iPhoton.p4().phi(),nBits_));
+          patPhoton_energy.push_back(reduceFloat(iPhoton.energy(),nBits_));
+          patPhoton_energyErr.push_back(reduceFloat(iPhoton.getCorrectedEnergyError(reco::Photon::regression2),nBits_));
+          patPhoton_ecalEnergy.push_back(reduceFloat(iPhoton.energyCorrections().phoEcalEnergy,nBits_));
+          patPhoton_ecalEnergyErr.push_back(reduceFloat(iPhoton.energyCorrections().phoEcalEnergyError,nBits_)); 
+          patPhoton_et.push_back(reduceFloat(iPhoton.p4().Et(),nBits_));
+          patPhoton_mt.push_back(reduceFloat(Mt,nBits_));
+          patPhoton_dphiMET.push_back(reduceFloat(dphiMET,nBits_));
+          patPhoton_refinedSCEta.push_back(reduceFloat(scRef->eta(),nBits_));
+          patPhoton_refinedSCPhi.push_back(reduceFloat(scRef->phi(),nBits_));
+          patPhoton_refinedSCEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
+          patPhoton_refinedSCRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
+          patPhoton_refinedSCESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
+          patPhoton_refinedSCEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
+          patPhoton_refinedSCPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
+          patPhoton_refinedSCEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
+          patPhoton_refinedSCSwissCross.push_back(reduceFloat(SwissCross,nBits_)); 
+          patPhoton_refinedSCE2x2.push_back(reduceFloat(e2x2,nBits_)); 
+          patPhoton_refinedSCE3x3.push_back(reduceFloat(e3x3,nBits_)); 
+          patPhoton_refinedSCE5x5.push_back(reduceFloat(e5x5,nBits_)); 
+          patPhoton_refinedSCEMax.push_back(reduceFloat(eMax,nBits_)); 
+          patPhoton_refinedSCR9.push_back(reduceFloat(e3x3/scRef->rawEnergy(),nBits_)); 
+          patPhoton_refinedSCSigmaIEtaIEta.push_back(reduceFloat(phoSS.sigmaIetaIeta,nBits_));
+          patPhoton_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(phoSS.sigmaIetaIphi,nBits_));
+          patPhoton_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(phoSS.sigmaIphiIphi,nBits_));    
+          patPhoton_full5x5_refinedSCEMax.push_back(reduceFloat(full5x5_eMax,nBits_)); 
+          patPhoton_full5x5_refinedSCE2x2.push_back(reduceFloat(full5x5_e2x2,nBits_)); 
+          patPhoton_full5x5_refinedSCE3x3.push_back(reduceFloat(full5x5_e3x3,nBits_)); 
+          patPhoton_full5x5_refinedSCE5x5.push_back(reduceFloat(full5x5_e5x5,nBits_)); 
+          patPhoton_full5x5_refinedSCEMax.push_back(reduceFloat(full5x5_eMax,nBits_));
+          patPhoton_full5x5_refinedSCR9.push_back(reduceFloat(full5x5_e3x3/scRef->rawEnergy(),nBits_)); 
+          patPhoton_full5x5_refinedSCSigmaIEtaIEta.push_back(reduceFloat(full5x5_phoSS.sigmaIetaIeta,nBits_));
+          patPhoton_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIetaIphi,nBits_));
+          patPhoton_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIphiIphi,nBits_));    
+          patPhoton_HoE.push_back(reduceFloat(iPhoton.hadronicOverEm(),nBits_)); 
+          patPhoton_trkIso.push_back(reduceFloat(iPhoton.trackIso(),nBits_));
+          patPhoton_ecalIso.push_back(reduceFloat(iPhoton.ecalIso(),nBits_));
+          patPhoton_hcalIso.push_back(reduceFloat(iPhoton.hcalIso(),nBits_));
+          patPhoton_patParticleIso.push_back(reduceFloat(iPhoton.patParticleIso(),nBits_));
+          patPhoton_pfChargedHadronIso.push_back(reduceFloat(iPhoton.chargedHadronIso(),nBits_));
+          patPhoton_pfNeutralHadronIso.push_back(reduceFloat(iPhoton.neutralHadronIso(),nBits_));
+          patPhoton_pfPhotonIso.push_back(reduceFloat(iPhoton.photonIso(),nBits_));
+          patPhoton_pfPuChargedHadronIso.push_back(reduceFloat(iPhoton.puChargedHadronIso(),nBits_));
+          patPhoton_egmCutBasedPhotonIDloose.push_back(iPhoton.photonID(egmCutBasedPhotonIDloose_.c_str()));
+          patPhoton_egmCutBasedPhotonIDmedium.push_back(iPhoton.photonID(egmCutBasedPhotonIDmedium_.c_str()));
+          patPhoton_egmCutBasedPhotonIDtight.push_back(iPhoton.photonID(egmCutBasedPhotonIDtight_.c_str()));
+          patPhoton_egmMVAPhotonIDmedium.push_back(iPhoton.photonID(egmMVAPhotonIDmedium_.c_str()));
+          patPhoton_egmMVAPhotonIDtight.push_back(iPhoton.photonID(egmMVAPhotonIDtight_.c_str()));
+          
           iPho++; 
       }
    }
@@ -1335,7 +1773,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           } 
          
           //compute scores  
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())); 
@@ -1345,7 +1783,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&superCluster_dR_genScore, 999., false, 0., iSC));
           } 
 
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -1366,7 +1804,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -1387,7 +1825,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
 
-          if(saveCaloParticles_){ 
+          if(saveCaloParticles_ && isMC_){ 
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -1432,7 +1870,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_recoEnergy_sharedXtals_MatchedIndex.push_back(getMatchedIndex(&superCluster_recoEnergy_sharedXtals, -999., true, 0., iSC)); 
           }
           
-          if(savePFCluster_){   
+          if(savePFCluster_ && saveSuperCluster_){   
              //save clusters and superClusters mutual info
              reco::CaloCluster caloSeed(*iSuperCluster.seed());  
              for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
@@ -1519,7 +1957,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }
 
           //compute scores  
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iSuperCluster.eta(),iSuperCluster.phi())); 
@@ -1529,7 +1967,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&superCluster_dR_genScore, 999., false, 0., iSC));
           } 
           
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -1550,7 +1988,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -1571,7 +2009,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
  
-          if(saveCaloParticles_){ 
+          if(saveCaloParticles_ && isMC_){ 
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -1625,7 +2063,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               }
           } 
 
-          if(savePFCluster_){   
+          if(savePFCluster_ && saveSuperCluster_){   
              //save clusters and superClusters mutual info
              reco::CaloCluster caloSeed(*iSuperCluster.seed());  
              for(reco::CaloCluster_iterator iBC = iSuperCluster.clustersBegin(); iBC != iSuperCluster.clustersEnd(); ++iBC){
@@ -1650,10 +2088,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
 
      //save inverse of matchings
-     if(saveGenParticles_){ 
+     if(saveGenParticles_ && isMC_){ 
         fillParticleMatchedIndex(&genParticle_superCluster_dR_genScore_MatchedIndex,&superCluster_dR_genScore_MatchedIndex);
       } 
-      if(saveCaloParticles_){ 
+      if(saveCaloParticles_ && isMC_){ 
          fillParticleMatchedIndex(&caloParticle_superCluster_dR_simScore_MatchedIndex,&superCluster_dR_simScore_MatchedIndex);
          fillParticleMatchedIndex(&caloParticle_superCluster_sim_nSharedXtals_MatchedIndex,&superCluster_sim_nSharedXtals_MatchedIndex); 
          fillParticleMatchedIndex(&caloParticle_superCluster_sim_fraction_noHitsFraction_MatchedIndex,&superCluster_sim_fraction_noHitsFraction_MatchedIndex);  
@@ -1667,7 +2105,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    //Save retunedSuperClusters 
    //std::cout << "-----> retunedSuperClusters <-----" << std::endl;  
-   if(saveSuperCluster_ && useRetunedSC_){
+   if(saveRetunedSC_){
       int iSC=0;
       //std::cout << "retunedSuperClustersEB size: " << (retunedSuperClusterEB.product())->size() << std::endl;
       for(const auto& iRetunedSuperCluster : *(retunedSuperClusterEB.product())){  
@@ -1733,7 +2171,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           } 
          
           //compute scores  
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())); 
@@ -1743,7 +2181,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&retunedSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
 
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -1764,7 +2202,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -1785,7 +2223,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
 
-          if(saveCaloParticles_){ 
+          if(saveCaloParticles_ && isMC_){ 
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -1916,7 +2354,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }
 
           //compute scores  
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iRetunedSuperCluster.eta(),iRetunedSuperCluster.phi())); 
@@ -1926,7 +2364,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&retunedSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
 
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -1947,7 +2385,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -1968,7 +2406,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
 
-          if(saveCaloParticles_){ 
+          if(saveCaloParticles_ && isMC_){ 
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -2022,7 +2460,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               }
           } 
 
-          if(savePFCluster_){   
+          if(savePFCluster_ && saveRetunedSC_){   
              //save clusters and retunedSuperClusters mutual info
              reco::CaloCluster caloSeed(*iRetunedSuperCluster.seed());  
              for(reco::CaloCluster_iterator iBC = iRetunedSuperCluster.clustersBegin(); iBC != iRetunedSuperCluster.clustersEnd(); ++iBC){
@@ -2040,17 +2478,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
 
       //save pfCluster_retunedSuperClustersIndex
-      if(savePFCluster_ && saveSuperCluster_ && useDeepSC_){
+      if(savePFCluster_ && saveRetunedSC_){
          for(unsigned int iSC=0; iSC<retunedSuperCluster_pfClustersIndex.size(); iSC++)
              for(unsigned int iPF=0; iPF<retunedSuperCluster_pfClustersIndex.at(iSC).size(); iPF++)
                  if(retunedSuperCluster_pfClustersIndex[iSC].at(iPF)>=0) pfCluster_retunedSuperClustersIndex[retunedSuperCluster_pfClustersIndex[iSC].at(iPF)].push_back(iSC);   
       } 
       
       //save inverse of matchings
-      if(saveGenParticles_){ 
+      if(saveGenParticles_ && isMC_){ 
          fillParticleMatchedIndex(&genParticle_retunedSuperCluster_dR_genScore_MatchedIndex,&retunedSuperCluster_dR_genScore_MatchedIndex);
       } 
-      if(saveCaloParticles_){ 
+      if(saveCaloParticles_ && isMC_){ 
          fillParticleMatchedIndex(&caloParticle_retunedSuperCluster_dR_simScore_MatchedIndex,&retunedSuperCluster_dR_simScore_MatchedIndex);
          fillParticleMatchedIndex(&caloParticle_retunedSuperCluster_sim_nSharedXtals_MatchedIndex,&retunedSuperCluster_sim_nSharedXtals_MatchedIndex); 
          fillParticleMatchedIndex(&caloParticle_retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex,&retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex);  
@@ -2064,7 +2502,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    //Save deepSuperClusters 
    //std::cout << "-----> deepSuperClusters <-----" << std::endl;  
-   if(saveSuperCluster_ && useDeepSC_){
+   if(saveDeepSC_){
       int iSC=0;
       //std::cout << "deepSuperClustersEB size: " << (deepSuperClusterEB.product())->size() << std::endl;
       for(const auto& iDeepSuperCluster : *(deepSuperClusterEB.product())){  
@@ -2130,7 +2568,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           } 
          
           //compute scores  
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())); 
@@ -2140,7 +2578,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&deepSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
 
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -2161,7 +2599,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -2182,7 +2620,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
 
-          if(saveCaloParticles_){ 
+          if(saveCaloParticles_ && isMC_){ 
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -2227,7 +2665,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex.push_back(getMatchedIndex(&deepSuperCluster_recoEnergy_sharedXtals, -999., true, 0., iSC));         
           }
 
-          if(savePFCluster_){   
+          if(savePFCluster_ && saveDeepSC_){   
              //save clusters and deepSuperClusters mutual info
              reco::CaloCluster caloSeed(*iDeepSuperCluster.seed());  
              for(reco::CaloCluster_iterator iBC = iDeepSuperCluster.clustersBegin(); iBC != iDeepSuperCluster.clustersEnd(); ++iBC){
@@ -2313,7 +2751,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }
 
           //compute scores  
-          if(saveGenParticles_){
+          if(saveGenParticles_ && isMC_){
              dR_genScore.clear();
              for(unsigned int iGen=0; iGen<genParts.size(); iGen++){
                  if(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())<999.) dR_genScore.push_back(deltaR(genParts.at(iGen).eta(),genParts.at(iGen).phi(),iDeepSuperCluster.eta(),iDeepSuperCluster.phi())); 
@@ -2323,7 +2761,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_dR_genScore_MatchedIndex.push_back(getMatchedIndex(&deepSuperCluster_dR_genScore, 999., false, 0., iSC));
           } 
 
-          if(saveCaloParticlesPU_){ 
+          if(saveCaloParticlesPU_ && isMC_){ 
              simPU_nSharedXtals.clear();
              simEnergy_sharedXtalsPU.clear(); 
              recoEnergy_sharedXtalsPU.clear();
@@ -2344,7 +2782,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsPU[0];        
           }
 
-          if(saveCaloParticlesOOTPU_){ 
+          if(saveCaloParticlesOOTPU_ && isMC_){ 
              simOOTPU_nSharedXtals.clear();
              simEnergy_sharedXtalsOOTPU.clear(); 
              recoEnergy_sharedXtalsOOTPU.clear();
@@ -2365,7 +2803,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU[iSC] = recoEnergy_noHitsFraction_sharedXtalsOOTPU[0];        
           }
 
-          if(saveCaloParticles_){
+          if(saveCaloParticles_ && isMC_){
              dR_simScore.clear();
              sim_nSharedXtals.clear();
              sim_fraction_noHitsFraction.clear();
@@ -2419,7 +2857,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               }
           } 
 
-          if(savePFCluster_){   
+          if(savePFCluster_ && saveDeepSC_){   
              //save clusters and deepSuperClusters mutual info
              reco::CaloCluster caloSeed(*iDeepSuperCluster.seed());  
              for(reco::CaloCluster_iterator iBC = iDeepSuperCluster.clustersBegin(); iBC != iDeepSuperCluster.clustersEnd(); ++iBC){
@@ -2437,17 +2875,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
 
       //save pfCluster_deepSuperClustersIndex
-      if(savePFCluster_ && saveSuperCluster_ && useDeepSC_){
+      if(savePFCluster_ && saveDeepSC_){
          for(unsigned int iSC=0; iSC<deepSuperCluster_pfClustersIndex.size(); iSC++)
              for(unsigned int iPF=0; iPF<deepSuperCluster_pfClustersIndex.at(iSC).size(); iPF++)
                  if(deepSuperCluster_pfClustersIndex[iSC].at(iPF)>=0) pfCluster_deepSuperClustersIndex[deepSuperCluster_pfClustersIndex[iSC].at(iPF)].push_back(iSC);   
       } 
 
       //save inverse of matchings
-      if(saveGenParticles_){ 
+      if(saveGenParticles_ && isMC_){ 
          fillParticleMatchedIndex(&genParticle_deepSuperCluster_dR_genScore_MatchedIndex,&deepSuperCluster_dR_genScore_MatchedIndex);
       } 
-      if(saveCaloParticles_){ 
+      if(saveCaloParticles_ && isMC_){ 
          fillParticleMatchedIndex(&caloParticle_deepSuperCluster_dR_simScore_MatchedIndex,&deepSuperCluster_dR_simScore_MatchedIndex);
          fillParticleMatchedIndex(&caloParticle_deepSuperCluster_sim_nSharedXtals_MatchedIndex,&deepSuperCluster_sim_nSharedXtals_MatchedIndex); 
          fillParticleMatchedIndex(&caloParticle_deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex,&deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex);  
@@ -2461,7 +2899,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    //Save unClustered pfRechits 
    pfRechit_unClustered.clear();
-   if(savePFRechits_ || saveRechits_){
+   if(savePFRechits_ && savePFCluster_ && saveSuperCluster_){
       for(const auto& iPFRechit : *(pfRecHits.product())){
 
           DetId pf_id(iPFRechit.detId());
@@ -2594,11 +3032,13 @@ void RecoSimDumper::setTree(TTree* tree)
    tree->Branch("eventId", &eventId, "eventId/L");
    tree->Branch("lumiId", &lumiId, "lumiId/I");
    tree->Branch("runId", &runId, "runId/I");
-   tree->Branch("truePU", &truePU, "truePU/D");
-   tree->Branch("obsPU", &obsPU, "obsPU/D");
-   tree->Branch("nVtx", &nVtx, "nVtx/I");
    tree->Branch("rho", &rho, "rho/F"); 
-   if(saveGenParticles_){
+   tree->Branch("nVtx", &nVtx, "nVtx/I");
+   if(isMC_){ 
+    tree->Branch("truePU", &truePU, "truePU/D");
+    tree->Branch("obsPU", &obsPU, "obsPU/D");
+   }
+   if(saveGenParticles_ && isMC_){
       tree->Branch("genParticle_size", &genParticle_size, "genParticle_size/I");  
       tree->Branch("genParticle_pdgId","std::vector<int>",&genParticle_pdgId);
       tree->Branch("genParticle_status","std::vector<int>",&genParticle_status); 
@@ -2608,10 +3048,10 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("genParticle_phi","std::vector<float>",&genParticle_phi);
       if(savePFCluster_) tree->Branch("genParticle_pfCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_pfCluster_dR_genScore_MatchedIndex);
       if(saveSuperCluster_) tree->Branch("genParticle_superCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_superCluster_dR_genScore_MatchedIndex);
-      if(saveSuperCluster_ && useRetunedSC_) tree->Branch("genParticle_retunedSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_retunedSuperCluster_dR_genScore_MatchedIndex); 
-      if(saveSuperCluster_ && useDeepSC_) tree->Branch("genParticle_deepSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_deepSuperCluster_dR_genScore_MatchedIndex); 
+      if(saveRetunedSC_) tree->Branch("genParticle_retunedSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_retunedSuperCluster_dR_genScore_MatchedIndex); 
+      if(saveDeepSC_) tree->Branch("genParticle_deepSuperCluster_dR_genScore_MatchedIndex","std::vector<std::vector<int> >",&genParticle_deepSuperCluster_dR_genScore_MatchedIndex); 
    }
-   if(saveCaloParticlesPU_){
+   if(saveCaloParticlesPU_ && isMC_){
       tree->Branch("caloParticlePU_nHitsWithES", &caloParticlePU_nHitsWithES, "caloParticlePU_nHitsWithES/I");  
       tree->Branch("caloParticlePU_nHits", &caloParticlePU_nHits, "caloParticlePU_nHits/I");  
       tree->Branch("caloParticlePU_totEnergyWithES", &caloParticlePU_totEnergyWithES, "caloParticlePU_totEnergyWithES/F");  
@@ -2626,7 +3066,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("caloParticlePU_xtalIplane", "std::vector<int>", &caloParticlePU_xtalIplane);   
       }  
    }
-   if(saveCaloParticlesOOTPU_){
+   if(saveCaloParticlesOOTPU_ && isMC_){
       tree->Branch("caloParticleOOTPU_nHitsWithES", &caloParticlePU_nHitsWithES, "caloParticlePU_nHitsWithES/I");  
       tree->Branch("caloParticleOOTPU_nHits", &caloParticlePU_nHits, "caloParticlePU_nHits/I");  
       tree->Branch("caloParticleOOTPU_totEnergyWithES", &caloParticlePU_totEnergyWithES, "caloParticlePU_totEnergyWithES/F");  
@@ -2641,7 +3081,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("caloParticleOOTPU_xtalIplane", "std::vector<int>", &caloParticleOOTPU_xtalIplane);   
       }   
    }
-   if(saveCaloParticles_){
+   if(saveCaloParticles_ && isMC_){
       tree->Branch("caloParticle_size", &caloParticle_size, "caloParticle_size/I"); 
       tree->Branch("caloParticle_index","std::vector<int>",&caloParticle_index); 
       tree->Branch("caloParticle_nXtals","std::vector<int>",&caloParticle_nXtals);   
@@ -2699,7 +3139,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("caloParticle_superCluster_recoToSim_fraction_sharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_superCluster_recoToSim_fraction_sharedXtals_MatchedIndex);   
          tree->Branch("caloParticle_superCluster_simEnergy_sharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_superCluster_simEnergy_sharedXtals_MatchedIndex);  
          tree->Branch("caloParticle_superCluster_recoEnergy_sharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_superCluster_recoEnergy_sharedXtals_MatchedIndex);
-         if(useRetunedSC_){
+         if(saveRetunedSC_){
             tree->Branch("caloParticle_retunedSuperCluster_dR_simScore_MatchedIndex","std::vector<std::vector<int> >", &caloParticle_retunedSuperCluster_dR_simScore_MatchedIndex);
             tree->Branch("caloParticle_retunedSuperCluster_sim_nSharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_retunedSuperCluster_sim_nSharedXtals_MatchedIndex);
             tree->Branch("caloParticle_retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex); 
@@ -2709,7 +3149,7 @@ void RecoSimDumper::setTree(TTree* tree)
             tree->Branch("caloParticle_retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex);  
             tree->Branch("caloParticle_retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
          } 
-         if(useDeepSC_){
+         if(saveDeepSC_){
             tree->Branch("caloParticle_deepSuperCluster_dR_simScore_MatchedIndex","std::vector<std::vector<int> >", &caloParticle_deepSuperCluster_dR_simScore_MatchedIndex);
             tree->Branch("caloParticle_deepSuperCluster_sim_nSharedXtals_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_deepSuperCluster_sim_nSharedXtals_MatchedIndex);
             tree->Branch("caloParticle_deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex", "std::vector<std::vector<int> >", &caloParticle_deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex); 
@@ -2739,7 +3179,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("recHit_noPF_iphi","std::vector<int>",&recHit_noPF_iphi);
       tree->Branch("recHit_noPF_iz","std::vector<int>",&recHit_noPF_iz);     
    }
-   if(savePFRechits_){ 
+   if(savePFRechits_ && savePFCluster_ && saveSuperCluster_){ 
       tree->Branch("pfRecHit_unClustered_energy","std::vector<float>",&pfRecHit_unClustered_energy);
       tree->Branch("pfRecHit_unClustered_eta","std::vector<float>",&pfRecHit_unClustered_eta); 
       tree->Branch("pfRecHit_unClustered_phi","std::vector<float>",&pfRecHit_unClustered_phi);
@@ -2758,19 +3198,21 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("pfCluster_ieta","std::vector<int>",&pfCluster_ieta);
       tree->Branch("pfCluster_iphi","std::vector<int>",&pfCluster_iphi);   
       tree->Branch("pfCluster_iz","std::vector<int>",&pfCluster_iz);
-      tree->Branch("pfCluster_noise","std::vector<float>",&pfCluster_noise);
-      tree->Branch("pfCluster_noiseUncalib","std::vector<float>",&pfCluster_noiseUncalib);
-      tree->Branch("pfCluster_noiseNoFractions","std::vector<float>",&pfCluster_noiseNoFractions);
-      tree->Branch("pfCluster_noiseUncalibNoFractions","std::vector<float>",&pfCluster_noiseUncalibNoFractions);
-      tree->Branch("pfCluster_noiseDB","std::vector<float>",&pfCluster_noiseDB);
-      tree->Branch("pfCluster_noiseDBUncalib","std::vector<float>",&pfCluster_noiseDBUncalib);
-      tree->Branch("pfCluster_noiseDBNoFractions","std::vector<float>",&pfCluster_noiseDBNoFractions);
-      tree->Branch("pfCluster_noiseDBUncalibNoFractions","std::vector<float>",&pfCluster_noiseDBUncalibNoFractions);
       tree->Branch("pfCluster_nXtals","std::vector<double>",&pfCluster_nXtals);  
+      if(isMC_){
+         tree->Branch("pfCluster_noise","std::vector<float>",&pfCluster_noise);
+         tree->Branch("pfCluster_noiseUncalib","std::vector<float>",&pfCluster_noiseUncalib);
+         tree->Branch("pfCluster_noiseNoFractions","std::vector<float>",&pfCluster_noiseNoFractions);
+         tree->Branch("pfCluster_noiseUncalibNoFractions","std::vector<float>",&pfCluster_noiseUncalibNoFractions);
+         tree->Branch("pfCluster_noiseDB","std::vector<float>",&pfCluster_noiseDB);
+         tree->Branch("pfCluster_noiseDBUncalib","std::vector<float>",&pfCluster_noiseDBUncalib);
+         tree->Branch("pfCluster_noiseDBNoFractions","std::vector<float>",&pfCluster_noiseDBNoFractions);
+         tree->Branch("pfCluster_noiseDBUncalibNoFractions","std::vector<float>",&pfCluster_noiseDBUncalibNoFractions);
+      }
       if(saveSuperCluster_) tree->Branch("pfCluster_superClustersIndex","std::vector<std::vector<int> >",&pfCluster_superClustersIndex); 
-      if(saveSuperCluster_ && useRetunedSC_) tree->Branch("pfCluster_retunedSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_retunedSuperClustersIndex);  
-      if(saveSuperCluster_ && useDeepSC_) tree->Branch("pfCluster_deepSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_deepSuperClustersIndex); 
-      if(saveCaloParticles_){ 
+      if(saveRetunedSC_) tree->Branch("pfCluster_retunedSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_retunedSuperClustersIndex);  
+      if(saveDeepSC_) tree->Branch("pfCluster_deepSuperClustersIndex","std::vector<std::vector<int> >",&pfCluster_deepSuperClustersIndex); 
+      if(saveCaloParticles_ && isMC_){ 
          tree->Branch("pfCluster_dR_genScore","std::vector<std::vector<double> >",&pfCluster_dR_genScore);
          tree->Branch("pfCluster_dR_simScore","std::vector<std::vector<double> >",&pfCluster_dR_simScore);
          tree->Branch("pfCluster_sim_nSharedXtals","std::vector<std::vector<double> >",&pfCluster_sim_nSharedXtals);
@@ -2790,21 +3232,21 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("pfCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&pfCluster_simEnergy_sharedXtals_MatchedIndex);
          tree->Branch("pfCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&pfCluster_recoEnergy_sharedXtals_MatchedIndex);
       }
-      if(saveCaloParticlesPU_){ 
+      if(saveCaloParticlesPU_ && isMC_){ 
          tree->Branch("pfCluster_simPU_nSharedXtals","std::vector<double>",&pfCluster_simPU_nSharedXtals);
          tree->Branch("pfCluster_simEnergy_sharedXtalsPU","std::vector<double>",&pfCluster_simEnergy_sharedXtalsPU);
          tree->Branch("pfCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&pfCluster_recoEnergy_sharedXtalsPU); 
          tree->Branch("pfCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&pfCluster_simEnergy_noHitsFraction_sharedXtalsPU);
          tree->Branch("pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&pfCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
       }
-      if(saveCaloParticlesOOTPU_){ 
+      if(saveCaloParticlesOOTPU_ && isMC_){ 
          tree->Branch("pfCluster_simOOTPU_nSharedXtals","std::vector<double>",&pfCluster_simOOTPU_nSharedXtals);
          tree->Branch("pfCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&pfCluster_simEnergy_sharedXtalsOOTPU);
          tree->Branch("pfCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&pfCluster_recoEnergy_sharedXtalsOOTPU);  
          tree->Branch("pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&pfCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
          tree->Branch("pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&pfCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
       }
-      if(savePFClusterhits_){ 
+      if(savePFClusterhits_ && savePFCluster_){ 
          tree->Branch("pfClusterHit_fraction","std::vector<std::vector<float> >",&pfClusterHit_fraction);
          tree->Branch("pfClusterHit_rechitEnergy","std::vector<std::vector<float> >",&pfClusterHit_rechitEnergy);
          tree->Branch("pfClusterHit_eta","std::vector<std::vector<float> >",&pfClusterHit_eta);
@@ -2821,78 +3263,248 @@ void RecoSimDumper::setTree(TTree* tree)
    }
    
    if(saveGedParticles_){
-      tree->Branch("electron_index","std::vector<int> ",&electron_index);    
-      tree->Branch("electron_seedRawId","std::vector<uint32_t> ",&electron_seedRawId);     
-      tree->Branch("electron_et","std::vector<float> ",&electron_et);     
-      tree->Branch("electron_energy","std::vector<float> ",&electron_energy);   
-      tree->Branch("electron_energyErr","std::vector<float> ",&electron_energyErr);   
-      tree->Branch("electron_ecalEnergy","std::vector<float> ",&electron_ecalEnergy); 
-      tree->Branch("electron_ecalEnergyErr","std::vector<float> ",&electron_ecalEnergyErr);  
-      tree->Branch("electron_eta","std::vector<float> ",&electron_eta); 
-      tree->Branch("electron_phi","std::vector<float> ",&electron_phi); 
-      tree->Branch("electron_trkEtaMode","std::vector<float> ",&electron_trkEtaMode);   
-      tree->Branch("electron_trkPhiMode","std::vector<float> ",&electron_trkPhiMode); 
-      tree->Branch("electron_trkPMode","std::vector<float> ",&electron_trkPMode);  
-      tree->Branch("electron_trkPModeErr","std::vector<float> ",&electron_trkPModeErr); 
-      tree->Branch("electron_trkPInn","std::vector<float> ",&electron_trkPInn); 
-      tree->Branch("electron_trkPtInn","std::vector<float> ",&electron_trkPtInn);   
-      tree->Branch("electron_trkPVtx","std::vector<float> ",&electron_trkPVtx); 
-      tree->Branch("electron_trkPOut","std::vector<float> ",&electron_trkPOut);  
-      tree->Branch("electron_trkChi2","std::vector<float> ",&electron_trkChi2); 
-      tree->Branch("electron_trkNDof","std::vector<float> ",&electron_trkNDof);  
-      tree->Branch("electron_fbrem","std::vector<float> ",&electron_fbrem);   
-      tree->Branch("electron_hademTow","std::vector<float> ",&electron_hademTow); 
-      tree->Branch("electron_hademCone","std::vector<float> ",&electron_hademCone);  
-      tree->Branch("electron_ecalDrivenSeed","std::vector<float> ",&electron_ecalDrivenSeed); 
-      tree->Branch("electron_nrSatCrys","std::vector<float> ",&electron_nrSatCrys); 
-      tree->Branch("electron_scRawEnergy","std::vector<float> ",&electron_scRawEnergy);   
-      tree->Branch("electron_scRawESEnergy","std::vector<float> ",&electron_scRawESEnergy); 
-      tree->Branch("electron_e3x3","std::vector<float> ",&electron_e3x3);  
-      tree->Branch("electron_e5x5","std::vector<float> ",&electron_e5x5); 
-      tree->Branch("electron_eMax","std::vector<float> ",&electron_eMax);  
-      tree->Branch("electron_e2nd","std::vector<float> ",&electron_e2nd);   
-      tree->Branch("electron_eLeft","std::vector<float> ",&electron_eLeft); 
-      tree->Branch("electron_eRight","std::vector<float> ",&electron_eRight);  
-      tree->Branch("electron_eLeftRightDiffSumRatio","std::vector<float> ",&electron_eLeftRightDiffSumRatio); 
-      tree->Branch("electron_eTop","std::vector<float> ",&electron_eTop); 
-      tree->Branch("electron_eBottom","std::vector<float> ",&electron_eBottom);   
-      tree->Branch("electron_eTopBottomDiffSumRatio","std::vector<float> ",&electron_eTopBottomDiffSumRatio); 
-      tree->Branch("electron_e2x5Bottom","std::vector<float> ",&electron_e2x5Bottom);  
-      tree->Branch("electron_e2x5Top","std::vector<float> ",&electron_e2x5Top); 
-      tree->Branch("electron_e2x5Left","std::vector<float> ",&electron_e2x5Left); 
-      tree->Branch("electron_e2x5Right","std::vector<float> ",&electron_e2x5Right);   
-      tree->Branch("electron_sigmaIEtaIEta","std::vector<float> ",&electron_sigmaIEtaIEta); 
-      tree->Branch("electron_sigmaIEtaIPhi","std::vector<float> ",&electron_sigmaIEtaIPhi);  
-      tree->Branch("electron_sigmaIPhiIPhi","std::vector<float> ",&electron_sigmaIPhiIPhi); 
-      tree->Branch("photon_index","std::vector<int> ",&photon_index);    
-      tree->Branch("photon_seedRawId","std::vector<uint32_t> ",&photon_seedRawId);     
-      tree->Branch("photon_et","std::vector<float> ",&photon_et); 
-      tree->Branch("photon_energy","std::vector<float> ",&photon_energy);  
-      tree->Branch("photon_energyErr","std::vector<float> ",&photon_energyErr); 
-      tree->Branch("photon_eta","std::vector<float> ",&photon_eta); 
-      tree->Branch("photon_phi","std::vector<float> ",&photon_phi);   
-      tree->Branch("photon_hademTow","std::vector<float> ",&photon_hademTow); 
-      tree->Branch("photon_hademCone","std::vector<float> ",&photon_hademCone);  
-      tree->Branch("photon_nrSatCrys","std::vector<float> ",&photon_nrSatCrys); 
-      tree->Branch("photon_scRawEnergy","std::vector<float> ",&photon_scRawEnergy); 
-      tree->Branch("photon_scRawESEnergy","std::vector<float> ",&photon_scRawESEnergy); 
-      tree->Branch("photon_e3x3","std::vector<float> ",&photon_e3x3);  
-      tree->Branch("photon_e5x5","std::vector<float> ",&photon_e5x5); 
-      tree->Branch("photon_eMax","std::vector<float> ",&photon_eMax);  
-      tree->Branch("photon_e2nd","std::vector<float> ",&photon_e2nd);   
-      tree->Branch("photon_eLeft","std::vector<float> ",&photon_eLeft); 
-      tree->Branch("photon_eRight","std::vector<float> ",&photon_eRight);  
-      tree->Branch("photon_eLeftRightDiffSumRatio","std::vector<float> ",&photon_eLeftRightDiffSumRatio); 
-      tree->Branch("photon_eTop","std::vector<float> ",&photon_eTop); 
-      tree->Branch("photon_eBottom","std::vector<float> ",&photon_eBottom);   
-      tree->Branch("photon_eTopBottomDiffSumRatio","std::vector<float> ",&photon_eTopBottomDiffSumRatio); 
-      tree->Branch("photon_e2x5Bottom","std::vector<float> ",&photon_e2x5Bottom);  
-      tree->Branch("photon_e2x5Top","std::vector<float> ",&photon_e2x5Top); 
-      tree->Branch("photon_e2x5Left","std::vector<float> ",&photon_e2x5Left); 
-      tree->Branch("photon_e2x5Right","std::vector<float> ",&photon_e2x5Right);   
-      tree->Branch("photon_sigmaIEtaIEta","std::vector<float> ",&photon_sigmaIEtaIEta); 
-      tree->Branch("photon_sigmaIEtaIPhi","std::vector<float> ",&photon_sigmaIEtaIPhi);  
-      tree->Branch("photon_sigmaIPhiIPhi","std::vector<float> ",&photon_sigmaIPhiIPhi); 
+      tree->Branch("gsfElectron_index","std::vector<int> ",&gsfElectron_index);    
+      tree->Branch("gsfElectron_seedRawId","std::vector<uint32_t> ",&gsfElectron_seedRawId);   
+      tree->Branch("gsfElectron_isEB","std::vector<int> ",&gsfElectron_isEB);   
+      tree->Branch("gsfElectron_isEE","std::vector<int> ",&gsfElectron_isEE);
+      tree->Branch("gsfElectron_classification","std::vector<int> ",&gsfElectron_classification);  
+      tree->Branch("gsfElectron_nPFClusters","std::vector<int> ",&gsfElectron_nPFClusters);      
+      tree->Branch("gsfElectron_p","std::vector<float> ",&gsfElectron_p);     
+      tree->Branch("gsfElectron_pt","std::vector<float> ",&gsfElectron_pt);     
+      tree->Branch("gsfElectron_et","std::vector<float> ",&gsfElectron_et);     
+      tree->Branch("gsfElectron_energy","std::vector<float> ",&gsfElectron_energy);   
+      tree->Branch("gsfElectron_energyErr","std::vector<float> ",&gsfElectron_energyErr);   
+      tree->Branch("gsfElectron_ecalEnergy","std::vector<float> ",&gsfElectron_ecalEnergy); 
+      tree->Branch("gsfElectron_ecalEnergyErr","std::vector<float> ",&gsfElectron_ecalEnergyErr);  
+      tree->Branch("gsfElectron_eta","std::vector<float> ",&gsfElectron_eta); 
+      tree->Branch("gsfElectron_phi","std::vector<float> ",&gsfElectron_phi); 
+      tree->Branch("gsfElectron_trkEtaMode","std::vector<float> ",&gsfElectron_trkEtaMode);   
+      tree->Branch("gsfElectron_trkPhiMode","std::vector<float> ",&gsfElectron_trkPhiMode); 
+      tree->Branch("gsfElectron_trkPMode","std::vector<float> ",&gsfElectron_trkPMode);  
+      tree->Branch("gsfElectron_trkPModeErr","std::vector<float> ",&gsfElectron_trkPModeErr); 
+      tree->Branch("gsfElectron_trkPInn","std::vector<float> ",&gsfElectron_trkPInn); 
+      tree->Branch("gsfElectron_trkPtInn","std::vector<float> ",&gsfElectron_trkPtInn);   
+      tree->Branch("gsfElectron_trkPVtx","std::vector<float> ",&gsfElectron_trkPVtx); 
+      tree->Branch("gsfElectron_trkPOut","std::vector<float> ",&gsfElectron_trkPOut);  
+      tree->Branch("gsfElectron_trkChi2","std::vector<float> ",&gsfElectron_trkChi2); 
+      tree->Branch("gsfElectron_trkNDof","std::vector<float> ",&gsfElectron_trkNDof);  
+      tree->Branch("gsfElectron_fbrem","std::vector<float> ",&gsfElectron_fbrem);   
+      tree->Branch("gsfElectron_hademTow","std::vector<float> ",&gsfElectron_hademTow); 
+      tree->Branch("gsfElectron_hademCone","std::vector<float> ",&gsfElectron_hademCone);  
+      tree->Branch("gsfElectron_ecalDrivenSeed","std::vector<float> ",&gsfElectron_ecalDrivenSeed); 
+      tree->Branch("gsfElectron_nrSatCrys","std::vector<float> ",&gsfElectron_nrSatCrys); 
+      tree->Branch("gsfElectron_refinedSCRawEnergy","std::vector<float> ",&gsfElectron_refinedSCRawEnergy);   
+      tree->Branch("gsfElectron_refinedSCRawESEnergy","std::vector<float> ",&gsfElectron_refinedSCRawESEnergy); 
+      tree->Branch("gsfElectron_refinedSCEtaWidth","std::vector<float> ",&gsfElectron_refinedSCEtaWidth);   
+      tree->Branch("gsfElectron_refinedSCPhiWidth","std::vector<float> ",&gsfElectron_refinedSCPhiWidth);   
+      tree->Branch("gsfElectron_refinedSCSwissCross","std::vector<float> ",&gsfElectron_refinedSCSwissCross);  
+      tree->Branch("gsfElectron_refinedSCEMax","std::vector<float> ",&gsfElectron_refinedSCEMax);  
+      tree->Branch("gsfElectron_refinedSCE2x2","std::vector<float> ",&gsfElectron_refinedSCE2x2);  
+      tree->Branch("gsfElectron_refinedSCE3x3","std::vector<float> ",&gsfElectron_refinedSCE3x3);  
+      tree->Branch("gsfElectron_refinedSCE5x5","std::vector<float> ",&gsfElectron_refinedSCE5x5); 
+      tree->Branch("gsfElectron_refinedSCR9","std::vector<float> ",&gsfElectron_refinedSCR9);  
+      tree->Branch("gsfElectron_refinedSCSigmaIEtaIEta","std::vector<float> ",&gsfElectron_refinedSCSigmaIEtaIEta); 
+      tree->Branch("gsfElectron_refinedSCSigmaIEtaIPhi","std::vector<float> ",&gsfElectron_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("gsfElectron_refinedSCSigmaIPhiIPhi","std::vector<float> ",&gsfElectron_refinedSCSigmaIPhiIPhi); 
+      tree->Branch("gsfElectron_full5x5_refinedSCEMax","std::vector<float> ",&gsfElectron_full5x5_refinedSCEMax);  
+      tree->Branch("gsfElectron_full5x5_refinedSCE2x2","std::vector<float> ",&gsfElectron_full5x5_refinedSCE2x2);  
+      tree->Branch("gsfElectron_full5x5_refinedSCE3x3","std::vector<float> ",&gsfElectron_full5x5_refinedSCE3x3);  
+      tree->Branch("gsfElectron_full5x5_refinedSCE5x5","std::vector<float> ",&gsfElectron_full5x5_refinedSCE5x5); 
+      tree->Branch("gsfElectron_full5x5_refinedSCR9","std::vector<float> ",&gsfElectron_full5x5_refinedSCR9);  
+      tree->Branch("gsfElectron_full5x5_refinedSCSigmaIEtaIEta","std::vector<float> ",&gsfElectron_full5x5_refinedSCSigmaIEtaIEta); 
+      tree->Branch("gsfElectron_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&gsfElectron_full5x5_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("gsfElectron_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&gsfElectron_full5x5_refinedSCSigmaIPhiIPhi);  
+       tree->Branch("gsfElectron_HoE","std::vector<float> ",&gsfElectron_HoE); 
+      tree->Branch("gsfElectron_trkIso","std::vector<float> ",&gsfElectron_trkIso); 
+      tree->Branch("gsfElectron_ecalIso","std::vector<float> ",&gsfElectron_ecalIso); 
+      tree->Branch("gsfElectron_hcalIso","std::vector<float> ",&gsfElectron_hcalIso);  
+      tree->Branch("gsfElectron_pfPhotonIso","std::vector<float> ",&gsfElectron_pfPhotonIso); 
+      tree->Branch("gsfElectron_pfChargedHadronIso","std::vector<float> ",&gsfElectron_pfChargedHadronIso); 
+      tree->Branch("gsfElectron_pfNeutralHadronIso","std::vector<float> ",&gsfElectron_pfNeutralHadronIso);  
+      tree->Branch("gedPhoton_index","std::vector<int> ",&gedPhoton_index);    
+      tree->Branch("gedPhoton_seedRawId","std::vector<uint32_t> ",&gedPhoton_seedRawId);   
+      tree->Branch("gedPhoton_isEB","std::vector<int> ",&gedPhoton_isEB);  
+      tree->Branch("gedPhoton_isEE","std::vector<int> ",&gedPhoton_isEE);   
+      tree->Branch("gedPhoton_nPFClusters","std::vector<int> ",&gedPhoton_nPFClusters);   
+      tree->Branch("gedPhoton_hasConversionTracks","std::vector<bool> ",&gedPhoton_hasConversionTracks); 
+      tree->Branch("gedPhoton_nConversions","std::vector<int> ",&gedPhoton_nConversions);     
+      tree->Branch("gedPhoton_nConversionsOneLeg","std::vector<int> ",&gedPhoton_nConversionsOneLeg);      
+      tree->Branch("gedPhoton_et","std::vector<float> ",&gedPhoton_et); 
+      tree->Branch("gedPhoton_energy","std::vector<float> ",&gedPhoton_energy);   
+      tree->Branch("gedPhoton_energyErr","std::vector<float> ",&gedPhoton_energyErr);   
+      tree->Branch("gedPhoton_ecalEnergy","std::vector<float> ",&gedPhoton_ecalEnergy); 
+      tree->Branch("gedPhoton_ecalEnergyErr","std::vector<float> ",&gedPhoton_ecalEnergyErr);  
+      tree->Branch("gedPhoton_eta","std::vector<float> ",&gedPhoton_eta); 
+      tree->Branch("gedPhoton_phi","std::vector<float> ",&gedPhoton_phi);   
+      tree->Branch("gedPhoton_hademTow","std::vector<float> ",&gedPhoton_hademTow); 
+      tree->Branch("gedPhoton_hademCone","std::vector<float> ",&gedPhoton_hademCone);  
+      tree->Branch("gedPhoton_nrSatCrys","std::vector<float> ",&gedPhoton_nrSatCrys); 
+      tree->Branch("gedPhoton_refinedSCRawEnergy","std::vector<float> ",&gedPhoton_refinedSCRawEnergy); 
+      tree->Branch("gedPhoton_refinedSCRawESEnergy","std::vector<float> ",&gedPhoton_refinedSCRawESEnergy);
+      tree->Branch("gedPhoton_refinedSCEtaWidth","std::vector<float> ",&gedPhoton_refinedSCEtaWidth);   
+      tree->Branch("gedPhoton_refinedSCPhiWidth","std::vector<float> ",&gedPhoton_refinedSCPhiWidth);   
+      tree->Branch("gedPhoton_refinedSCSwissCross","std::vector<float> ",&gedPhoton_refinedSCSwissCross);  
+      tree->Branch("gedPhoton_refinedSCEMax","std::vector<float> ",&gedPhoton_refinedSCEMax);  
+      tree->Branch("gedPhoton_refinedSCE2x2","std::vector<float> ",&gedPhoton_refinedSCE2x2);  
+      tree->Branch("gedPhoton_refinedSCE3x3","std::vector<float> ",&gedPhoton_refinedSCE3x3);  
+      tree->Branch("gedPhoton_refinedSCE5x5","std::vector<float> ",&gedPhoton_refinedSCE5x5); 
+      tree->Branch("gedPhoton_refinedSCR9","std::vector<float> ",&gedPhoton_refinedSCR9);  
+      tree->Branch("gedPhoton_refinedSCSigmaIEtaIEta","std::vector<float> ",&gedPhoton_refinedSCSigmaIEtaIEta); 
+      tree->Branch("gedPhoton_refinedSCSigmaIEtaIPhi","std::vector<float> ",&gedPhoton_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("gedPhoton_refinedSCSigmaIPhiIPhi","std::vector<float> ",&gedPhoton_refinedSCSigmaIPhiIPhi); 
+      tree->Branch("gedPhoton_full5x5_refinedSCEMax","std::vector<float> ",&gedPhoton_full5x5_refinedSCEMax);  
+      tree->Branch("gedPhoton_full5x5_refinedSCE2x2","std::vector<float> ",&gedPhoton_full5x5_refinedSCE2x2);  
+      tree->Branch("gedPhoton_full5x5_refinedSCE3x3","std::vector<float> ",&gedPhoton_full5x5_refinedSCE3x3);  
+      tree->Branch("gedPhoton_full5x5_refinedSCE5x5","std::vector<float> ",&gedPhoton_full5x5_refinedSCE5x5); 
+      tree->Branch("gedPhoton_full5x5_refinedSCR9","std::vector<float> ",&gedPhoton_full5x5_refinedSCR9);  
+      tree->Branch("gedPhoton_full5x5_refinedSCSigmaIEtaIEta","std::vector<float> ",&gedPhoton_full5x5_refinedSCSigmaIEtaIEta); 
+      tree->Branch("gedPhoton_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&gedPhoton_full5x5_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("gedPhoton_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&gedPhoton_full5x5_refinedSCSigmaIPhiIPhi); 
+      tree->Branch("gedPhoton_HoE","std::vector<float> ",&gedPhoton_HoE);
+      tree->Branch("gedPhoton_trkIso","std::vector<float> ",&gedPhoton_trkIso); 
+      tree->Branch("gedPhoton_ecalIso","std::vector<float> ",&gedPhoton_ecalIso); 
+      tree->Branch("gedPhoton_hcalIso","std::vector<float> ",&gedPhoton_hcalIso);  
+      tree->Branch("gedPhoton_pfPhotonIso","std::vector<float> ",&gedPhoton_pfPhotonIso); 
+      tree->Branch("gedPhoton_pfChargedHadronIso","std::vector<float> ",&gedPhoton_pfChargedHadronIso); 
+      tree->Branch("gedPhoton_pfNeutralHadronIso","std::vector<float> ",&gedPhoton_pfNeutralHadronIso);   
+   }
+
+   if(savePatParticles_){
+      tree->Branch("patMET_sumEt", &patMET_sumEt, "patMET_sumEt/F"); 
+      tree->Branch("patMET_et", &patMET_et, "patMET_et/F"); 
+      tree->Branch("mll", &mll, "mll/F"); 
+      tree->Branch("patElectron_index","std::vector<int> ",&patElectron_index); 
+      tree->Branch("patElectron_seedRawId","std::vector<uint32_t> ",&patElectron_seedRawId);   
+      tree->Branch("patElectron_classification","std::vector<int> ",&patElectron_classification); 
+      tree->Branch("patElectron_nPFClusters","std::vector<int> ",&patElectron_nPFClusters); 
+      tree->Branch("patElectron_charge","std::vector<int> ",&patElectron_charge); 
+      tree->Branch("patElectron_isEB","std::vector<bool> ",&patElectron_isEB); 
+      tree->Branch("patElectron_isEE","std::vector<bool> ",&patElectron_isEE); 
+      tree->Branch("patElectron_eta","std::vector<float> ",&patElectron_eta); 
+      tree->Branch("patElectron_phi","std::vector<float> ",&patElectron_phi); 
+      tree->Branch("patElectron_p","std::vector<float> ",&patElectron_p); 
+      tree->Branch("patElectron_pt","std::vector<float> ",&patElectron_pt); 
+      tree->Branch("patElectron_pIn","std::vector<float> ",&patElectron_pIn); 
+      tree->Branch("patElectron_pOut","std::vector<float> ",&patElectron_pOut); 
+      tree->Branch("patElectron_pAtCalo","std::vector<float> ",&patElectron_pAtCalo); 
+      tree->Branch("patElectron_deltaEtaIn","std::vector<float> ",&patElectron_deltaEtaIn); 
+      tree->Branch("patElectron_deltaPhiIn","std::vector<float> ",&patElectron_deltaPhiIn); 
+      tree->Branch("patElectron_deltaEtaSeedClusterAtCalo","std::vector<float> ",&patElectron_deltaEtaSeedClusterAtCalo);
+      tree->Branch("patElectron_deltaPhiSeedClusterAtCalo","std::vector<float> ",&patElectron_deltaPhiSeedClusterAtCalo);  
+      tree->Branch("patElectron_deltaEtaEleClusterAtCalo","std::vector<float> ",&patElectron_deltaEtaEleClusterAtCalo); 
+      tree->Branch("patElectron_deltaPhiEleClusterAtCalo","std::vector<float> ",&patElectron_deltaPhiEleClusterAtCalo); 
+      tree->Branch("patElectron_misHits","std::vector<int> ",&patElectron_misHits); 
+      tree->Branch("patElectron_nAmbiguousGsfTracks","std::vector<int> ",&patElectron_nAmbiguousGsfTracks); 
+      tree->Branch("patElectron_fbrem","std::vector<float> ",&patElectron_fbrem);
+      tree->Branch("patElectron_energy","std::vector<float> ",&patElectron_energy);   
+      tree->Branch("patElectron_energyErr","std::vector<float> ",&patElectron_energyErr);   
+      tree->Branch("patElectron_ecalEnergy","std::vector<float> ",&patElectron_ecalEnergy); 
+      tree->Branch("patElectron_ecalEnergyErr","std::vector<float> ",&patElectron_ecalEnergyErr);  
+      tree->Branch("patElectron_et","std::vector<float> ",&patElectron_et); 
+      tree->Branch("patElectron_mt","std::vector<float> ",&patElectron_mt); 
+      tree->Branch("patElectron_dphiMET","std::vector<float> ",&patElectron_dphiMET); 
+      tree->Branch("patElectron_refinedSCEta","std::vector<float> ",&patElectron_refinedSCEta); 
+      tree->Branch("patElectron_refinedSCPhi","std::vector<float> ",&patElectron_refinedSCPhi); 
+      tree->Branch("patElectron_refinedSCEnergy","std::vector<float> ",&patElectron_refinedSCEnergy); 
+      tree->Branch("patElectron_refinedSCRawEnergy","std::vector<float> ",&patElectron_refinedSCRawEnergy); 
+      tree->Branch("patElectron_refinedSCESEnergy","std::vector<float> ",&patElectron_refinedSCESEnergy); 
+      tree->Branch("patElectron_refinedSCEt","std::vector<float> ",&patElectron_refinedSCEt); 
+      tree->Branch("patElectron_refinedSCPhiWidth","std::vector<float> ",&patElectron_refinedSCPhiWidth);  
+      tree->Branch("patElectron_refinedSCEtaWidth","std::vector<float> ",&patElectron_refinedSCEtaWidth);  
+      tree->Branch("patElectron_refinedSCEoP","std::vector<float> ",&patElectron_refinedSCEoP);  
+      tree->Branch("patElectron_refinedSCSwissCross","std::vector<float> ",&patElectron_refinedSCSwissCross);  
+      tree->Branch("patElectron_refinedSCE2x2","std::vector<float> ",&patElectron_refinedSCE2x2);  
+      tree->Branch("patElectron_refinedSCE3x3","std::vector<float> ",&patElectron_refinedSCE3x3);  
+      tree->Branch("patElectron_refinedSCE5x5","std::vector<float> ",&patElectron_refinedSCE5x5);  
+      tree->Branch("patElectron_refinedSCEMax","std::vector<float> ",&patElectron_refinedSCEMax); 
+      tree->Branch("patElectron_refinedSCR9","std::vector<float> ",&patElectron_refinedSCR9); 
+      tree->Branch("patElectron_refinedSCSigmaIEtaIEta","std::vector<float> ",&patElectron_refinedSCSigmaIEtaIEta);  
+      tree->Branch("patElectron_refinedSCSigmaIEtaIPhi","std::vector<float> ",&patElectron_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("patElectron_refinedSCSigmaIPhiIPhi","std::vector<float> ",&patElectron_refinedSCSigmaIPhiIPhi);  
+      tree->Branch("patElectron_full5x5_refinedSCE2x2","std::vector<float> ",&patElectron_full5x5_refinedSCE2x2);  
+      tree->Branch("patElectron_full5x5_refinedSCE3x3","std::vector<float> ",&patElectron_full5x5_refinedSCE3x3);  
+      tree->Branch("patElectron_full5x5_refinedSCE5x5","std::vector<float> ",&patElectron_full5x5_refinedSCE5x5);  
+      tree->Branch("patElectron_full5x5_refinedSCEMax","std::vector<float> ",&patElectron_full5x5_refinedSCEMax);  
+      tree->Branch("patElectron_full5x5_refinedSCR9","std::vector<float> ",&patElectron_full5x5_refinedSCR9);  
+      tree->Branch("patElectron_full5x5_refinedSCSigmaIEtaIEta","std::vector<float> ",&patElectron_full5x5_refinedSCSigmaIEtaIEta);  
+      tree->Branch("patElectron_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&patElectron_full5x5_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("patElectron_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&patElectron_full5x5_refinedSCSigmaIPhiIPhi);  
+      tree->Branch("patElectron_HoE","std::vector<float> ",&patElectron_HoE);   
+      tree->Branch("patElectron_trkIso","std::vector<float> ",&patElectron_trkIso); 
+      tree->Branch("patElectron_ecalIso","std::vector<float> ",&patElectron_ecalIso); 
+      tree->Branch("patElectron_hcalIso","std::vector<float> ",&patElectron_hcalIso);  
+      tree->Branch("patElectron_pfPhotonIso","std::vector<float> ",&patElectron_pfPhotonIso); 
+      tree->Branch("patElectron_pfChargedHadronIso","std::vector<float> ",&patElectron_pfChargedHadronIso); 
+      tree->Branch("patElectron_pfNeutralHadronIso","std::vector<float> ",&patElectron_pfNeutralHadronIso);  
+      tree->Branch("patElectron_egmCutBasedElectronIDVeto","std::vector<int> ",&patElectron_egmCutBasedElectronIDVeto);  
+      tree->Branch("patElectron_egmCutBasedElectronIDloose","std::vector<int> ",&patElectron_egmCutBasedElectronIDloose);  
+      tree->Branch("patElectron_egmCutBasedElectronIDmedium","std::vector<int> ",&patElectron_egmCutBasedElectronIDmedium);
+      tree->Branch("patElectron_egmCutBasedElectronIDtight","std::vector<int> ",&patElectron_egmCutBasedElectronIDtight);  
+      tree->Branch("patElectron_egmMVAElectronIDloose","std::vector<int> ",&patElectron_egmMVAElectronIDloose);  
+      tree->Branch("patElectron_egmMVAElectronIDmedium","std::vector<int> ",&patElectron_egmMVAElectronIDmedium);
+      tree->Branch("patElectron_egmMVAElectronIDtight","std::vector<int> ",&patElectron_egmMVAElectronIDtight);  
+      tree->Branch("patElectron_egmMVAElectronIDlooseNoIso","std::vector<int> ",&patElectron_egmMVAElectronIDlooseNoIso);  
+      tree->Branch("patElectron_egmMVAElectronIDmediumNoIso","std::vector<int> ",&patElectron_egmMVAElectronIDmediumNoIso);
+      tree->Branch("patElectron_egmMVAElectronIDtightNoIso","std::vector<int> ",&patElectron_egmMVAElectronIDtightNoIso);  
+      tree->Branch("patElectron_heepElectronID","std::vector<int> ",&patElectron_heepElectronID);  
+      tree->Branch("patPhoton_index","std::vector<int> ",&patPhoton_index); 
+      tree->Branch("patPhoton_seedRawId","std::vector<uint32_t> ",&patPhoton_seedRawId);   
+      tree->Branch("patPhoton_nPFClusters","std::vector<int> ",&patPhoton_nPFClusters); 
+      tree->Branch("patPhoton_passElectronVeto","std::vector<bool> ",&patPhoton_passElectronVeto); 
+      tree->Branch("patPhoton_hasPixelSeed","std::vector<bool> ",&patPhoton_hasPixelSeed); 
+      tree->Branch("patPhoton_hasConversionTracks","std::vector<bool> ",&patPhoton_hasConversionTracks); 
+      tree->Branch("patPhoton_nConversions","std::vector<int> ",&patPhoton_nConversions);     
+      tree->Branch("patPhoton_nConversionsOneLeg","std::vector<int> ",&patPhoton_nConversionsOneLeg);     
+      tree->Branch("patPhoton_isEB","std::vector<bool> ",&patPhoton_isEB); 
+      tree->Branch("patPhoton_isEE","std::vector<bool> ",&patPhoton_isEE); 
+      tree->Branch("patPhoton_eta","std::vector<float> ",&patPhoton_eta); 
+      tree->Branch("patPhoton_phi","std::vector<float> ",&patPhoton_phi); 
+      tree->Branch("patPhoton_energy","std::vector<float> ",&patPhoton_energy);   
+      tree->Branch("patPhoton_energyErr","std::vector<float> ",&patPhoton_energyErr);   
+      tree->Branch("patPhoton_ecalEnergy","std::vector<float> ",&patPhoton_ecalEnergy); 
+      tree->Branch("patPhoton_ecalEnergyErr","std::vector<float> ",&patPhoton_ecalEnergyErr);  
+      tree->Branch("patPhoton_et","std::vector<float> ",&patPhoton_et); 
+      tree->Branch("patPhoton_mt","std::vector<float> ",&patPhoton_mt); 
+      tree->Branch("patPhoton_dphiMET","std::vector<float> ",&patPhoton_dphiMET); 
+      tree->Branch("patPhoton_refinedSCEta","std::vector<float> ",&patPhoton_refinedSCEta); 
+      tree->Branch("patPhoton_refinedSCPhi","std::vector<float> ",&patPhoton_refinedSCPhi); 
+      tree->Branch("patPhoton_refinedSCEnergy","std::vector<float> ",&patPhoton_refinedSCEnergy); 
+      tree->Branch("patPhoton_refinedSCRawEnergy","std::vector<float> ",&patPhoton_refinedSCRawEnergy); 
+      tree->Branch("patPhoton_refinedSCESEnergy","std::vector<float> ",&patPhoton_refinedSCESEnergy); 
+      tree->Branch("patPhoton_refinedSCEt","std::vector<float> ",&patPhoton_refinedSCEt); 
+      tree->Branch("patPhoton_refinedSCPhiWidth","std::vector<float> ",&patPhoton_refinedSCPhiWidth);  
+      tree->Branch("patPhoton_refinedSCEtaWidth","std::vector<float> ",&patPhoton_refinedSCEtaWidth);  
+      tree->Branch("patPhoton_refinedSCSwissCross","std::vector<float> ",&patPhoton_refinedSCSwissCross);  
+      tree->Branch("patPhoton_refinedSCE2x2","std::vector<float> ",&patPhoton_refinedSCE2x2);  
+      tree->Branch("patPhoton_refinedSCE3x3","std::vector<float> ",&patPhoton_refinedSCE3x3);  
+      tree->Branch("patPhoton_refinedSCE5x5","std::vector<float> ",&patPhoton_refinedSCE5x5);  
+      tree->Branch("patPhoton_refinedSCEMax","std::vector<float> ",&patPhoton_refinedSCEMax); 
+      tree->Branch("patPhoton_refinedSCR9","std::vector<float> ",&patPhoton_refinedSCR9); 
+      tree->Branch("patPhoton_refinedSCSigmaIEtaIEta","std::vector<float> ",&patPhoton_refinedSCSigmaIEtaIEta);  
+      tree->Branch("patPhoton_refinedSCSigmaIEtaIPhi","std::vector<float> ",&patPhoton_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("patPhoton_refinedSCSigmaIPhiIPhi","std::vector<float> ",&patPhoton_refinedSCSigmaIPhiIPhi);  
+      tree->Branch("patPhoton_full5x5_refinedSCE2x2","std::vector<float> ",&patPhoton_full5x5_refinedSCE2x2);  
+      tree->Branch("patPhoton_full5x5_refinedSCE3x3","std::vector<float> ",&patPhoton_full5x5_refinedSCE3x3);  
+      tree->Branch("patPhoton_full5x5_refinedSCE5x5","std::vector<float> ",&patPhoton_full5x5_refinedSCE5x5);  
+      tree->Branch("patPhoton_full5x5_refinedSCEMax","std::vector<float> ",&patPhoton_full5x5_refinedSCEMax);  
+      tree->Branch("patPhoton_full5x5_refinedSCR9","std::vector<float> ",&patPhoton_full5x5_refinedSCR9);  
+      tree->Branch("patPhoton_full5x5_refinedSCSigmaIEtaIEta","std::vector<float> ",&patPhoton_full5x5_refinedSCSigmaIEtaIEta);  
+      tree->Branch("patPhoton_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&patPhoton_full5x5_refinedSCSigmaIEtaIPhi);  
+      tree->Branch("patPhoton_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&patPhoton_full5x5_refinedSCSigmaIPhiIPhi);  
+      tree->Branch("patPhoton_HoE","std::vector<float> ",&patPhoton_HoE);   
+      tree->Branch("patPhoton_trkIso","std::vector<float> ",&patPhoton_trkIso);  
+      tree->Branch("patPhoton_ecalIso","std::vector<float> ",&patPhoton_ecalIso);  
+      tree->Branch("patPhoton_hcalIso","std::vector<float> ",&patPhoton_hcalIso);  
+      tree->Branch("patPhoton_patParticleIso","std::vector<float> ",&patPhoton_patParticleIso);  
+      tree->Branch("patPhoton_pfChargedHadronIso","std::vector<float> ",&patPhoton_pfChargedHadronIso);  
+      tree->Branch("patPhoton_pfNeutralHadronIso","std::vector<float> ",&patPhoton_pfNeutralHadronIso);   
+      tree->Branch("patPhoton_pfPhotonIso","std::vector<float> ",&patPhoton_pfPhotonIso);  
+      tree->Branch("patPhoton_pfPuChargedHadronIso","std::vector<float> ",&patPhoton_pfPuChargedHadronIso);   
+      tree->Branch("patPhoton_egmCutBasedPhotonIDloose","std::vector<int> ",&patPhoton_egmCutBasedPhotonIDloose);  
+      tree->Branch("patPhoton_egmCutBasedPhotonIDmedium","std::vector<int> ",&patPhoton_egmCutBasedPhotonIDmedium);
+      tree->Branch("patPhoton_egmCutBasedPhotonIDtight","std::vector<int> ",&patPhoton_egmCutBasedPhotonIDtight);   
+      tree->Branch("patPhoton_egmMVAPhotonIDmedium","std::vector<int> ",&patPhoton_egmMVAPhotonIDmedium);
+      tree->Branch("patPhoton_egmMVAPhotonIDtight","std::vector<int> ",&patPhoton_egmMVAPhotonIDtight);  
    }
  
    if(saveSuperCluster_){
@@ -2915,7 +3527,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("superCluster_psCluster_energy", "std::vector<std::vector<float> >", &superCluster_psCluster_energy);
       tree->Branch("superCluster_psCluster_eta", "std::vector<std::vector<float> >", &superCluster_psCluster_eta);
       tree->Branch("superCluster_psCluster_phi", "std::vector<std::vector<float> >", &superCluster_psCluster_phi); 
-      if(saveCaloParticles_){
+      if(saveCaloParticles_ && isMC_){
          tree->Branch("superCluster_dR_genScore","std::vector<std::vector<double> >",&superCluster_dR_genScore);
          tree->Branch("superCluster_dR_simScore","std::vector<std::vector<double> >",&superCluster_dR_simScore);
          tree->Branch("superCluster_sim_nSharedXtals","std::vector<std::vector<double> >",&superCluster_sim_nSharedXtals);
@@ -2935,129 +3547,129 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("superCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&superCluster_simEnergy_sharedXtals_MatchedIndex);
          tree->Branch("superCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&superCluster_recoEnergy_sharedXtals_MatchedIndex);
       }    
-      if(saveCaloParticlesPU_){ 
+      if(saveCaloParticlesPU_ && isMC_){ 
          tree->Branch("superCluster_simPU_nSharedXtals","std::vector<double>",&superCluster_simPU_nSharedXtals);
          tree->Branch("superCluster_simEnergy_sharedXtalsPU","std::vector<double>",&superCluster_simEnergy_sharedXtalsPU);
          tree->Branch("superCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&superCluster_recoEnergy_sharedXtalsPU);  
          tree->Branch("superCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&superCluster_simEnergy_noHitsFraction_sharedXtalsPU);
          tree->Branch("superCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&superCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
       }
-      if(saveCaloParticlesOOTPU_){ 
+      if(saveCaloParticlesOOTPU_ && isMC_){ 
          tree->Branch("superCluster_simOOTPU_nSharedXtals","std::vector<double>",&superCluster_simOOTPU_nSharedXtals);
          tree->Branch("superCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&superCluster_simEnergy_sharedXtalsOOTPU);
          tree->Branch("superCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&superCluster_recoEnergy_sharedXtalsOOTPU);  
          tree->Branch("superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&superCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
          tree->Branch("superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&superCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
       }
-      if(useRetunedSC_){   
-         tree->Branch("retunedSuperCluster_seedRawId","std::vector<uint32_t> ",&retunedSuperCluster_seedRawId);  
-         tree->Branch("retunedSuperCluster_rawEnergy","std::vector<float> ",&retunedSuperCluster_rawEnergy);
-         tree->Branch("retunedSuperCluster_rawESEnergy","std::vector<float> ",&retunedSuperCluster_rawESEnergy);
-         tree->Branch("retunedSuperCluster_energy","std::vector<float> ",&retunedSuperCluster_energy);
-         tree->Branch("retunedSuperCluster_eta","std::vector<float>",&retunedSuperCluster_eta);
-         tree->Branch("retunedSuperCluster_phi","std::vector<float>",&retunedSuperCluster_phi);  
-         tree->Branch("retunedSuperCluster_etaWidth","std::vector<float>",&retunedSuperCluster_etaWidth);
-         tree->Branch("retunedSuperCluster_phiWidth","std::vector<float>",&retunedSuperCluster_phiWidth);  
-         tree->Branch("retunedSuperCluster_R","std::vector<float>",&retunedSuperCluster_R);   
-         tree->Branch("retunedSuperCluster_nPFClusters","std::vector<int>",&retunedSuperCluster_nPFClusters);   
-         tree->Branch("retunedSuperCluster_ieta","std::vector<int>",&retunedSuperCluster_ieta);
-         tree->Branch("retunedSuperCluster_iphi","std::vector<int>",&retunedSuperCluster_iphi);  
-         tree->Branch("retunedSuperCluster_iz","std::vector<int>",&retunedSuperCluster_iz);    
-         tree->Branch("retunedSuperCluster_nXtals","std::vector<int>",&retunedSuperCluster_nXtals);  
-         if(savePFCluster_) tree->Branch("retunedSuperCluster_seedIndex","std::vector<int>",&retunedSuperCluster_seedIndex);     
-         if(savePFCluster_) tree->Branch("retunedSuperCluster_pfClustersIndex","std::vector<std::vector<int> >",&retunedSuperCluster_pfClustersIndex); 
-         tree->Branch("retunedSuperCluster_psCluster_energy", "std::vector<std::vector<float> >", &retunedSuperCluster_psCluster_energy);
-         tree->Branch("retunedSuperCluster_psCluster_eta", "std::vector<std::vector<float> >", &retunedSuperCluster_psCluster_eta);
-         tree->Branch("retunedSuperCluster_psCluster_phi", "std::vector<std::vector<float> >", &retunedSuperCluster_psCluster_phi); 
-         if(saveCaloParticles_){
-            tree->Branch("retunedSuperCluster_dR_genScore","std::vector<std::vector<double> >",&retunedSuperCluster_dR_genScore);
-            tree->Branch("retunedSuperCluster_dR_simScore","std::vector<std::vector<double> >",&retunedSuperCluster_dR_simScore);
-            tree->Branch("retunedSuperCluster_sim_nSharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_sim_nSharedXtals);
-            tree->Branch("retunedSuperCluster_sim_fraction_noHitsFraction","std::vector<std::vector<double> >",&retunedSuperCluster_sim_fraction_noHitsFraction); 
-            tree->Branch("retunedSuperCluster_sim_fraction","std::vector<std::vector<double> >",&retunedSuperCluster_sim_fraction);
-            tree->Branch("retunedSuperCluster_recoToSim_fraction","std::vector<std::vector<double> >",&retunedSuperCluster_recoToSim_fraction);
-            tree->Branch("retunedSuperCluster_recoToSim_fraction_sharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_recoToSim_fraction_sharedXtals);
-            tree->Branch("retunedSuperCluster_simEnergy_sharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_simEnergy_sharedXtals);
-            tree->Branch("retunedSuperCluster_recoEnergy_sharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_recoEnergy_sharedXtals);  
-            tree->Branch("retunedSuperCluster_dR_genScore_MatchedIndex","std::vector<int>",&retunedSuperCluster_dR_genScore_MatchedIndex);
-            tree->Branch("retunedSuperCluster_dR_simScore_MatchedIndex","std::vector<int>",&retunedSuperCluster_dR_simScore_MatchedIndex);
-            tree->Branch("retunedSuperCluster_sim_nSharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_sim_nSharedXtals_MatchedIndex);
-            tree->Branch("retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex", "std::vector<int>", &retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex); 
-            tree->Branch("retunedSuperCluster_sim_fraction_MatchedIndex","std::vector<int>",&retunedSuperCluster_sim_fraction_MatchedIndex);
-            tree->Branch("retunedSuperCluster_recoToSim_fraction_MatchedIndex","std::vector<int>",&retunedSuperCluster_recoToSim_fraction_MatchedIndex);
-            tree->Branch("retunedSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex", "std::vector<int>", &retunedSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex);
-            tree->Branch("retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex);
-            tree->Branch("retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
-         } 
-         if(saveCaloParticlesPU_){ 
-            tree->Branch("retunedSuperCluster_simPU_nSharedXtals","std::vector<double>",&retunedSuperCluster_simPU_nSharedXtals);
-            tree->Branch("retunedSuperCluster_simEnergy_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_simEnergy_sharedXtalsPU);
-            tree->Branch("retunedSuperCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_recoEnergy_sharedXtalsPU);  
-            tree->Branch("retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU);
-            tree->Branch("retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
-         }
-         if(saveCaloParticlesOOTPU_){ 
-            tree->Branch("retunedSuperCluster_simOOTPU_nSharedXtals","std::vector<double>",&retunedSuperCluster_simOOTPU_nSharedXtals);
-            tree->Branch("retunedSuperCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_simEnergy_sharedXtalsOOTPU);
-            tree->Branch("retunedSuperCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_recoEnergy_sharedXtalsOOTPU);  
-            tree->Branch("retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
-            tree->Branch("retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
-         }
+   }
+   if(saveRetunedSC_){   
+      tree->Branch("retunedSuperCluster_seedRawId","std::vector<uint32_t> ",&retunedSuperCluster_seedRawId);  
+      tree->Branch("retunedSuperCluster_rawEnergy","std::vector<float> ",&retunedSuperCluster_rawEnergy);
+      tree->Branch("retunedSuperCluster_rawESEnergy","std::vector<float> ",&retunedSuperCluster_rawESEnergy);
+      tree->Branch("retunedSuperCluster_energy","std::vector<float> ",&retunedSuperCluster_energy);
+      tree->Branch("retunedSuperCluster_eta","std::vector<float>",&retunedSuperCluster_eta);
+      tree->Branch("retunedSuperCluster_phi","std::vector<float>",&retunedSuperCluster_phi);  
+      tree->Branch("retunedSuperCluster_etaWidth","std::vector<float>",&retunedSuperCluster_etaWidth);
+      tree->Branch("retunedSuperCluster_phiWidth","std::vector<float>",&retunedSuperCluster_phiWidth);  
+      tree->Branch("retunedSuperCluster_R","std::vector<float>",&retunedSuperCluster_R);   
+      tree->Branch("retunedSuperCluster_nPFClusters","std::vector<int>",&retunedSuperCluster_nPFClusters);   
+      tree->Branch("retunedSuperCluster_ieta","std::vector<int>",&retunedSuperCluster_ieta);
+      tree->Branch("retunedSuperCluster_iphi","std::vector<int>",&retunedSuperCluster_iphi);  
+      tree->Branch("retunedSuperCluster_iz","std::vector<int>",&retunedSuperCluster_iz);    
+      tree->Branch("retunedSuperCluster_nXtals","std::vector<int>",&retunedSuperCluster_nXtals);  
+      if(savePFCluster_) tree->Branch("retunedSuperCluster_seedIndex","std::vector<int>",&retunedSuperCluster_seedIndex);     
+      if(savePFCluster_) tree->Branch("retunedSuperCluster_pfClustersIndex","std::vector<std::vector<int> >",&retunedSuperCluster_pfClustersIndex); 
+      tree->Branch("retunedSuperCluster_psCluster_energy", "std::vector<std::vector<float> >", &retunedSuperCluster_psCluster_energy);
+      tree->Branch("retunedSuperCluster_psCluster_eta", "std::vector<std::vector<float> >", &retunedSuperCluster_psCluster_eta);
+      tree->Branch("retunedSuperCluster_psCluster_phi", "std::vector<std::vector<float> >", &retunedSuperCluster_psCluster_phi); 
+      if(saveCaloParticles_ && isMC_){
+         tree->Branch("retunedSuperCluster_dR_genScore","std::vector<std::vector<double> >",&retunedSuperCluster_dR_genScore);
+         tree->Branch("retunedSuperCluster_dR_simScore","std::vector<std::vector<double> >",&retunedSuperCluster_dR_simScore);
+         tree->Branch("retunedSuperCluster_sim_nSharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_sim_nSharedXtals);
+         tree->Branch("retunedSuperCluster_sim_fraction_noHitsFraction","std::vector<std::vector<double> >",&retunedSuperCluster_sim_fraction_noHitsFraction); 
+         tree->Branch("retunedSuperCluster_sim_fraction","std::vector<std::vector<double> >",&retunedSuperCluster_sim_fraction);
+         tree->Branch("retunedSuperCluster_recoToSim_fraction","std::vector<std::vector<double> >",&retunedSuperCluster_recoToSim_fraction);
+         tree->Branch("retunedSuperCluster_recoToSim_fraction_sharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_recoToSim_fraction_sharedXtals);
+         tree->Branch("retunedSuperCluster_simEnergy_sharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_simEnergy_sharedXtals);
+         tree->Branch("retunedSuperCluster_recoEnergy_sharedXtals","std::vector<std::vector<double> >",&retunedSuperCluster_recoEnergy_sharedXtals);  
+         tree->Branch("retunedSuperCluster_dR_genScore_MatchedIndex","std::vector<int>",&retunedSuperCluster_dR_genScore_MatchedIndex);
+         tree->Branch("retunedSuperCluster_dR_simScore_MatchedIndex","std::vector<int>",&retunedSuperCluster_dR_simScore_MatchedIndex);
+         tree->Branch("retunedSuperCluster_sim_nSharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_sim_nSharedXtals_MatchedIndex);
+         tree->Branch("retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex", "std::vector<int>", &retunedSuperCluster_sim_fraction_noHitsFraction_MatchedIndex); 
+         tree->Branch("retunedSuperCluster_sim_fraction_MatchedIndex","std::vector<int>",&retunedSuperCluster_sim_fraction_MatchedIndex);
+         tree->Branch("retunedSuperCluster_recoToSim_fraction_MatchedIndex","std::vector<int>",&retunedSuperCluster_recoToSim_fraction_MatchedIndex);
+         tree->Branch("retunedSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex", "std::vector<int>", &retunedSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex);
+         tree->Branch("retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex);
+         tree->Branch("retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
       } 
-      if(useDeepSC_){
-         tree->Branch("deepSuperCluster_seedRawId","std::vector<uint32_t> ",&deepSuperCluster_seedRawId); 
-         tree->Branch("deepSuperCluster_rawEnergy","std::vector<float> ",&deepSuperCluster_rawEnergy);
-         tree->Branch("deepSuperCluster_rawESEnergy","std::vector<float> ",&deepSuperCluster_rawESEnergy);
-         tree->Branch("deepSuperCluster_energy","std::vector<float> ",&deepSuperCluster_energy);
-         tree->Branch("deepSuperCluster_eta","std::vector<float>",&deepSuperCluster_eta);
-         tree->Branch("deepSuperCluster_phi","std::vector<float>",&deepSuperCluster_phi);  
-         tree->Branch("deepSuperCluster_etaWidth","std::vector<float>",&deepSuperCluster_etaWidth);
-         tree->Branch("deepSuperCluster_phiWidth","std::vector<float>",&deepSuperCluster_phiWidth);  
-         tree->Branch("deepSuperCluster_R","std::vector<float>",&deepSuperCluster_R);   
-         tree->Branch("deepSuperCluster_nPFClusters","std::vector<int>",&deepSuperCluster_nPFClusters);   
-         tree->Branch("deepSuperCluster_ieta","std::vector<int>",&deepSuperCluster_ieta);
-         tree->Branch("deepSuperCluster_iphi","std::vector<int>",&deepSuperCluster_iphi);  
-         tree->Branch("deepSuperCluster_iz","std::vector<int>",&deepSuperCluster_iz);   
-         tree->Branch("deepSuperCluster_nXtals","std::vector<int>",&deepSuperCluster_nXtals);    
-         if(savePFCluster_) tree->Branch("deepSuperCluster_seedIndex","std::vector<int>",&deepSuperCluster_seedIndex);     
-         if(savePFCluster_) tree->Branch("deepSuperCluster_pfClustersIndex","std::vector<std::vector<int> >",&deepSuperCluster_pfClustersIndex); 
-         tree->Branch("deepSuperCluster_psCluster_energy", "std::vector<std::vector<float> >", &deepSuperCluster_psCluster_energy);
-         tree->Branch("deepSuperCluster_psCluster_eta", "std::vector<std::vector<float> >", &deepSuperCluster_psCluster_eta);
-         tree->Branch("deepSuperCluster_psCluster_phi", "std::vector<std::vector<float> >", &deepSuperCluster_psCluster_phi);
-         if(saveCaloParticles_){
-            tree->Branch("deepSuperCluster_dR_genScore","std::vector<std::vector<double> >",&deepSuperCluster_dR_genScore);
-            tree->Branch("deepSuperCluster_dR_simScore","std::vector<std::vector<double> >",&deepSuperCluster_dR_simScore);
-            tree->Branch("deepSuperCluster_sim_nSharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_sim_nSharedXtals);
-            tree->Branch("deepSuperCluster_sim_fraction_noHitsFraction","std::vector<std::vector<double> >",&deepSuperCluster_sim_fraction_noHitsFraction); 
-            tree->Branch("deepSuperCluster_sim_fraction","std::vector<std::vector<double> >",&deepSuperCluster_sim_fraction);
-            tree->Branch("deepSuperCluster_recoToSim_fraction","std::vector<std::vector<double> >",&deepSuperCluster_recoToSim_fraction);
-            tree->Branch("deepSuperCluster_recoToSim_fraction_sharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_recoToSim_fraction_sharedXtals);
-            tree->Branch("deepSuperCluster_simEnergy_sharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_simEnergy_sharedXtals);
-            tree->Branch("deepSuperCluster_recoEnergy_sharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_recoEnergy_sharedXtals);  
-            tree->Branch("deepSuperCluster_dR_genScore_MatchedIndex","std::vector<int>",&deepSuperCluster_dR_genScore_MatchedIndex);
-            tree->Branch("deepSuperCluster_dR_simScore_MatchedIndex","std::vector<int>",&deepSuperCluster_dR_simScore_MatchedIndex);
-            tree->Branch("deepSuperCluster_sim_nSharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_sim_nSharedXtals_MatchedIndex);
-            tree->Branch("deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex", "std::vector<int>", &deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex); 
-            tree->Branch("deepSuperCluster_sim_fraction_MatchedIndex","std::vector<int>",&deepSuperCluster_sim_fraction_MatchedIndex);
-            tree->Branch("deepSuperCluster_recoToSim_fraction_MatchedIndex","std::vector<int>",&deepSuperCluster_recoToSim_fraction_MatchedIndex);
-            tree->Branch("deepSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex", "std::vector<int>", &deepSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex);
-            tree->Branch("deepSuperCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_simEnergy_sharedXtals_MatchedIndex);
-            tree->Branch("deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
-         }   
-         if(saveCaloParticlesPU_){ 
-            tree->Branch("deepSuperCluster_simPU_nSharedXtals","std::vector<double>",&deepSuperCluster_simPU_nSharedXtals);
-            tree->Branch("deepSuperCluster_simEnergy_sharedXtalsPU","std::vector<double>",&deepSuperCluster_simEnergy_sharedXtalsPU);
-            tree->Branch("deepSuperCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&deepSuperCluster_recoEnergy_sharedXtalsPU);  
-            tree->Branch("deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU);
-            tree->Branch("deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
-         }
-         if(saveCaloParticlesOOTPU_){ 
-            tree->Branch("deepSuperCluster_simOOTPU_nSharedXtals","std::vector<double>",&deepSuperCluster_simOOTPU_nSharedXtals);
-            tree->Branch("deepSuperCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_simEnergy_sharedXtalsOOTPU);
-            tree->Branch("deepSuperCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_recoEnergy_sharedXtalsOOTPU); 
-            tree->Branch("deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
-            tree->Branch("deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
-         }
+      if(saveCaloParticlesPU_ && isMC_){ 
+         tree->Branch("retunedSuperCluster_simPU_nSharedXtals","std::vector<double>",&retunedSuperCluster_simPU_nSharedXtals);
+         tree->Branch("retunedSuperCluster_simEnergy_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_simEnergy_sharedXtalsPU);
+         tree->Branch("retunedSuperCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_recoEnergy_sharedXtalsPU);  
+         tree->Branch("retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU);
+         tree->Branch("retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
+      }
+      if(saveCaloParticlesOOTPU_ && isMC_){ 
+         tree->Branch("retunedSuperCluster_simOOTPU_nSharedXtals","std::vector<double>",&retunedSuperCluster_simOOTPU_nSharedXtals);
+         tree->Branch("retunedSuperCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_simEnergy_sharedXtalsOOTPU);
+         tree->Branch("retunedSuperCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_recoEnergy_sharedXtalsOOTPU);  
+         tree->Branch("retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
+         tree->Branch("retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&retunedSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
+      }
+   }    
+   if(saveDeepSC_){
+      tree->Branch("deepSuperCluster_seedRawId","std::vector<uint32_t> ",&deepSuperCluster_seedRawId); 
+      tree->Branch("deepSuperCluster_rawEnergy","std::vector<float> ",&deepSuperCluster_rawEnergy);
+      tree->Branch("deepSuperCluster_rawESEnergy","std::vector<float> ",&deepSuperCluster_rawESEnergy);
+      tree->Branch("deepSuperCluster_energy","std::vector<float> ",&deepSuperCluster_energy);
+      tree->Branch("deepSuperCluster_eta","std::vector<float>",&deepSuperCluster_eta);
+      tree->Branch("deepSuperCluster_phi","std::vector<float>",&deepSuperCluster_phi);  
+      tree->Branch("deepSuperCluster_etaWidth","std::vector<float>",&deepSuperCluster_etaWidth);
+      tree->Branch("deepSuperCluster_phiWidth","std::vector<float>",&deepSuperCluster_phiWidth);  
+      tree->Branch("deepSuperCluster_R","std::vector<float>",&deepSuperCluster_R);   
+      tree->Branch("deepSuperCluster_nPFClusters","std::vector<int>",&deepSuperCluster_nPFClusters);   
+      tree->Branch("deepSuperCluster_ieta","std::vector<int>",&deepSuperCluster_ieta);
+      tree->Branch("deepSuperCluster_iphi","std::vector<int>",&deepSuperCluster_iphi);  
+      tree->Branch("deepSuperCluster_iz","std::vector<int>",&deepSuperCluster_iz);   
+      tree->Branch("deepSuperCluster_nXtals","std::vector<int>",&deepSuperCluster_nXtals);    
+      if(savePFCluster_) tree->Branch("deepSuperCluster_seedIndex","std::vector<int>",&deepSuperCluster_seedIndex);     
+      if(savePFCluster_) tree->Branch("deepSuperCluster_pfClustersIndex","std::vector<std::vector<int> >",&deepSuperCluster_pfClustersIndex); 
+      tree->Branch("deepSuperCluster_psCluster_energy", "std::vector<std::vector<float> >", &deepSuperCluster_psCluster_energy);
+      tree->Branch("deepSuperCluster_psCluster_eta", "std::vector<std::vector<float> >", &deepSuperCluster_psCluster_eta);
+      tree->Branch("deepSuperCluster_psCluster_phi", "std::vector<std::vector<float> >", &deepSuperCluster_psCluster_phi);
+      if(saveCaloParticles_ && isMC_){
+         tree->Branch("deepSuperCluster_dR_genScore","std::vector<std::vector<double> >",&deepSuperCluster_dR_genScore);
+         tree->Branch("deepSuperCluster_dR_simScore","std::vector<std::vector<double> >",&deepSuperCluster_dR_simScore);
+         tree->Branch("deepSuperCluster_sim_nSharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_sim_nSharedXtals);
+         tree->Branch("deepSuperCluster_sim_fraction_noHitsFraction","std::vector<std::vector<double> >",&deepSuperCluster_sim_fraction_noHitsFraction); 
+         tree->Branch("deepSuperCluster_sim_fraction","std::vector<std::vector<double> >",&deepSuperCluster_sim_fraction);
+         tree->Branch("deepSuperCluster_recoToSim_fraction","std::vector<std::vector<double> >",&deepSuperCluster_recoToSim_fraction);
+         tree->Branch("deepSuperCluster_recoToSim_fraction_sharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_recoToSim_fraction_sharedXtals);
+         tree->Branch("deepSuperCluster_simEnergy_sharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_simEnergy_sharedXtals);
+         tree->Branch("deepSuperCluster_recoEnergy_sharedXtals","std::vector<std::vector<double> >",&deepSuperCluster_recoEnergy_sharedXtals);  
+         tree->Branch("deepSuperCluster_dR_genScore_MatchedIndex","std::vector<int>",&deepSuperCluster_dR_genScore_MatchedIndex);
+         tree->Branch("deepSuperCluster_dR_simScore_MatchedIndex","std::vector<int>",&deepSuperCluster_dR_simScore_MatchedIndex);
+         tree->Branch("deepSuperCluster_sim_nSharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_sim_nSharedXtals_MatchedIndex);
+         tree->Branch("deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex", "std::vector<int>", &deepSuperCluster_sim_fraction_noHitsFraction_MatchedIndex); 
+         tree->Branch("deepSuperCluster_sim_fraction_MatchedIndex","std::vector<int>",&deepSuperCluster_sim_fraction_MatchedIndex);
+         tree->Branch("deepSuperCluster_recoToSim_fraction_MatchedIndex","std::vector<int>",&deepSuperCluster_recoToSim_fraction_MatchedIndex);
+         tree->Branch("deepSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex", "std::vector<int>", &deepSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex);
+         tree->Branch("deepSuperCluster_simEnergy_sharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_simEnergy_sharedXtals_MatchedIndex);
+         tree->Branch("deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex","std::vector<int>",&deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex);
+      }   
+      if(saveCaloParticlesPU_ && isMC_){ 
+         tree->Branch("deepSuperCluster_simPU_nSharedXtals","std::vector<double>",&deepSuperCluster_simPU_nSharedXtals);
+         tree->Branch("deepSuperCluster_simEnergy_sharedXtalsPU","std::vector<double>",&deepSuperCluster_simEnergy_sharedXtalsPU);
+         tree->Branch("deepSuperCluster_recoEnergy_sharedXtalsPU","std::vector<double>",&deepSuperCluster_recoEnergy_sharedXtalsPU);  
+         tree->Branch("deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsPU);
+         tree->Branch("deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU","std::vector<double>",&deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsPU);  
+      }
+      if(saveCaloParticlesOOTPU_ && isMC_){ 
+         tree->Branch("deepSuperCluster_simOOTPU_nSharedXtals","std::vector<double>",&deepSuperCluster_simOOTPU_nSharedXtals);
+         tree->Branch("deepSuperCluster_simEnergy_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_simEnergy_sharedXtalsOOTPU);
+         tree->Branch("deepSuperCluster_recoEnergy_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_recoEnergy_sharedXtalsOOTPU); 
+         tree->Branch("deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_simEnergy_noHitsFraction_sharedXtalsOOTPU);
+         tree->Branch("deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU","std::vector<double>",&deepSuperCluster_recoEnergy_noHitsFraction_sharedXtalsOOTPU);  
       }   
    }
    if(savePFCluster_ && saveShowerShapes_){  
@@ -3141,7 +3753,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("superCluster_full5x5_sigmaIetaIeta","std::vector<float>",&superCluster_full5x5_sigmaIetaIeta);
       tree->Branch("superCluster_full5x5_sigmaIetaIphi","std::vector<float>",&superCluster_full5x5_sigmaIetaIphi);
       tree->Branch("superCluster_full5x5_sigmaIphiIphi","std::vector<float>",&superCluster_full5x5_sigmaIphiIphi);
-      if(useRetunedSC_){
+      if(saveRetunedSC_){
          tree->Branch("retunedSuperCluster_e5x5","std::vector<float>",&retunedSuperCluster_e5x5);
          tree->Branch("retunedSuperCluster_e2x2Ratio","std::vector<float>",&retunedSuperCluster_e2x2Ratio);
          tree->Branch("retunedSuperCluster_e3x3Ratio","std::vector<float>",&retunedSuperCluster_e3x3Ratio);
@@ -3181,7 +3793,7 @@ void RecoSimDumper::setTree(TTree* tree)
          tree->Branch("retunedSuperCluster_full5x5_sigmaIetaIphi","std::vector<float>",&retunedSuperCluster_full5x5_sigmaIetaIphi);
          tree->Branch("retunedSuperCluster_full5x5_sigmaIphiIphi","std::vector<float>",&retunedSuperCluster_full5x5_sigmaIphiIphi);
       }
-      if(useDeepSC_){
+      if(saveDeepSC_){
          tree->Branch("deepSuperCluster_e5x5","std::vector<float>",&deepSuperCluster_e5x5);
          tree->Branch("deepSuperCluster_e2x2Ratio","std::vector<float>",&deepSuperCluster_e2x2Ratio);
          tree->Branch("deepSuperCluster_e3x3Ratio","std::vector<float>",&deepSuperCluster_e3x3Ratio);
@@ -3493,79 +4105,245 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    pfClusterHit_laserCorr.resize(nPFClusters);   
    pfClusterHit_chStatus.resize(nPFClusters);   
 
-   electron_index.clear();
-   electron_seedRawId.clear();
-   electron_et.clear();
-   electron_energy.clear();
-   electron_energyErr.clear();
-   electron_ecalEnergy.clear();
-   electron_ecalEnergyErr.clear();
-   electron_eta.clear();
-   electron_phi.clear();
-   electron_trkEtaMode.clear();
-   electron_trkPhiMode.clear();
-   electron_trkPMode.clear();
-   electron_trkPModeErr.clear();
-   electron_trkPInn.clear();
-   electron_trkPtInn.clear();
-   electron_trkPVtx.clear();
-   electron_trkPOut.clear();
-   electron_trkChi2.clear();
-   electron_trkNDof.clear();
-   electron_fbrem.clear();
-   electron_hademTow.clear();
-   electron_hademCone.clear();
-   electron_ecalDrivenSeed.clear();
-   electron_nrSatCrys.clear();
-   electron_scRawEnergy.clear();
-   electron_scRawESEnergy.clear();
-   electron_e3x3.clear();
-   electron_e5x5.clear();
-   electron_eMax.clear();
-   electron_e2nd.clear();
-   electron_eLeft.clear();
-   electron_eRight.clear();
-   electron_eLeftRightDiffSumRatio.clear();
-   electron_eTop.clear();
-   electron_eBottom.clear();
-   electron_eTopBottomDiffSumRatio.clear();
-   electron_e2x5Bottom.clear();
-   electron_e2x5Top.clear();
-   electron_e2x5Left.clear();
-   electron_e2x5Right.clear();
-   electron_sigmaIEtaIEta.clear();
-   electron_sigmaIEtaIPhi.clear();
-   electron_sigmaIPhiIPhi.clear();  
+   gsfElectron_index.clear();
+   gsfElectron_seedRawId.clear();
+   gsfElectron_isEB.clear();
+   gsfElectron_isEE.clear();
+   gsfElectron_nPFClusters.clear();  
+   gsfElectron_classification.clear(); 
+   gsfElectron_p.clear();
+   gsfElectron_pt.clear();
+   gsfElectron_et.clear();
+   gsfElectron_energy.clear();
+   gsfElectron_energyErr.clear();
+   gsfElectron_ecalEnergy.clear();
+   gsfElectron_ecalEnergyErr.clear();
+   gsfElectron_eta.clear();
+   gsfElectron_phi.clear();
+   gsfElectron_trkEtaMode.clear();
+   gsfElectron_trkPhiMode.clear();
+   gsfElectron_trkPMode.clear();
+   gsfElectron_trkPModeErr.clear();
+   gsfElectron_trkPInn.clear();
+   gsfElectron_trkPtInn.clear();
+   gsfElectron_trkPVtx.clear();
+   gsfElectron_trkPOut.clear();
+   gsfElectron_trkChi2.clear();
+   gsfElectron_trkNDof.clear();
+   gsfElectron_fbrem.clear();
+   gsfElectron_hademTow.clear();
+   gsfElectron_hademCone.clear();
+   gsfElectron_ecalDrivenSeed.clear();
+   gsfElectron_nrSatCrys.clear();
+   gsfElectron_refinedSCRawEnergy.clear();
+   gsfElectron_refinedSCRawESEnergy.clear();
+   gsfElectron_refinedSCEtaWidth.clear();
+   gsfElectron_refinedSCPhiWidth.clear(); 
+   gsfElectron_refinedSCSwissCross.clear();
+   gsfElectron_refinedSCEMax.clear();
+   gsfElectron_refinedSCE2x2.clear(); 
+   gsfElectron_refinedSCE3x3.clear();
+   gsfElectron_refinedSCE5x5.clear(); 
+   gsfElectron_refinedSCR9.clear(); 
+   gsfElectron_refinedSCSigmaIEtaIEta.clear();
+   gsfElectron_refinedSCSigmaIEtaIPhi.clear();
+   gsfElectron_refinedSCSigmaIPhiIPhi.clear(); 
+   gsfElectron_full5x5_refinedSCEMax.clear();
+   gsfElectron_full5x5_refinedSCE2x2.clear(); 
+   gsfElectron_full5x5_refinedSCE3x3.clear();
+   gsfElectron_full5x5_refinedSCE5x5.clear(); 
+   gsfElectron_full5x5_refinedSCR9.clear(); 
+   gsfElectron_full5x5_refinedSCSigmaIEtaIEta.clear();
+   gsfElectron_full5x5_refinedSCSigmaIEtaIPhi.clear();
+   gsfElectron_full5x5_refinedSCSigmaIPhiIPhi.clear();
+   gsfElectron_HoE.clear(); 
+   gsfElectron_trkIso.clear(); 
+   gsfElectron_ecalIso.clear();  
+   gsfElectron_hcalIso.clear();
+   gsfElectron_pfPhotonIso.clear();     
+   gsfElectron_pfChargedHadronIso.clear();     
+   gsfElectron_pfNeutralHadronIso.clear(); 
 
-   photon_index.clear();  
-   photon_seedRawId.clear();  
-   photon_et.clear();  
-   photon_energy.clear();  
-   photon_energyErr.clear();  
-   photon_eta.clear();  
-   photon_phi.clear();  
-   photon_hademTow.clear();  
-   photon_hademCone.clear();  
-   photon_nrSatCrys.clear();  
-   photon_scRawEnergy.clear();  
-   photon_scRawESEnergy.clear(); 
-   photon_e3x3.clear();
-   photon_e5x5.clear();
-   photon_eMax.clear();
-   photon_e2nd.clear();
-   photon_eLeft.clear();
-   photon_eRight.clear();
-   photon_eLeftRightDiffSumRatio.clear();
-   photon_eTop.clear();
-   photon_eBottom.clear();
-   photon_eTopBottomDiffSumRatio.clear();
-   photon_e2x5Bottom.clear();
-   photon_e2x5Top.clear();
-   photon_e2x5Left.clear();
-   photon_e2x5Right.clear();
-   photon_sigmaIEtaIEta.clear();
-   photon_sigmaIEtaIPhi.clear();
-   photon_sigmaIPhiIPhi.clear();  
+   gedPhoton_index.clear();  
+   gedPhoton_seedRawId.clear();  
+   gedPhoton_isEB.clear();  
+   gedPhoton_isEE.clear();  
+   gedPhoton_nPFClusters.clear();  
+   gedPhoton_hasConversionTracks.clear();
+   gedPhoton_nConversions.clear();
+   gedPhoton_nConversionsOneLeg.clear();
+   gedPhoton_et.clear();  
+   gedPhoton_energy.clear();
+   gedPhoton_energyErr.clear();
+   gedPhoton_ecalEnergy.clear();
+   gedPhoton_ecalEnergyErr.clear();
+   gedPhoton_eta.clear();  
+   gedPhoton_phi.clear();  
+   gedPhoton_hademTow.clear();  
+   gedPhoton_hademCone.clear();  
+   gedPhoton_nrSatCrys.clear();  
+   gedPhoton_refinedSCRawEnergy.clear();  
+   gedPhoton_refinedSCRawESEnergy.clear();
+   gedPhoton_refinedSCEtaWidth.clear();
+   gedPhoton_refinedSCPhiWidth.clear(); 
+   gedPhoton_refinedSCSwissCross.clear();
+   gedPhoton_refinedSCEMax.clear();
+   gedPhoton_refinedSCE2x2.clear(); 
+   gedPhoton_refinedSCE3x3.clear();
+   gedPhoton_refinedSCE5x5.clear(); 
+   gedPhoton_refinedSCR9.clear(); 
+   gedPhoton_refinedSCSigmaIEtaIEta.clear();
+   gedPhoton_refinedSCSigmaIEtaIPhi.clear();
+   gedPhoton_refinedSCSigmaIPhiIPhi.clear(); 
+   gedPhoton_full5x5_refinedSCEMax.clear();
+   gedPhoton_full5x5_refinedSCE2x2.clear(); 
+   gedPhoton_full5x5_refinedSCE3x3.clear();
+   gedPhoton_full5x5_refinedSCE5x5.clear(); 
+   gedPhoton_full5x5_refinedSCR9.clear(); 
+   gedPhoton_full5x5_refinedSCSigmaIEtaIEta.clear();
+   gedPhoton_full5x5_refinedSCSigmaIEtaIPhi.clear();
+   gedPhoton_full5x5_refinedSCSigmaIPhiIPhi.clear();
+   gedPhoton_HoE.clear();  
+   gedPhoton_trkIso.clear(); 
+   gedPhoton_ecalIso.clear();  
+   gedPhoton_hcalIso.clear();
+   gedPhoton_pfPhotonIso.clear();     
+   gedPhoton_pfChargedHadronIso.clear();     
+   gedPhoton_pfNeutralHadronIso.clear(); 
+
+   patElectron_index.clear();
+   patElectron_seedRawId.clear();
+   patElectron_classification.clear();
+   patElectron_nPFClusters.clear();
+   patElectron_charge.clear();
+   patElectron_isEB.clear();
+   patElectron_isEE.clear();
+   patElectron_eta.clear();
+   patElectron_phi.clear();
+   patElectron_p.clear();
+   patElectron_pt.clear();
+   patElectron_pIn.clear();
+   patElectron_pOut.clear();
+   patElectron_pAtCalo.clear();
+   patElectron_deltaEtaIn.clear();
+   patElectron_deltaPhiIn.clear();
+   patElectron_deltaEtaSeedClusterAtCalo.clear();
+   patElectron_deltaEtaEleClusterAtCalo.clear();
+   patElectron_deltaPhiEleClusterAtCalo.clear();
+   patElectron_deltaPhiSeedClusterAtCalo.clear();
+   patElectron_misHits.clear();
+   patElectron_nAmbiguousGsfTracks.clear(); 
+   patElectron_fbrem.clear();
+   patElectron_energy.clear();
+   patElectron_energyErr.clear();
+   patElectron_ecalEnergy.clear();
+   patElectron_ecalEnergyErr.clear();
+   patElectron_et.clear();
+   patElectron_mt.clear();
+   patElectron_dphiMET.clear();
+   patElectron_refinedSCEta.clear();
+   patElectron_refinedSCPhi.clear();
+   patElectron_refinedSCEnergy.clear();
+   patElectron_refinedSCRawEnergy.clear();
+   patElectron_refinedSCESEnergy.clear();
+   patElectron_refinedSCEt.clear();
+   patElectron_refinedSCPhiWidth.clear();
+   patElectron_refinedSCEtaWidth.clear();
+   patElectron_refinedSCEoP.clear();
+   patElectron_refinedSCSwissCross.clear();
+   patElectron_refinedSCE2x2.clear();
+   patElectron_refinedSCE3x3.clear(); 
+   patElectron_refinedSCE5x5.clear(); 
+   patElectron_refinedSCEMax.clear();
+   patElectron_refinedSCR9.clear();
+   patElectron_refinedSCSigmaIEtaIEta.clear();
+   patElectron_refinedSCSigmaIEtaIPhi.clear();
+   patElectron_refinedSCSigmaIPhiIPhi.clear();
+   patElectron_full5x5_refinedSCE2x2.clear();
+   patElectron_full5x5_refinedSCE3x3.clear();
+   patElectron_full5x5_refinedSCE5x5.clear();
+   patElectron_full5x5_refinedSCEMax.clear();
+   patElectron_full5x5_refinedSCR9.clear(); 
+   patElectron_full5x5_refinedSCSigmaIEtaIEta.clear();
+   patElectron_full5x5_refinedSCSigmaIEtaIPhi.clear();
+   patElectron_full5x5_refinedSCSigmaIPhiIPhi.clear();
+   patElectron_HoE.clear();
+   patElectron_trkIso.clear(); 
+   patElectron_ecalIso.clear();  
+   patElectron_hcalIso.clear();
+   patElectron_pfPhotonIso.clear();     
+   patElectron_pfChargedHadronIso.clear();     
+   patElectron_pfNeutralHadronIso.clear(); 
+   patElectron_egmCutBasedElectronIDVeto.clear();
+   patElectron_egmCutBasedElectronIDloose.clear();
+   patElectron_egmCutBasedElectronIDmedium.clear();
+   patElectron_egmCutBasedElectronIDtight.clear();
+   patElectron_egmMVAElectronIDloose.clear();
+   patElectron_egmMVAElectronIDmedium.clear();
+   patElectron_egmMVAElectronIDtight.clear();
+   patElectron_egmMVAElectronIDlooseNoIso.clear();
+   patElectron_egmMVAElectronIDmediumNoIso.clear();
+   patElectron_egmMVAElectronIDtightNoIso.clear();
+   patElectron_heepElectronID.clear();
+
+   patPhoton_index.clear();
+   patPhoton_seedRawId.clear();
+   patPhoton_nPFClusters.clear();
+   patPhoton_isEB.clear();
+   patPhoton_isEE.clear();
+   patPhoton_passElectronVeto.clear();
+   patPhoton_hasPixelSeed.clear();
+   patPhoton_hasConversionTracks.clear();
+   patPhoton_nConversions.clear();
+   patPhoton_nConversionsOneLeg.clear(); 
+   patPhoton_eta.clear();
+   patPhoton_phi.clear();
+   patPhoton_energy.clear();
+   patPhoton_energyErr.clear();
+   patPhoton_ecalEnergy.clear();
+   patPhoton_ecalEnergyErr.clear();
+   patPhoton_et.clear();
+   patPhoton_mt.clear();
+   patPhoton_dphiMET.clear();
+   patPhoton_refinedSCEta.clear();
+   patPhoton_refinedSCPhi.clear();
+   patPhoton_refinedSCEnergy.clear();
+   patPhoton_refinedSCRawEnergy.clear();
+   patPhoton_refinedSCESEnergy.clear();
+   patPhoton_refinedSCEt.clear();
+   patPhoton_refinedSCPhiWidth.clear();
+   patPhoton_refinedSCEtaWidth.clear();
+   patPhoton_refinedSCSwissCross.clear();
+   patPhoton_refinedSCE2x2.clear();
+   patPhoton_refinedSCE3x3.clear(); 
+   patPhoton_refinedSCE5x5.clear(); 
+   patPhoton_refinedSCEMax.clear();
+   patPhoton_refinedSCR9.clear();
+   patPhoton_refinedSCSigmaIEtaIEta.clear();
+   patPhoton_refinedSCSigmaIEtaIPhi.clear();
+   patPhoton_refinedSCSigmaIPhiIPhi.clear();
+   patPhoton_full5x5_refinedSCE2x2.clear();
+   patPhoton_full5x5_refinedSCE3x3.clear();
+   patPhoton_full5x5_refinedSCE5x5.clear();
+   patPhoton_full5x5_refinedSCEMax.clear();
+   patPhoton_full5x5_refinedSCR9.clear(); 
+   patPhoton_full5x5_refinedSCSigmaIEtaIEta.clear();
+   patPhoton_full5x5_refinedSCSigmaIEtaIPhi.clear();
+   patPhoton_full5x5_refinedSCSigmaIPhiIPhi.clear();
+   patPhoton_HoE.clear();
+   patPhoton_trkIso.clear();
+   patPhoton_ecalIso.clear();
+   patPhoton_hcalIso.clear();
+   patPhoton_patParticleIso.clear();
+   patPhoton_pfChargedHadronIso.clear();
+   patPhoton_pfNeutralHadronIso.clear();
+   patPhoton_pfPhotonIso.clear();
+   patPhoton_pfPuChargedHadronIso.clear();
+   patPhoton_egmCutBasedPhotonIDloose.clear();
+   patPhoton_egmCutBasedPhotonIDmedium.clear();
+   patPhoton_egmCutBasedPhotonIDtight.clear();
+   patPhoton_egmMVAPhotonIDmedium.clear();
+   patPhoton_egmMVAPhotonIDtight.clear();
    
    superCluster_seedRawId.clear();
    superCluster_rawEnergy.clear(); 
@@ -3727,7 +4505,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    retunedSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex.clear();  
    retunedSuperCluster_simEnergy_sharedXtals_MatchedIndex.clear(); 
    retunedSuperCluster_recoEnergy_sharedXtals_MatchedIndex.clear();  
-   if(useRetunedSC_ && saveSuperCluster_){
+   if(saveRetunedSC_){
       int nRetunedSuperClusters = nRetunedSuperClustersEB + nRetunedSuperClustersEE;
       retunedSuperCluster_seedIndex.resize(nRetunedSuperClusters);     
       retunedSuperCluster_pfClustersIndex.resize(nRetunedSuperClusters);
@@ -3821,7 +4599,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    deepSuperCluster_recoToSim_fraction_sharedXtals_MatchedIndex.clear();  
    deepSuperCluster_simEnergy_sharedXtals_MatchedIndex.clear(); 
    deepSuperCluster_recoEnergy_sharedXtals_MatchedIndex.clear();  
-   if(useDeepSC_ && saveSuperCluster_){ 
+   if(saveDeepSC_){ 
       int nDeepSuperClusters = nDeepSuperClustersEB + nDeepSuperClustersEE; 
       deepSuperCluster_seedIndex.resize(nDeepSuperClusters); 
       deepSuperCluster_pfClustersIndex.resize(nDeepSuperClusters);
@@ -4292,18 +5070,18 @@ std::vector<double> RecoSimDumper::getNoise(const reco::PFCluster* pfCluster, co
         double laserCorr = pow(apdpn,-alpha);
         double pedestal = 1.;
         double agv = 1.;
-        //double gain12Over6 = (*gr->getMap().find(hit_Cluster.first.rawId())).gain12Over6();
-        //double gain6Over1 = (*gr->getMap().find(hit_Cluster.first.rawId())).gain6Over1();
+        double gain12Over6 = (*gr->getMap().find(hit_Cluster.first.rawId())).gain12Over6();
+        double gain6Over1 = (*gr->getMap().find(hit_Cluster.first.rawId())).gain6Over1();
         if(hit_Cluster.first.subdetId()==EcalBarrel){ 
            agv = adcToGeV->getEBValue();
            pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x12;
-           //if((*recHitsEB->find(hit_Cluster.first)).checkFlag(16)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x6 * gain12Over6;
-           //if((*recHitsEB->find(hit_Cluster.first)).checkFlag(17)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x1 * gain6Over1;
+           if((*recHitsEB->find(hit_Cluster.first)).checkFlag(16)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x6 * gain12Over6;
+           if((*recHitsEB->find(hit_Cluster.first)).checkFlag(17)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x1 * gain6Over1;
         }else if(hit_Cluster.first.subdetId()==EcalEndcap){
            agv = adcToGeV->getEEValue();
            pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x12;
-           //if((*recHitsEE->find(hit_Cluster.first)).checkFlag(16)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x6 * gain12Over6;
-           //if((*recHitsEE->find(hit_Cluster.first)).checkFlag(17)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x1 * gain6Over1;
+           if((*recHitsEE->find(hit_Cluster.first)).checkFlag(16)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x6 * gain12Over6;
+           if((*recHitsEE->find(hit_Cluster.first)).checkFlag(17)) pedestal = (*ped->find(hit_Cluster.first.rawId())).rms_x1 * gain6Over1;
         }
 
         double fraction = 1.; 

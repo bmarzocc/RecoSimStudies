@@ -26,7 +26,8 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag,'123X_mcRun3_2021_realistic_v4','')
+#process.GlobalTag = GlobalTag(process.GlobalTag,'123X_mcRun3_2021_realistic_v4','')
+process.GlobalTag = GlobalTag(process.GlobalTag,'123X_dataRun2_v4','')
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32( -1 ) )
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32( 1 )
