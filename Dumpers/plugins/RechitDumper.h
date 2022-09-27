@@ -20,6 +20,7 @@
 
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
+#include "Geometry/HcalTowerAlgo/interface/HcalGeometry.h"
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
 #include "Geometry/Records/interface/CaloTopologyRecord.h"
 #include "Geometry/CaloTopology/interface/CaloSubdetectorTopology.h"
@@ -36,10 +37,13 @@
 
 #include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
 #include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
+#include "CondFormats/HcalObjects/interface/HcalChannelQuality.h"
+#include "CondFormats/DataRecord/interface/HcalChannelQualityRcd.h"
 
 #include "DataFormats/Math/interface/libminifloat.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 #include "TSystem.h"
 #include "TFile.h"
@@ -100,6 +104,11 @@ class RechitDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       const CaloGeometry* geometry;  
       const CaloTopology* topology;
       const EcalChannelStatus* chStatus;
+      const CaloSubdetectorGeometry* ebGeometry;
+      const CaloSubdetectorGeometry* eeGeometry;
+      const CaloSubdetectorGeometry* hbGeometry;
+      const CaloSubdetectorGeometry* heGeometry;
+      const CaloSubdetectorGeometry* esGeometry;
       
       edm::EDGetTokenT<double> rhoToken_;
       edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
@@ -136,14 +145,23 @@ class RechitDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<int> ecalRecHit_ieta; 
       std::vector<int> ecalRecHit_iphi;
       std::vector<int> ecalRecHit_iz; 
-      std::vector<float> ecalRecHit_relatedHcalRecHit_energy;
-      std::vector<uint32_t> ecalRecHit_relatedHcalRecHit_rawId;
-      std::vector<int> ecalRecHit_relatedHcalRecHit_chStatus;
-      std::vector<float> ecalRecHit_relatedHcalRecHit_eta; 
-      std::vector<float> ecalRecHit_relatedHcalRecHit_phi;
-      std::vector<int> ecalRecHit_relatedHcalRecHit_ieta; 
-      std::vector<int> ecalRecHit_relatedHcalRecHit_iphi;
-      std::vector<int> ecalRecHit_relatedHcalRecHit_iz; 
+      std::vector<std::vector<uint32_t> > matchedHcalRecHit_rawId;
+      std::vector<std::vector<float> > matchedHcalRecHit_energy;
+      std::vector<std::vector<float> > matchedHcalRecHit_eta; 
+      std::vector<std::vector<float> > matchedHcalRecHit_phi;
+      std::vector<std::vector<int> > matchedHcalRecHit_ieta; 
+      std::vector<std::vector<int> > matchedHcalRecHit_iphi;
+      std::vector<std::vector<int> > matchedHcalRecHit_iz; 
+      std::vector<std::vector<int> > matchedHcalRecHit_depth; 
+      std::vector<std::vector<uint32_t> > matchedESRecHit_rawId;
+      std::vector<std::vector<float> > matchedESRecHit_energy;
+      std::vector<std::vector<float> > matchedESRecHit_eta; 
+      std::vector<std::vector<float> > matchedESRecHit_phi;
+      std::vector<std::vector<int> > matchedESRecHit_ix; 
+      std::vector<std::vector<int> > matchedESRecHit_iy;
+      std::vector<std::vector<int> > matchedESRecHit_iz;
+      std::vector<std::vector<int> > matchedESRecHit_strip; 
+      std::vector<std::vector<int> > matchedESRecHit_plane; 
         
   
 };

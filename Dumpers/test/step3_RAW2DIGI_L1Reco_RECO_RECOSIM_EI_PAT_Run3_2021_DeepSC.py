@@ -25,7 +25,7 @@ from Configuration.Eras.Era_Run3_cff import Run3
 from Configuration.Eras.Modifier_ctpps_2018_cff import ctpps_2018
 from Configuration.ProcessModifiers.run3_ecalclustering_cff import run3_ecalclustering
 
-process = cms.Process('RECO',Run3,ctpps_2018,run3_ecalclustering)
+process = cms.Process('ECALClustering',Run3,ctpps_2018,run3_ecalclustering)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')

@@ -12,7 +12,7 @@ rechitdumper = cms.EDAnalyzer("RechitDumper",
     vertexCollection                = cms.InputTag("offlinePrimaryVertices","","RECO"), 
     ecalEBRechitCollection          = cms.InputTag("ecalRecHit","EcalRecHitsEB","RECO"),
     ecalEERechitCollection          = cms.InputTag("ecalRecHit","EcalRecHitsEE","RECO"),
-    ecalESRechitCollection          = cms.InputTag("ecalRecHit","EcalRecHitsES","RECO"),
+    ecalESRechitCollection          = cms.InputTag("ecalPreshowerRecHit","EcalRecHitsES","RECO"),
     hcalEBHERechitCollection        = cms.InputTag("hbhereco","","RECO"),
     
     isMC                            = cms.bool(False),  #isMC
