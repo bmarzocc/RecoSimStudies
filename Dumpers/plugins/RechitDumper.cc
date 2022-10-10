@@ -103,6 +103,9 @@ RechitDumper::RechitDumper(const edm::ParameterSet& iConfig):
    isMC_                          = iConfig.getParameter<bool>("isMC");
    saveEB_                        = iConfig.getParameter<bool>("saveEB");
    saveEE_                        = iConfig.getParameter<bool>("saveEE");
+
+   deadXtalsEB_                     = iConfig.getParameter<std::vector<uint32_t> >("deadXtalsEB");
+   deadXtalsEE_                     = iConfig.getParameter<std::vector<uint32_t> >("deadXtalsEE");
   
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
@@ -243,14 +246,34 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    GlobalPoint hcalCell;
    GlobalPoint esCell; 
 
-   //Save ecalRechits 
+   clearVectors();
+   saveXtalsEB_.clear();
+   saveXtalsEE_.clear();
+  
    if(saveEB_){
+
+      //Find the xtals close to the deadXtals
+      for(auto& xtal : deadXtalsEB_){
+          DetId deadId(xtal);
+          std::vector<DetId> neighborXtals = topology->getSubdetectorTopology(DetId::Ecal, EcalBarrel)->getWindow(deadId,5,5);  
+          for(auto&  id: neighborXtals)
+              saveXtalsEB_.push_back(id.rawId());      
+      }
+
+      //Remove the duplicates
+      saveXtalsEB_.insert(saveXtalsEB_.end(),deadXtalsEB_.begin(),deadXtalsEB_.end());
+      std::sort(saveXtalsEB_.begin(),saveXtalsEB_.end());
+      saveXtalsEB_.erase(std::unique(saveXtalsEB_.begin(),saveXtalsEB_.end()),saveXtalsEB_.end());
+
+      //std::cout << "saveXtalsEB_.size() = " << saveXtalsEB_.size() << std::endl; 
 
       for(const auto& iRechit : *ecalEBHits){
           
           DetId rechit_id(iRechit.detid());
-
           uint32_t rawId = rechit_id.rawId();
+
+          if(std::find(saveXtalsEB_.begin(),saveXtalsEB_.end(), rawId) == saveXtalsEB_.end() && saveXtalsEB_.size()!=0) continue;
+
           ecalRecHit_rawId.push_back(rawId);
 
           int status = (*chStatus->getMap().find(rechit_id.rawId())).getStatusCode();
@@ -322,11 +345,28 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    if(saveEE_){
   
+      //Find the xtals close to the deadXtals
+      for(auto& xtal : deadXtalsEE_){
+          DetId deadId(xtal);
+          std::vector<DetId> neighborXtals = topology->getSubdetectorTopology(DetId::Ecal, EcalEndcap)->getWindow(deadId,5,5);  
+          for(auto&  id: neighborXtals)
+              saveXtalsEE_.push_back(id.rawId());      
+      }
+
+      //Remove the duplicates
+      saveXtalsEE_.insert(saveXtalsEE_.end(),deadXtalsEE_.begin(),deadXtalsEE_.end());
+      std::sort(saveXtalsEE_.begin(),saveXtalsEE_.end());
+      saveXtalsEE_.erase(std::unique(saveXtalsEE_.begin(),saveXtalsEE_.end()),saveXtalsEE_.end());
+
+      //std::cout << "saveXtalsEE_.size() = " << saveXtalsEE_.size() << std::endl; 
+
       for(const auto& iRechit : *ecalEEHits){
 
           DetId rechit_id(iRechit.detid());
-
           uint32_t rawId = rechit_id.rawId();
+
+          if(std::find(saveXtalsEE_.begin(), saveXtalsEE_.end(), rawId) == saveXtalsEE_.end() && saveXtalsEE_.size()!=0) continue;
+
           ecalRecHit_rawId.push_back(rawId);
 
           int status = (*chStatus->getMap().find(rechit_id.rawId())).getStatusCode();

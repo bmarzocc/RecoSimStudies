@@ -43,7 +43,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10),
+    input = cms.untracked.int32(100),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -101,6 +101,8 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     outputCommands = process.RECOSIMEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
+
+process.RECOSIMoutput.outputCommands.extend(['keep *'])
 
 # Additional output definition
 
@@ -286,7 +288,8 @@ process.highetFilter = cms.EDFilter(
 process.load('Calibration.EcalAlCaRecoProducers.WZElectronSkims_cff')
 process.load('RecoSimStudies.Dumpers.RecoSimDumper_cfi')
 process.dumper_step = cms.Path(
-     process.ZeeSkimFilterSeq
+    #process.AllEvents
+    process.ZeeSkimFilterSeq
     *process.AllEvents  
     #*process.hltLevel1GTSeed 
     *process.hltHighLevel
@@ -297,6 +300,34 @@ process.dumper_step = cms.Path(
     *process.FilterPatDefaultSequenceEvents 
     *process.recosimdumper
 )
+
+from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import *
+process.ecalDrivenGsfElectrons.EleDNNPFid= dict(
+        modelsFiles = [
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/lowpT/lowpT_modelDNN.pb",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EB_highpT/barrel_highpT_modelDNN.pb",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EE_highpT/endcap_highpT_modelDNN.pb"
+        ],
+        scalersFiles = [
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/lowpT/lowpT_scaler.txt",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EB_highpT/barrel_highpT_scaler.txt",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EE_highpT/endcap_highpT_scaler.txt"
+        ]
+)
+process.ecalDrivenGsfElectrons.EleDNNPFid.enabled = True
+
+from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *
+process.gedPhotons.PhotonDNNPFid = dict(
+        modelsFiles = [ 
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EB/barrel_modelDNN.pb",
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EE/endcap_modelDNN.pb"
+        ],
+        scalersFiles = [
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EB/barrel_scaler.txt",
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EE/endcap_scaler.txt" 
+        ]
+)
+process.gedPhotons.PhotonDNNPFid.enabled = True  
 
 # Schedule definition
 process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadPFMuonDzFilter,process.Flag_hfNoisyHitsFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.dumper_step,process.endjob_step)

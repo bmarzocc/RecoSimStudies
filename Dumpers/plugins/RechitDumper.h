@@ -125,7 +125,11 @@ class RechitDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       bool doCompression_;
       int nBits_;
       bool saveEB_;       
-      bool saveEE_;      
+      bool saveEE_;   
+      std::vector<uint32_t> deadXtalsEB_;   
+      std::vector<uint32_t> deadXtalsEE_; 
+      std::vector<uint32_t> saveXtalsEB_;   
+      std::vector<uint32_t> saveXtalsEE_;          
       
       // ----------histograms & trees & branches-------------------
       TTree* tree;

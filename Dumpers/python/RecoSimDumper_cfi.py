@@ -25,17 +25,18 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     gedPhotonCollection             = cms.InputTag("gedPhotons","","ECALClustering"), 
     patElectronCollection           = cms.InputTag("slimmedElectrons","","ECALClustering"), 
     patPhotonCollection             = cms.InputTag("slimmedPhotons","","ECALClustering"), 
+    patJetCollection                = cms.InputTag("slimmedJets","","ECALClustering"), 
     patMETCollection                = cms.InputTag("slimmedMETs","","ECALClustering"), 
     ebRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALBarrelMustacheNewParams","ECALClustering"), 
     eeRetunedSuperClusterCollection = cms.InputTag("particleFlowSuperClusterECALNewParams","particleFlowSuperClusterECALEndcapWithPreshowerMustacheNewParams","ECALClustering"),
     ebDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALBarrel","ECALClustering"), 
     eeDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALEndcapWithPreshower","ECALClustering"),
     
-    isMC                            = cms.bool(False),  #isMC
+    isMC                            = cms.bool(True),  #isMC
     doCompression                   = cms.bool(True),  #do the compression of floats
     nBits                           = cms.int32(23),   #nbits for float compression (<=23)
     
-    saveGenParticles                = cms.bool(False),  #save genParticles information   
+    saveGenParticles                = cms.bool(True),  #save genParticles information   
     saveCaloParticles               = cms.bool(False),  #save caloParticles information
     saveCaloParticlesPU             = cms.bool(False),  #save PU caloParticles information
     saveCaloParticlesOOTPU          = cms.bool(False),  #save OOT PU caloParticles information
@@ -51,7 +52,9 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveRetunedSC                   = cms.bool(False),  #save retunedSCs information
     saveDeepSC                      = cms.bool(False),  #save deepSCs information
     saveGedParticles                = cms.bool(False),  #save gedGsfElectrons and gedPhotons information
-    savePatParticles                = cms.bool(True),  #save patElectrons, patPhotons and patMET information
+    savePatPhotons                  = cms.bool(True),  #save patPhotons and patMET information
+    savePatElectrons                = cms.bool(True),  #save patElectrons information
+    savePatJets                     = cms.bool(True),  #save patJets information
 
     egmCutBasedElectronIDVeto       = cms.string('cutBasedElectronID-Fall17-94X-V2-veto'),  #cutBasedEleID veto
     egmCutBasedElectronIDloose      = cms.string('cutBasedElectronID-Fall17-94X-V2-loose'),  #cutBasedEleID loose  

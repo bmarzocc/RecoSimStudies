@@ -59,9 +59,12 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectronCore.h"
 #include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
@@ -74,6 +77,7 @@
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalTools.h"
 #include "CommonTools/Egamma/interface/EffectiveAreas.h"
+#include "RecoJets/JetProducers/interface/PileupJetIdAlgo.h"
 
 #include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
 #include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
@@ -204,6 +208,7 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       edm::EDGetTokenT<std::vector<reco::Photon> > gedPhotonToken_;
       edm::EDGetTokenT<std::vector<pat::Electron> > patElectronToken_;
       edm::EDGetTokenT<std::vector<pat::Photon> > patPhotonToken_;
+      edm::EDGetTokenT<std::vector<pat::Jet> > patJetToken_;
       edm::EDGetTokenT<std::vector<pat::MET> > patMETToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebSuperClusterToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeSuperClusterToken_; 
@@ -215,8 +220,7 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeDeepSuperClusterLWPToken_; 
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > ebDeepSuperClusterTWPToken_;
       edm::EDGetTokenT<std::vector<reco::SuperCluster> > eeDeepSuperClusterTWPToken_;
-      edm::EDGetTokenT<CaloTowerCollection> hcalTowersToken_;   
-
+      
       edm::Service<TFileService> iFile;
       const CaloSubdetectorGeometry* _ebGeom;
       const CaloSubdetectorGeometry* _eeGeom;
@@ -244,7 +248,9 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       bool saveRetunedSC_;
       bool saveDeepSC_;  
       bool saveGedParticles_;  
-      bool savePatParticles_;      
+      bool savePatPhotons_; 
+      bool savePatElectrons_; 
+      bool savePatJets_;      
       
       std::string egmCutBasedElectronIDVeto_;
       std::string egmCutBasedElectronIDloose_;
@@ -534,7 +540,8 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<float> gsfElectron_trkPOut;
       std::vector<float> gsfElectron_trkChi2;
       std::vector<float> gsfElectron_trkNDof;
-      std::vector<float> gsfElectron_fbrem;
+      std::vector<float> gsfElectron_trackFbrem;
+      std::vector<float> gsfElectron_superClusterFbrem;
       std::vector<float> gsfElectron_hademTow;
       std::vector<float> gsfElectron_hademCone;
       std::vector<float> gsfElectron_ecalDrivenSeed;
@@ -561,12 +568,22 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<float> gsfElectron_full5x5_refinedSCSigmaIEtaIPhi;
       std::vector<float> gsfElectron_full5x5_refinedSCSigmaIPhiIPhi;
       std::vector<float> gsfElectron_HoE; 
-      std::vector<float> gsfElectron_trkIso; 
-      std::vector<float> gsfElectron_ecalIso;  
-      std::vector<float> gsfElectron_hcalIso;
+      std::vector<float> gsfElectron_trkIso03; 
+      std::vector<float> gsfElectron_ecalIso03;  
+      std::vector<float> gsfElectron_hcalIso03;
+      std::vector<float> gsfElectron_trkIso04; 
+      std::vector<float> gsfElectron_ecalIso04;  
+      std::vector<float> gsfElectron_hcalIso04;
       std::vector<float> gsfElectron_pfPhotonIso;     
       std::vector<float> gsfElectron_pfChargedHadronIso;     
       std::vector<float> gsfElectron_pfNeutralHadronIso;
+      std::vector<float> gsfElectron_mva_Isolated; 
+      std::vector<float> gsfElectron_mva_e_pi; 
+      std::vector<float> gsfElectron_dnn_signal_Isolated;
+      std::vector<float> gsfElectron_dnn_signal_nonIsolated;  
+      std::vector<float> gsfElectron_dnn_bkg_nonIsolated; 
+      std::vector<float> gsfElectron_dnn_bkg_Tau;
+      std::vector<float> gsfElectron_dnn_bkg_Photon;
       std::vector<int> gedPhoton_index;
       std::vector<uint32_t> gedPhoton_seedRawId;
       std::vector<int> gedPhoton_isEB;
@@ -607,12 +624,19 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<float> gedPhoton_full5x5_refinedSCSigmaIEtaIPhi;
       std::vector<float> gedPhoton_full5x5_refinedSCSigmaIPhiIPhi; 
       std::vector<float> gedPhoton_HoE;
-      std::vector<float> gedPhoton_trkIso; 
-      std::vector<float> gedPhoton_ecalIso;  
-      std::vector<float> gedPhoton_hcalIso;
+      std::vector<float> gedPhoton_trkIso03; 
+      std::vector<float> gedPhoton_ecalIso03;  
+      std::vector<float> gedPhoton_hcalIso03;
+      std::vector<float> gedPhoton_trkIso04; 
+      std::vector<float> gedPhoton_ecalIso04;  
+      std::vector<float> gedPhoton_hcalIso04;
       std::vector<float> gedPhoton_pfPhotonIso;     
       std::vector<float> gedPhoton_pfChargedHadronIso;     
       std::vector<float> gedPhoton_pfNeutralHadronIso;
+      std::vector<int> gedPhoton_nClusterOutsideMustache; 
+      std::vector<float> gedPhoton_etOutsideMustache; 
+      std::vector<float> gedPhoton_pfMVA; 
+      std::vector<float> gedPhoton_pfDNN; 
       float patMET_sumEt;
       float patMET_et;
       float mll;
@@ -638,7 +662,8 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<float> patElectron_deltaPhiSeedClusterAtCalo;
       std::vector<int> patElectron_misHits;
       std::vector<int> patElectron_nAmbiguousGsfTracks; 
-      std::vector<float> patElectron_fbrem;
+      std::vector<float> patElectron_trackFbrem;
+      std::vector<float> patElectron_superClusterFbrem;
       std::vector<float> patElectron_energy;
       std::vector<float> patElectron_energyErr;
       std::vector<float> patElectron_ecalEnergy;
@@ -673,12 +698,22 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<float> patElectron_full5x5_refinedSCSigmaIEtaIPhi;
       std::vector<float> patElectron_full5x5_refinedSCSigmaIPhiIPhi;
       std::vector<float> patElectron_HoE;
-      std::vector<float> patElectron_trkIso;
-      std::vector<float> patElectron_ecalIso;
-      std::vector<float> patElectron_hcalIso;
+      std::vector<float> patElectron_trkIso03;
+      std::vector<float> patElectron_ecalIso03;
+      std::vector<float> patElectron_hcalIso03;
+      std::vector<float> patElectron_trkIso04;
+      std::vector<float> patElectron_ecalIso04;
+      std::vector<float> patElectron_hcalIso04;
       std::vector<float> patElectron_pfPhotonIso;
       std::vector<float> patElectron_pfNeutralHadronIso;
       std::vector<float> patElectron_pfChargedHadronIso;
+      std::vector<float> patElectron_mva_Isolated; 
+      std::vector<float> patElectron_mva_e_pi; 
+      std::vector<float> patElectron_dnn_signal_Isolated;
+      std::vector<float> patElectron_dnn_signal_nonIsolated;  
+      std::vector<float> patElectron_dnn_bkg_nonIsolated; 
+      std::vector<float> patElectron_dnn_bkg_Tau;
+      std::vector<float> patElectron_dnn_bkg_Photon;
       std::vector<int> patElectron_egmCutBasedElectronIDVeto;
       std::vector<int> patElectron_egmCutBasedElectronIDloose;
       std::vector<int> patElectron_egmCutBasedElectronIDmedium;
@@ -735,19 +770,76 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<float> patPhoton_full5x5_refinedSCSigmaIEtaIPhi;
       std::vector<float> patPhoton_full5x5_refinedSCSigmaIPhiIPhi;
       std::vector<float> patPhoton_HoE;
-      std::vector<float> patPhoton_trkIso;
-      std::vector<float> patPhoton_ecalIso;
-      std::vector<float> patPhoton_hcalIso;
+      std::vector<float> patPhoton_trkIso03;
+      std::vector<float> patPhoton_ecalIso03;
+      std::vector<float> patPhoton_hcalIso03;
+      std::vector<float> patPhoton_trkIso04;
+      std::vector<float> patPhoton_ecalIso04;
+      std::vector<float> patPhoton_hcalIso04;
       std::vector<float> patPhoton_patParticleIso;
       std::vector<float> patPhoton_pfChargedHadronIso;
       std::vector<float> patPhoton_pfNeutralHadronIso;
       std::vector<float> patPhoton_pfPhotonIso;
       std::vector<float> patPhoton_pfPuChargedHadronIso;
+      std::vector<int> patPhoton_nClusterOutsideMustache; 
+      std::vector<float> patPhoton_etOutsideMustache; 
+      std::vector<float> patPhoton_pfMVA; 
+      std::vector<float> patPhoton_pfDNN; 
       std::vector<int> patPhoton_egmCutBasedPhotonIDloose;
       std::vector<int> patPhoton_egmCutBasedPhotonIDmedium;
       std::vector<int> patPhoton_egmCutBasedPhotonIDtight;
       std::vector<int> patPhoton_egmMVAPhotonIDmedium;
       std::vector<int> patPhoton_egmMVAPhotonIDtight;
+      std::vector<int> patJet_index;
+      std::vector<bool> patJet_isCaloJet;
+      std::vector<bool> patJet_isJPTJet;
+      std::vector<bool> patJet_isPFJet;
+      std::vector<bool> patJet_isBasicJet;
+      std::vector<float> patJet_charge;
+      std::vector<float> patJet_energy;  
+      std::vector<float> patJet_eta;    
+      std::vector<float> patJet_phi; 
+      std::vector<float> patJet_pt;  
+      std::vector<float> patJet_uncorrectedEnergy;  
+      std::vector<float> patJet_uncorrectedPt;      
+      std::vector<float> patJet_energyFractionHadronic;
+      std::vector<float> patJet_hadEnergyInHB;
+      std::vector<float> patJet_hadEnergyInHO;
+      std::vector<float> patJet_hadEnergyInHE;
+      std::vector<float> patJet_hadEnergyInHF;
+      std::vector<float> patJet_emEnergyInEB;
+      std::vector<float> patJet_emEnergyInEE;
+      std::vector<float> patJet_emEnergyInHF;
+      std::vector<float> patJet_chargedHadronEnergyFraction;
+      std::vector<float> patJet_neutralHadronEnergyFraction;
+      std::vector<float> patJet_chargedEmEnergyFraction;
+      std::vector<float> patJet_neutralEmEnergyFraction;
+      std::vector<float> patJet_photonEnergy;
+      std::vector<float> patJet_photonEnergyFraction;
+      std::vector<float> patJet_electronEnergy;
+      std::vector<float> patJet_electronEnergyFraction;
+      std::vector<float> patJet_muonEnergy;
+      std::vector<float> patJet_muonEnergyFraction;
+      std::vector<float> patJet_HFHadronEnergy;       
+      std::vector<float> patJet_HFHadronEnergyFraction;
+      std::vector<float> patJet_HFEMEnergy;   
+      std::vector<float> patJet_HFEMEnergyFraction;
+      std::vector<float> patJet_chargedMuEnergy; 
+      std::vector<float> patJet_chargedMuEnergyFraction;
+      std::vector<float> patJet_hoEnergy;  
+      std::vector<float> patJet_hoEnergyFraction;
+      std::vector<int> patJet_nCandidates;
+      std::vector<int> patJet_nCandInEcal;
+      std::vector<int> patJet_nCandInEcalWithCharge;
+      std::vector<std::vector<float> > patJet_candInEcal_charge;
+      std::vector<std::vector<float> > patJet_candInEcal_ecalEnergy;
+      std::vector<std::vector<float> > patJet_candInEcal_ecalEnergyFraction;
+      std::vector<std::vector<float> > patJet_candInEcal_hcalEnergy;
+      std::vector<std::vector<float> > patJet_candInEcal_hcalEnergyFraction;
+      std::vector<std::vector<float> > patJet_candInEcal_eta;
+      std::vector<std::vector<float> > patJet_candInEcal_phi;
+      std::vector<float> patJet_bTagScore_pfDeepCSV;
+      std::vector<float> patJet_puID;
       std::vector<uint32_t> superCluster_seedRawId;
       std::vector<float> superCluster_rawEnergy;
       std::vector<float> superCluster_rawESEnergy;

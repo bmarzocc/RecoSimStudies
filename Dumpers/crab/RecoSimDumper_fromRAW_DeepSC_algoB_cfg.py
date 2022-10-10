@@ -305,6 +305,34 @@ process.Flag_trkPOG_toomanystripclus53X = cms.Path(~process.toomanystripclus53X)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 
+from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import *
+process.ecalDrivenGsfElectrons.EleDNNPFid= dict(
+        modelsFiles = [
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/lowpT/lowpT_modelDNN.pb",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EB_highpT/barrel_highpT_modelDNN.pb",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EE_highpT/endcap_highpT_modelDNN.pb"
+        ],
+        scalersFiles = [
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/lowpT/lowpT_scaler.txt",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EB_highpT/barrel_highpT_scaler.txt",
+            "RecoEgamma/ElectronIdentification/data/Ele_PFID_dnn/Run3Summer21_120X/EE_highpT/endcap_highpT_scaler.txt"
+        ]
+)
+process.ecalDrivenGsfElectrons.EleDNNPFid.enabled = True
+
+from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *
+process.gedPhotons.PhotonDNNPFid = dict(
+        modelsFiles = [ 
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EB/barrel_modelDNN.pb",
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EE/endcap_modelDNN.pb"
+        ],
+        scalersFiles = [
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EB/barrel_scaler.txt",
+            "RecoEgamma/PhotonIdentification/data/Photon_PFID_dnn/Run3Summer21_120X/EE/endcap_scaler.txt" 
+        ]
+)
+process.gedPhotons.PhotonDNNPFid.enabled = True  
+
 #Set DeepSC strategy
 process.particleFlowSuperClusterECAL.deepSuperClusterConfig.collectionStrategy =  'CollectAndMerge'
 

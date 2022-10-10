@@ -53,15 +53,19 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectronCore.h"
 #include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "FWCore/Utilities/interface/isFinite.h"
 #include "CondFormats/EcalObjects/interface/EcalIntercalibConstants.h"
 #include "CondFormats/DataRecord/interface/EcalIntercalibConstantsRcd.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "CommonTools/Egamma/interface/EffectiveAreas.h"
+#include "RecoJets/JetProducers/interface/PileupJetIdAlgo.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "RecoSimStudies/Dumpers/plugins/RecoSimDumper.h"
@@ -166,9 +170,10 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    ebDeepSuperClusterToken_       = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("ebDeepSuperClusterCollection"));
    eeDeepSuperClusterToken_       = consumes<std::vector<reco::SuperCluster> >(iConfig.getParameter<edm::InputTag>("eeDeepSuperClusterCollection"));
    gsfElectronToken_              = consumes<reco::GsfElectronCollection>(iConfig.getParameter<edm::InputTag>("gsfElectronCollection"));
+   gedPhotonToken_                = consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("gedPhotonCollection"));
    patElectronToken_              = consumes<std::vector<pat::Electron> >(iConfig.getParameter<edm::InputTag>("patElectronCollection"));
    patPhotonToken_                = consumes<std::vector<pat::Photon> >(iConfig.getParameter<edm::InputTag>("patPhotonCollection")); 
-   gedPhotonToken_                = consumes<reco::PhotonCollection>(iConfig.getParameter<edm::InputTag>("gedPhotonCollection"));
+   patJetToken_                   = consumes<std::vector<pat::Jet> >(iConfig.getParameter<edm::InputTag>("patJetCollection")); 
    patMETToken_                   = consumes<std::vector<pat::MET> >(iConfig.getParameter<edm::InputTag>("patMETCollection"));
    
    nBits_                         = iConfig.getParameter<int>("nBits");
@@ -190,7 +195,9 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    saveRetunedSC_                 = iConfig.getParameter<bool>("saveRetunedSC");  
    saveDeepSC_                    = iConfig.getParameter<bool>("saveDeepSC");  
    saveGedParticles_              = iConfig.getParameter<bool>("saveGedParticles");
-   savePatParticles_              = iConfig.getParameter<bool>("savePatParticles"); 
+   savePatPhotons_                = iConfig.getParameter<bool>("savePatPhotons"); 
+   savePatElectrons_              = iConfig.getParameter<bool>("savePatElectrons");
+   savePatJets_                   = iConfig.getParameter<bool>("savePatJets");   
 
    egmCutBasedElectronIDVeto_     = iConfig.getParameter<std::string>("egmCutBasedElectronIDVeto"); 
    egmCutBasedElectronIDloose_    = iConfig.getParameter<std::string>("egmCutBasedElectronIDloose");  
@@ -207,7 +214,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    egmCutBasedPhotonIDmedium_     = iConfig.getParameter<std::string>("egmCutBasedPhotonIDmedium"); 
    egmCutBasedPhotonIDtight_      = iConfig.getParameter<std::string>("egmCutBasedPhotonIDtight"); 
    egmMVAPhotonIDmedium_          = iConfig.getParameter<std::string>("egmMVAPhotonIDmedium"); 
-   egmMVAPhotonIDtight_           = iConfig.getParameter<std::string>("egmMVAPhotonIDtight");      
+   egmMVAPhotonIDtight_           = iConfig.getParameter<std::string>("egmMVAPhotonIDtight");
   
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
@@ -438,18 +445,30 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    edm::Handle<std::vector<pat::Electron> > patElectron;
    edm::Handle<std::vector<pat::Photon> > patPhoton;
+   edm::Handle<std::vector<pat::Jet> > patJet;
    edm::Handle< std::vector<pat::MET> > patMET;
-   if(savePatParticles_) {
-      ev.getByToken(patElectronToken_,patElectron);
-      if (!patElectron.isValid()) {
-          std::cerr << "Analyze --> patElectrons not found" << std::endl; 
-          return;
-      }
+   if(savePatPhotons_) {
       ev.getByToken(patPhotonToken_,patPhoton);
       if (!patPhoton.isValid()) {
           std::cerr << "Analyze --> patPhotons not found" << std::endl; 
           return;
       }
+   }
+   if(savePatElectrons_) {
+      ev.getByToken(patElectronToken_,patElectron);
+      if (!patElectron.isValid()) {
+          std::cerr << "Analyze --> patElectrons not found" << std::endl; 
+          return;
+      }
+   }
+   if(savePatJets_) {
+      ev.getByToken(patJetToken_,patJet);
+      if (!patJet.isValid()) {
+          std::cerr << "Analyze --> patJets not found" << std::endl; 
+          return;
+      }
+   }
+   if(savePatPhotons_ || savePatElectrons_ || savePatJets_) {
       ev.getByToken(patMETToken_,patMET);
       if (!patMET.isValid()) {
           std::cerr << "Analyze --> patMET not found" << std::endl; 
@@ -1293,7 +1312,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gsfElectron_trkPOut.push_back(reduceFloat(std::sqrt(iElectron.trackMomentumOut().Mag2()),nBits_));
           gsfElectron_trkChi2.push_back(reduceFloat(iElectron.gsfTrack()->chi2(),nBits_));
           gsfElectron_trkNDof.push_back(reduceFloat(iElectron.gsfTrack()->ndof(),nBits_));
-          gsfElectron_fbrem.push_back(reduceFloat(iElectron.fbrem(),nBits_));
+          gsfElectron_trackFbrem.push_back(reduceFloat(iElectron.trackFbrem(),nBits_));
+          gsfElectron_superClusterFbrem.push_back(reduceFloat(iElectron.superClusterFbrem(),nBits_));
           gsfElectron_hademTow.push_back(reduceFloat(iElectron.hcalOverEcalBc(),nBits_));
           gsfElectron_hademCone.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));
           gsfElectron_ecalDrivenSeed.push_back(reduceFloat(iElectron.ecalDrivenSeed(),nBits_));
@@ -1320,12 +1340,22 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gsfElectron_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIetaIphi,nBits_));
           gsfElectron_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIphiIphi,nBits_)); 
           gsfElectron_HoE.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));   
-          gsfElectron_trkIso.push_back(reduceFloat(iElectron.dr04TkSumPt(),nBits_));    
-          gsfElectron_ecalIso.push_back(reduceFloat(iElectron.dr04EcalRecHitSumEt(),nBits_));   
-          gsfElectron_hcalIso.push_back(reduceFloat(iElectron.dr04HcalTowerSumEt(),nBits_));  
+          gsfElectron_trkIso03.push_back(reduceFloat(iElectron.dr03TkSumPt(),nBits_));    
+          gsfElectron_ecalIso03.push_back(reduceFloat(iElectron.dr03EcalRecHitSumEt(),nBits_));   
+          gsfElectron_hcalIso03.push_back(reduceFloat(iElectron.dr03HcalTowerSumEt(),nBits_));  
+          gsfElectron_trkIso04.push_back(reduceFloat(iElectron.dr04TkSumPt(),nBits_));    
+          gsfElectron_ecalIso04.push_back(reduceFloat(iElectron.dr04EcalRecHitSumEt(),nBits_));   
+          gsfElectron_hcalIso04.push_back(reduceFloat(iElectron.dr04HcalTowerSumEt(),nBits_));  
           gsfElectron_pfPhotonIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumPhotonEt,nBits_));      
           gsfElectron_pfChargedHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumChargedHadronPt,nBits_));      
           gsfElectron_pfNeutralHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumNeutralHadronEt,nBits_));   
+          gsfElectron_mva_Isolated.push_back(reduceFloat(iElectron.mva_Isolated(),nBits_));   
+          gsfElectron_mva_e_pi.push_back(reduceFloat(iElectron.mva_e_pi(),nBits_));   
+          gsfElectron_dnn_signal_Isolated.push_back(reduceFloat(iElectron.dnn_signal_Isolated(),nBits_));   
+          gsfElectron_dnn_signal_nonIsolated.push_back(reduceFloat(iElectron.dnn_signal_nonIsolated(),nBits_));   
+          gsfElectron_dnn_bkg_nonIsolated.push_back(reduceFloat(iElectron.dnn_bkg_nonIsolated(),nBits_));   
+          gsfElectron_dnn_bkg_Tau.push_back(reduceFloat(iElectron.dnn_bkg_Tau(),nBits_));   
+          gsfElectron_dnn_bkg_Photon.push_back(reduceFloat(iElectron.dnn_bkg_Photon(),nBits_));   
     
           iEle++; 
       }
@@ -1417,18 +1447,35 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gedPhoton_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIetaIphi,nBits_));
           gedPhoton_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIphiIphi,nBits_));    
           gedPhoton_HoE.push_back(reduceFloat(iPhoton.hcalOverEcal(),nBits_));    
-          gedPhoton_trkIso.push_back(reduceFloat(iPhoton.trkSumPtSolidConeDR04(),nBits_));    
-          gedPhoton_ecalIso.push_back(reduceFloat(iPhoton.ecalRecHitSumEtConeDR04(),nBits_));   
-          gedPhoton_hcalIso.push_back(reduceFloat(iPhoton.hcalTowerSumEtConeDR04(),nBits_));  
+          gedPhoton_trkIso03.push_back(reduceFloat(iPhoton.trkSumPtSolidConeDR03(),nBits_));    
+          gedPhoton_ecalIso03.push_back(reduceFloat(iPhoton.ecalRecHitSumEtConeDR03(),nBits_));   
+          gedPhoton_hcalIso03.push_back(reduceFloat(iPhoton.hcalTowerSumEtConeDR03(),nBits_)); 
+          gedPhoton_trkIso04.push_back(reduceFloat(iPhoton.trkSumPtSolidConeDR04(),nBits_));    
+          gedPhoton_ecalIso04.push_back(reduceFloat(iPhoton.ecalRecHitSumEtConeDR04(),nBits_));   
+          gedPhoton_hcalIso04.push_back(reduceFloat(iPhoton.hcalTowerSumEtConeDR04(),nBits_));  
           gedPhoton_pfPhotonIso.push_back(reduceFloat(iPhoton.photonIso(),nBits_));      
           gedPhoton_pfChargedHadronIso.push_back(reduceFloat(iPhoton.chargedHadronIso(),nBits_));      
-          gedPhoton_pfNeutralHadronIso.push_back(reduceFloat(iPhoton.neutralHadronIso(),nBits_));      
+          gedPhoton_pfNeutralHadronIso.push_back(reduceFloat(iPhoton.neutralHadronIso(),nBits_));  
+          gedPhoton_nClusterOutsideMustache.push_back(reduceFloat(iPhoton.nClusterOutsideMustache(),nBits_)); 
+          gedPhoton_etOutsideMustache.push_back(reduceFloat(iPhoton.etOutsideMustache(),nBits_)); 
+          gedPhoton_pfMVA.push_back(reduceFloat(iPhoton.pfMVA(),nBits_));  
+          gedPhoton_pfDNN.push_back(reduceFloat(iPhoton.pfDNN(),nBits_));      
 
           iPho++; 
       }
    }
 
-   if(savePatParticles_)
+   //save MET info
+   pat::METRef metP;
+   if(savePatElectrons_ || savePatPhotons_ || savePatJets_)
+   { 
+      metP = pat::METRef(patMET,0);
+      patMET_sumEt = reduceFloat(metP->sumEt(),nBits_);
+      patMET_et   = reduceFloat(metP->corPt(),nBits_); 
+   }
+
+   //save patElectron info
+   if(savePatElectrons_)
    { 
       //save Mll info
       reco::Candidate::LorentzVector L1;
@@ -1448,12 +1495,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           }
       } 
 
-      //save MET infos
-      pat::METRef metP = pat::METRef(patMET,0);
-      patMET_sumEt = reduceFloat(metP->sumEt(),nBits_);
-      patMET_et   = reduceFloat(metP->corPt(),nBits_); 
- 
-      //save patElectron infos
       int iEle=0;
       for(const auto& iElectron : *(patElectron.product())){ 
  
@@ -1529,7 +1570,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patElectron_deltaPhiSeedClusterAtCalo.push_back(reduceFloat(iElectron.deltaPhiSeedClusterTrackAtCalo(),nBits_));
           patElectron_misHits.push_back(iElectron.gsfTrack()->hitPattern().numberOfAllTrackerHits(reco::HitPattern::TRACK_HITS));
           patElectron_nAmbiguousGsfTracks.push_back(iElectron.ambiguousGsfTracksSize());
-          patElectron_fbrem.push_back(reduceFloat(iElectron.fbrem(),nBits_));
+          patElectron_trackFbrem.push_back(reduceFloat(iElectron.trackFbrem(),nBits_));
+          patElectron_superClusterFbrem.push_back(reduceFloat(iElectron.superClusterFbrem(),nBits_));
           patElectron_energy.push_back(reduceFloat(iElectron.energy(),nBits_));
           patElectron_energyErr.push_back(reduceFloat(iElectron.p4Error(reco::GsfElectron::P4_COMBINATION),nBits_));
           patElectron_ecalEnergy.push_back(reduceFloat(iElectron.ecalEnergy(),nBits_));
@@ -1564,12 +1606,22 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patElectron_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIetaIphi,nBits_));
           patElectron_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_eleSS.sigmaIphiIphi,nBits_));  
           patElectron_HoE.push_back(reduceFloat(iElectron.hadronicOverEm(),nBits_)); 
-          patElectron_trkIso.push_back(reduceFloat(iElectron.dr04TkSumPt(),nBits_));    
-          patElectron_ecalIso.push_back(reduceFloat(iElectron.dr04EcalRecHitSumEt(),nBits_));   
-          patElectron_hcalIso.push_back(reduceFloat(iElectron.dr04HcalTowerSumEt(),nBits_));  
+          patElectron_trkIso03.push_back(reduceFloat(iElectron.dr03TkSumPt(),nBits_));    
+          patElectron_ecalIso03.push_back(reduceFloat(iElectron.dr03EcalRecHitSumEt(),nBits_));   
+          patElectron_hcalIso03.push_back(reduceFloat(iElectron.dr03HcalTowerSumEt(),nBits_));  
+          patElectron_trkIso04.push_back(reduceFloat(iElectron.dr04TkSumPt(),nBits_));    
+          patElectron_ecalIso04.push_back(reduceFloat(iElectron.dr04EcalRecHitSumEt(),nBits_));   
+          patElectron_hcalIso04.push_back(reduceFloat(iElectron.dr04HcalTowerSumEt(),nBits_));  
           patElectron_pfPhotonIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumPhotonEt,nBits_));      
           patElectron_pfChargedHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumChargedHadronPt,nBits_));      
-          patElectron_pfNeutralHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumNeutralHadronEt,nBits_));   
+          patElectron_pfNeutralHadronIso.push_back(reduceFloat(iElectron.pfIsolationVariables().sumNeutralHadronEt,nBits_));
+          patElectron_mva_Isolated.push_back(reduceFloat(iElectron.mva_Isolated(),nBits_));   
+          patElectron_mva_e_pi.push_back(reduceFloat(iElectron.mva_e_pi(),nBits_));   
+          patElectron_dnn_signal_Isolated.push_back(reduceFloat(iElectron.dnn_signal_Isolated(),nBits_));   
+          patElectron_dnn_signal_nonIsolated.push_back(reduceFloat(iElectron.dnn_signal_nonIsolated(),nBits_));   
+          patElectron_dnn_bkg_nonIsolated.push_back(reduceFloat(iElectron.dnn_bkg_nonIsolated(),nBits_));   
+          patElectron_dnn_bkg_Tau.push_back(reduceFloat(iElectron.dnn_bkg_Tau(),nBits_));   
+          patElectron_dnn_bkg_Photon.push_back(reduceFloat(iElectron.dnn_bkg_Photon(),nBits_));      
           patElectron_egmCutBasedElectronIDVeto.push_back(iElectron.electronID(egmCutBasedElectronIDVeto_.c_str()));
           patElectron_egmCutBasedElectronIDloose.push_back(iElectron.electronID(egmCutBasedElectronIDloose_.c_str()));
           patElectron_egmCutBasedElectronIDmedium.push_back(iElectron.electronID(egmCutBasedElectronIDmedium_.c_str()));
@@ -1584,8 +1636,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           
           iEle++; 
       }
-
-      //save patPhoton infos
+   }    
+   
+   //save patPhoton info
+   if(savePatPhotons_)
+   {    
       int iPho=0;
       for(const auto& iPhoton : *(patPhoton.product())){ 
  
@@ -1642,7 +1697,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           double Mt = sqrt(2 * iPhoton.p4().Et() * metP->corPt() * (1-cphi));
           double dphiMET = deltaPhi(metP->corPhi(),iPhoton.p4().phi());
 
-          patPhoton_index.push_back(iEle);
+          patPhoton_index.push_back(iPho);
           patPhoton_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
           patPhoton_nPFClusters.push_back(iPhoton.superCluster()->clusters().size());
           patPhoton_isEB.push_back(iPhoton.isEB()); 
@@ -1688,14 +1743,21 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patPhoton_full5x5_refinedSCSigmaIEtaIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIetaIphi,nBits_));
           patPhoton_full5x5_refinedSCSigmaIPhiIPhi.push_back(reduceFloat(full5x5_phoSS.sigmaIphiIphi,nBits_));    
           patPhoton_HoE.push_back(reduceFloat(iPhoton.hadronicOverEm(),nBits_)); 
-          patPhoton_trkIso.push_back(reduceFloat(iPhoton.trackIso(),nBits_));
-          patPhoton_ecalIso.push_back(reduceFloat(iPhoton.ecalIso(),nBits_));
-          patPhoton_hcalIso.push_back(reduceFloat(iPhoton.hcalIso(),nBits_));
+          patPhoton_trkIso03.push_back(reduceFloat(iPhoton.trkSumPtSolidConeDR03(),nBits_));
+          patPhoton_ecalIso03.push_back(reduceFloat(iPhoton.ecalRecHitSumEtConeDR03(),nBits_));
+          patPhoton_hcalIso03.push_back(reduceFloat(iPhoton.hcalTowerSumEtConeDR03(),nBits_));
+          patPhoton_trkIso04.push_back(reduceFloat(iPhoton.trkSumPtSolidConeDR04(),nBits_));
+          patPhoton_ecalIso04.push_back(reduceFloat(iPhoton.ecalRecHitSumEtConeDR04(),nBits_));
+          patPhoton_hcalIso04.push_back(reduceFloat(iPhoton.hcalTowerSumEtConeDR04(),nBits_));
           patPhoton_patParticleIso.push_back(reduceFloat(iPhoton.patParticleIso(),nBits_));
           patPhoton_pfChargedHadronIso.push_back(reduceFloat(iPhoton.chargedHadronIso(),nBits_));
           patPhoton_pfNeutralHadronIso.push_back(reduceFloat(iPhoton.neutralHadronIso(),nBits_));
           patPhoton_pfPhotonIso.push_back(reduceFloat(iPhoton.photonIso(),nBits_));
           patPhoton_pfPuChargedHadronIso.push_back(reduceFloat(iPhoton.puChargedHadronIso(),nBits_));
+          patPhoton_nClusterOutsideMustache.push_back(reduceFloat(iPhoton.nClusterOutsideMustache(),nBits_)); 
+          patPhoton_etOutsideMustache.push_back(reduceFloat(iPhoton.etOutsideMustache(),nBits_)); 
+          patPhoton_pfMVA.push_back(reduceFloat(iPhoton.pfMVA(),nBits_));  
+          patPhoton_pfDNN.push_back(reduceFloat(iPhoton.pfDNN(),nBits_));  
           patPhoton_egmCutBasedPhotonIDloose.push_back(iPhoton.photonID(egmCutBasedPhotonIDloose_.c_str()));
           patPhoton_egmCutBasedPhotonIDmedium.push_back(iPhoton.photonID(egmCutBasedPhotonIDmedium_.c_str()));
           patPhoton_egmCutBasedPhotonIDtight.push_back(iPhoton.photonID(egmCutBasedPhotonIDtight_.c_str()));
@@ -1706,6 +1768,121 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    }
  
+   //save patJet info
+   if(savePatJets_)
+   {    
+      int iJ=0;
+      for(const auto& iJet : *(patJet.product())){ 
+          
+          int nCandInEcal = 0; 
+          int nCandInEcalWithCharge = 0;      
+          std::vector<float> charge;
+          std::vector<float> ecalEnergies; 
+          std::vector<float> ecalEnergiesFraction; 
+          std::vector<float> hcalEnergies; 
+          std::vector<float> hcalEnergiesFraction;  
+          std::vector<float> eta;  
+          std::vector<float> phi;    
+          
+          int nTotal = iJet.numberOfDaughters();
+          for(unsigned ic = 0; ic < iJet.numberOfDaughters(); ic++){
+  
+              auto ip = dynamic_cast<const pat::PackedCandidate*> (iJet.daughter(ic));   
+              
+              double ecalEnergy = ip->energy()*ip->caloFraction()*(1-ip->hcalFraction());
+              double ecalEnergyFraction = ip->caloFraction()*(1-ip->hcalFraction()); 
+              double hcalEnergy = ip->energy()*ip->caloFraction()*ip->hcalFraction(); 
+              double hcalEnergyFraction = ip->caloFraction()*ip->hcalFraction(); 
+
+              if(ecalEnergy>0.){
+                 nCandInEcal++;
+                 if(ip->charge()){ 
+                    nCandInEcalWithCharge++;
+                    charge.push_back(reduceFloat(ip->charge(),nBits_));
+                 }else{ 
+                    charge.push_back(0.);
+                 }
+                 ecalEnergies.push_back(reduceFloat(ecalEnergy,nBits_));
+                 ecalEnergiesFraction.push_back(reduceFloat(ecalEnergyFraction,nBits_));
+                 hcalEnergies.push_back(reduceFloat(hcalEnergy,nBits_));
+                 hcalEnergiesFraction.push_back(reduceFloat(hcalEnergyFraction,nBits_));
+                 eta.push_back(reduceFloat(ip->eta(),nBits_));
+                 phi.push_back(reduceFloat(ip->phi(),nBits_));
+              }     
+          }
+
+          double jetID = iJet.userFloat("pileupJetId:fullDiscriminant");
+       
+          patJet_index.push_back(iJ);
+          patJet_isCaloJet.push_back(iJet.isCaloJet());  
+          patJet_isJPTJet.push_back(iJet.isJPTJet());  
+          patJet_isPFJet.push_back(iJet.isPFJet());  
+          patJet_isBasicJet.push_back(iJet.isBasicJet());  
+          patJet_charge.push_back(reduceFloat(iJet.jetCharge(),nBits_)); 
+          patJet_energy.push_back(reduceFloat(iJet.energy(),nBits_)); 
+          patJet_uncorrectedEnergy.push_back(reduceFloat(iJet.correctedP4("Uncorrected").energy(),nBits_)); 
+          patJet_pt.push_back(reduceFloat(iJet.pt(),nBits_)); 
+          patJet_uncorrectedPt.push_back(reduceFloat(iJet.correctedP4("Uncorrected").pt(),nBits_));      
+          patJet_eta.push_back(reduceFloat(iJet.eta(),nBits_));    
+          patJet_phi.push_back(reduceFloat(iJet.phi(),nBits_));     
+          if(iJet.isCaloJet()){
+             patJet_energyFractionHadronic.push_back(reduceFloat(iJet.energyFractionHadronic(),nBits_));
+             patJet_hadEnergyInHB.push_back(reduceFloat(iJet.hadEnergyInHB(),nBits_));
+             patJet_hadEnergyInHO.push_back(reduceFloat(iJet.hadEnergyInHO(),nBits_));
+             patJet_hadEnergyInHE.push_back(reduceFloat(iJet.hadEnergyInHE(),nBits_));
+             patJet_hadEnergyInHF.push_back(reduceFloat(iJet.hadEnergyInHF(),nBits_));
+             patJet_emEnergyInEB.push_back(reduceFloat(iJet.emEnergyInEB(),nBits_));
+             patJet_emEnergyInEE.push_back(reduceFloat(iJet.emEnergyInEE(),nBits_));
+             patJet_emEnergyInHF.push_back(reduceFloat(iJet.emEnergyInHF(),nBits_));
+             patJet_chargedHadronEnergyFraction.push_back(reduceFloat(-999.,nBits_));
+             patJet_neutralHadronEnergyFraction.push_back(reduceFloat(-999.,nBits_)); 
+             patJet_chargedEmEnergyFraction.push_back(reduceFloat(-999.,nBits_));
+             patJet_neutralEmEnergyFraction.push_back(reduceFloat(-999.,nBits_)); 
+          }else{
+             patJet_energyFractionHadronic.push_back(reduceFloat(-999.,nBits_));
+             patJet_hadEnergyInHB.push_back(reduceFloat(-999.,nBits_));
+             patJet_hadEnergyInHO.push_back(reduceFloat(-999.,nBits_));
+             patJet_hadEnergyInHE.push_back(reduceFloat(-999.,nBits_));
+             patJet_hadEnergyInHF.push_back(reduceFloat(-999.,nBits_));
+             patJet_emEnergyInEB.push_back(reduceFloat(-999.,nBits_));
+             patJet_emEnergyInEE.push_back(reduceFloat(-999.,nBits_));
+             patJet_emEnergyInHF.push_back(reduceFloat(-999.,nBits_));   
+             patJet_chargedHadronEnergyFraction.push_back(reduceFloat(iJet.chargedHadronEnergyFraction(),nBits_));
+             patJet_neutralHadronEnergyFraction.push_back(reduceFloat(iJet.neutralHadronEnergyFraction(),nBits_)); 
+             patJet_chargedEmEnergyFraction.push_back(reduceFloat(iJet.chargedEmEnergyFraction(),nBits_));
+             patJet_neutralEmEnergyFraction.push_back(reduceFloat(iJet.neutralEmEnergyFraction(),nBits_));
+          }  
+          patJet_photonEnergy.push_back(reduceFloat(iJet.photonEnergy(),nBits_));
+          patJet_photonEnergyFraction.push_back(reduceFloat(iJet.photonEnergyFraction(),nBits_));
+          patJet_electronEnergy.push_back(reduceFloat(iJet.electronEnergy(),nBits_));
+          patJet_electronEnergyFraction.push_back(reduceFloat(iJet.electronEnergyFraction(),nBits_));
+          patJet_muonEnergy.push_back(reduceFloat(iJet.muonEnergy(),nBits_));
+          patJet_muonEnergyFraction.push_back(reduceFloat(iJet.muonEnergyFraction(),nBits_));
+          patJet_HFHadronEnergy.push_back(reduceFloat(iJet.HFHadronEnergy(),nBits_));          
+          patJet_HFHadronEnergyFraction.push_back(reduceFloat(iJet.HFHadronEnergyFraction(),nBits_));
+          patJet_HFEMEnergy.push_back(reduceFloat(iJet.HFEMEnergy(),nBits_));   
+          patJet_HFEMEnergyFraction.push_back(reduceFloat(iJet.HFEMEnergyFraction(),nBits_));
+          patJet_chargedMuEnergy.push_back(reduceFloat(iJet.chargedMuEnergy(),nBits_));   
+          patJet_chargedMuEnergyFraction.push_back(reduceFloat(iJet.chargedMuEnergyFraction(),nBits_));
+          patJet_hoEnergy.push_back(reduceFloat(iJet.hoEnergy(),nBits_));   
+          patJet_hoEnergyFraction.push_back(reduceFloat(iJet.hoEnergyFraction(),nBits_));
+          patJet_nCandidates.push_back(nTotal); 
+          patJet_nCandInEcal.push_back(nCandInEcal); 
+          patJet_nCandInEcalWithCharge.push_back(nCandInEcalWithCharge); 
+          patJet_candInEcal_charge.push_back(charge); 
+          patJet_candInEcal_ecalEnergy.push_back(ecalEnergies); 
+          patJet_candInEcal_ecalEnergyFraction.push_back(ecalEnergiesFraction); 
+          patJet_candInEcal_hcalEnergy.push_back(hcalEnergies); 
+          patJet_candInEcal_hcalEnergyFraction.push_back(hcalEnergiesFraction); 
+          patJet_candInEcal_eta.push_back(eta);  
+          patJet_candInEcal_phi.push_back(phi);     
+          patJet_bTagScore_pfDeepCSV.push_back(reduceFloat(iJet.bDiscriminator("pfDeepCSVJetTags:probb") + iJet.bDiscriminator("pfDeepCSVJetTags:probbb"),nBits_));
+          patJet_puID.push_back(reduceFloat(jetID,nBits_));
+        
+          iJ++; 
+      }  
+   }
+
    //Save SuperClusters 
    if(saveSuperCluster_){
       int iSC=0;
@@ -3288,7 +3465,8 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gsfElectron_trkPOut","std::vector<float> ",&gsfElectron_trkPOut);  
       tree->Branch("gsfElectron_trkChi2","std::vector<float> ",&gsfElectron_trkChi2); 
       tree->Branch("gsfElectron_trkNDof","std::vector<float> ",&gsfElectron_trkNDof);  
-      tree->Branch("gsfElectron_fbrem","std::vector<float> ",&gsfElectron_fbrem);   
+      tree->Branch("gsfElectron_trkFbrem","std::vector<float> ",&gsfElectron_trackFbrem);  
+      tree->Branch("gsfElectron_superClusterFbrem","std::vector<float> ",&gsfElectron_superClusterFbrem);   
       tree->Branch("gsfElectron_hademTow","std::vector<float> ",&gsfElectron_hademTow); 
       tree->Branch("gsfElectron_hademCone","std::vector<float> ",&gsfElectron_hademCone);  
       tree->Branch("gsfElectron_ecalDrivenSeed","std::vector<float> ",&gsfElectron_ecalDrivenSeed); 
@@ -3314,13 +3492,23 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gsfElectron_full5x5_refinedSCSigmaIEtaIEta","std::vector<float> ",&gsfElectron_full5x5_refinedSCSigmaIEtaIEta); 
       tree->Branch("gsfElectron_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&gsfElectron_full5x5_refinedSCSigmaIEtaIPhi);  
       tree->Branch("gsfElectron_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&gsfElectron_full5x5_refinedSCSigmaIPhiIPhi);  
-       tree->Branch("gsfElectron_HoE","std::vector<float> ",&gsfElectron_HoE); 
-      tree->Branch("gsfElectron_trkIso","std::vector<float> ",&gsfElectron_trkIso); 
-      tree->Branch("gsfElectron_ecalIso","std::vector<float> ",&gsfElectron_ecalIso); 
-      tree->Branch("gsfElectron_hcalIso","std::vector<float> ",&gsfElectron_hcalIso);  
+      tree->Branch("gsfElectron_HoE","std::vector<float> ",&gsfElectron_HoE); 
+      tree->Branch("gsfElectron_trkIso03","std::vector<float> ",&gsfElectron_trkIso03); 
+      tree->Branch("gsfElectron_ecalIso03","std::vector<float> ",&gsfElectron_ecalIso03); 
+      tree->Branch("gsfElectron_hcalIso03","std::vector<float> ",&gsfElectron_hcalIso03);  
+      tree->Branch("gsfElectron_trkIso04","std::vector<float> ",&gsfElectron_trkIso04); 
+      tree->Branch("gsfElectron_ecalIso04","std::vector<float> ",&gsfElectron_ecalIso04); 
+      tree->Branch("gsfElectron_hcalIso04","std::vector<float> ",&gsfElectron_hcalIso04);  
       tree->Branch("gsfElectron_pfPhotonIso","std::vector<float> ",&gsfElectron_pfPhotonIso); 
       tree->Branch("gsfElectron_pfChargedHadronIso","std::vector<float> ",&gsfElectron_pfChargedHadronIso); 
       tree->Branch("gsfElectron_pfNeutralHadronIso","std::vector<float> ",&gsfElectron_pfNeutralHadronIso);  
+      tree->Branch("gsfElectron_mva_Isolated","std::vector<float> ",&gsfElectron_mva_Isolated);  
+      tree->Branch("gsfElectron_mva_e_pi","std::vector<float> ",&gsfElectron_mva_e_pi);  
+      tree->Branch("gsfElectron_dnn_signal_Isolated","std::vector<float> ",&gsfElectron_dnn_signal_Isolated);  
+      tree->Branch("gsfElectron_dnn_signal_nonIsolated","std::vector<float> ",&gsfElectron_dnn_signal_nonIsolated);  
+      tree->Branch("gsfElectron_dnn_bkg_nonIsolated","std::vector<float> ",&gsfElectron_dnn_bkg_nonIsolated);  
+      tree->Branch("gsfElectron_dnn_bkg_Tau","std::vector<float> ",&gsfElectron_dnn_bkg_Tau);  
+      tree->Branch("gsfElectron_dnn_bkg_Photon","std::vector<float> ",&gsfElectron_dnn_bkg_Photon);  
       tree->Branch("gedPhoton_index","std::vector<int> ",&gedPhoton_index);    
       tree->Branch("gedPhoton_seedRawId","std::vector<uint32_t> ",&gedPhoton_seedRawId);   
       tree->Branch("gedPhoton_isEB","std::vector<int> ",&gedPhoton_isEB);  
@@ -3361,17 +3549,26 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gedPhoton_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&gedPhoton_full5x5_refinedSCSigmaIEtaIPhi);  
       tree->Branch("gedPhoton_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&gedPhoton_full5x5_refinedSCSigmaIPhiIPhi); 
       tree->Branch("gedPhoton_HoE","std::vector<float> ",&gedPhoton_HoE);
-      tree->Branch("gedPhoton_trkIso","std::vector<float> ",&gedPhoton_trkIso); 
-      tree->Branch("gedPhoton_ecalIso","std::vector<float> ",&gedPhoton_ecalIso); 
-      tree->Branch("gedPhoton_hcalIso","std::vector<float> ",&gedPhoton_hcalIso);  
+      tree->Branch("gedPhoton_trkIso03","std::vector<float> ",&gedPhoton_trkIso03); 
+      tree->Branch("gedPhoton_ecalIso03","std::vector<float> ",&gedPhoton_ecalIso03); 
+      tree->Branch("gedPhoton_hcalIso03","std::vector<float> ",&gedPhoton_hcalIso03);  
+      tree->Branch("gedPhoton_trkIso04","std::vector<float> ",&gedPhoton_trkIso04); 
+      tree->Branch("gedPhoton_ecalIso04","std::vector<float> ",&gedPhoton_ecalIso04); 
+      tree->Branch("gedPhoton_hcalIso04","std::vector<float> ",&gedPhoton_hcalIso04);  
       tree->Branch("gedPhoton_pfPhotonIso","std::vector<float> ",&gedPhoton_pfPhotonIso); 
       tree->Branch("gedPhoton_pfChargedHadronIso","std::vector<float> ",&gedPhoton_pfChargedHadronIso); 
       tree->Branch("gedPhoton_pfNeutralHadronIso","std::vector<float> ",&gedPhoton_pfNeutralHadronIso);   
+      tree->Branch("gedPhoton_nClusterOutsideMustache","std::vector<int> ",&gedPhoton_nClusterOutsideMustache);   
+      tree->Branch("gedPhoton_etOutsideMustache","std::vector<float> ",&gedPhoton_etOutsideMustache);   
+      tree->Branch("gedPhoton_pfMVA","std::vector<float> ",&gedPhoton_pfMVA);   
+      tree->Branch("gedPhoton_pfDNN","std::vector<float> ",&gedPhoton_pfDNN);   
    }
 
-   if(savePatParticles_){
+   if(savePatPhotons_ || savePatElectrons_ || savePatJets_){
       tree->Branch("patMET_sumEt", &patMET_sumEt, "patMET_sumEt/F"); 
       tree->Branch("patMET_et", &patMET_et, "patMET_et/F"); 
+   }
+   if(savePatElectrons_){
       tree->Branch("mll", &mll, "mll/F"); 
       tree->Branch("patElectron_index","std::vector<int> ",&patElectron_index); 
       tree->Branch("patElectron_seedRawId","std::vector<uint32_t> ",&patElectron_seedRawId);   
@@ -3395,7 +3592,8 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patElectron_deltaPhiEleClusterAtCalo","std::vector<float> ",&patElectron_deltaPhiEleClusterAtCalo); 
       tree->Branch("patElectron_misHits","std::vector<int> ",&patElectron_misHits); 
       tree->Branch("patElectron_nAmbiguousGsfTracks","std::vector<int> ",&patElectron_nAmbiguousGsfTracks); 
-      tree->Branch("patElectron_fbrem","std::vector<float> ",&patElectron_fbrem);
+      tree->Branch("patElectron_trackFbrem","std::vector<float> ",&patElectron_trackFbrem);
+      tree->Branch("patElectron_superClusterFbrem","std::vector<float> ",&patElectron_superClusterFbrem);
       tree->Branch("patElectron_energy","std::vector<float> ",&patElectron_energy);   
       tree->Branch("patElectron_energyErr","std::vector<float> ",&patElectron_energyErr);   
       tree->Branch("patElectron_ecalEnergy","std::vector<float> ",&patElectron_ecalEnergy); 
@@ -3430,12 +3628,22 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patElectron_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&patElectron_full5x5_refinedSCSigmaIEtaIPhi);  
       tree->Branch("patElectron_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&patElectron_full5x5_refinedSCSigmaIPhiIPhi);  
       tree->Branch("patElectron_HoE","std::vector<float> ",&patElectron_HoE);   
-      tree->Branch("patElectron_trkIso","std::vector<float> ",&patElectron_trkIso); 
-      tree->Branch("patElectron_ecalIso","std::vector<float> ",&patElectron_ecalIso); 
-      tree->Branch("patElectron_hcalIso","std::vector<float> ",&patElectron_hcalIso);  
+      tree->Branch("patElectron_trkIso03","std::vector<float> ",&patElectron_trkIso03); 
+      tree->Branch("patElectron_ecalIso03","std::vector<float> ",&patElectron_ecalIso03); 
+      tree->Branch("patElectron_hcalIso03","std::vector<float> ",&patElectron_hcalIso03);  
+      tree->Branch("patElectron_trkIso04","std::vector<float> ",&patElectron_trkIso04); 
+      tree->Branch("patElectron_ecalIso04","std::vector<float> ",&patElectron_ecalIso04); 
+      tree->Branch("patElectron_hcalIso04","std::vector<float> ",&patElectron_hcalIso04);  
       tree->Branch("patElectron_pfPhotonIso","std::vector<float> ",&patElectron_pfPhotonIso); 
       tree->Branch("patElectron_pfChargedHadronIso","std::vector<float> ",&patElectron_pfChargedHadronIso); 
       tree->Branch("patElectron_pfNeutralHadronIso","std::vector<float> ",&patElectron_pfNeutralHadronIso);  
+      tree->Branch("patElectron_mva_Isolated","std::vector<float> ",&patElectron_mva_Isolated);  
+      tree->Branch("patElectron_mva_e_pi","std::vector<float> ",&patElectron_mva_e_pi);  
+      tree->Branch("patElectron_dnn_signal_Isolated","std::vector<float> ",&patElectron_dnn_signal_Isolated);  
+      tree->Branch("patElectron_dnn_signal_nonIsolated","std::vector<float> ",&patElectron_dnn_signal_nonIsolated);  
+      tree->Branch("patElectron_dnn_bkg_nonIsolated","std::vector<float> ",&patElectron_dnn_bkg_nonIsolated);  
+      tree->Branch("patElectron_dnn_bkg_Tau","std::vector<float> ",&patElectron_dnn_bkg_Tau);  
+      tree->Branch("patElectron_dnn_bkg_Photon","std::vector<float> ",&patElectron_dnn_bkg_Photon);  
       tree->Branch("patElectron_egmCutBasedElectronIDVeto","std::vector<int> ",&patElectron_egmCutBasedElectronIDVeto);  
       tree->Branch("patElectron_egmCutBasedElectronIDloose","std::vector<int> ",&patElectron_egmCutBasedElectronIDloose);  
       tree->Branch("patElectron_egmCutBasedElectronIDmedium","std::vector<int> ",&patElectron_egmCutBasedElectronIDmedium);
@@ -3447,6 +3655,8 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patElectron_egmMVAElectronIDmediumNoIso","std::vector<int> ",&patElectron_egmMVAElectronIDmediumNoIso);
       tree->Branch("patElectron_egmMVAElectronIDtightNoIso","std::vector<int> ",&patElectron_egmMVAElectronIDtightNoIso);  
       tree->Branch("patElectron_heepElectronID","std::vector<int> ",&patElectron_heepElectronID);  
+   }
+   if(savePatPhotons_){
       tree->Branch("patPhoton_index","std::vector<int> ",&patPhoton_index); 
       tree->Branch("patPhoton_seedRawId","std::vector<uint32_t> ",&patPhoton_seedRawId);   
       tree->Branch("patPhoton_nPFClusters","std::vector<int> ",&patPhoton_nPFClusters); 
@@ -3492,20 +3702,78 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patPhoton_full5x5_refinedSCSigmaIEtaIPhi","std::vector<float> ",&patPhoton_full5x5_refinedSCSigmaIEtaIPhi);  
       tree->Branch("patPhoton_full5x5_refinedSCSigmaIPhiIPhi","std::vector<float> ",&patPhoton_full5x5_refinedSCSigmaIPhiIPhi);  
       tree->Branch("patPhoton_HoE","std::vector<float> ",&patPhoton_HoE);   
-      tree->Branch("patPhoton_trkIso","std::vector<float> ",&patPhoton_trkIso);  
-      tree->Branch("patPhoton_ecalIso","std::vector<float> ",&patPhoton_ecalIso);  
-      tree->Branch("patPhoton_hcalIso","std::vector<float> ",&patPhoton_hcalIso);  
+      tree->Branch("patPhoton_trkIso03","std::vector<float> ",&patPhoton_trkIso03);  
+      tree->Branch("patPhoton_ecalIso03","std::vector<float> ",&patPhoton_ecalIso03);  
+      tree->Branch("patPhoton_hcalIso03","std::vector<float> ",&patPhoton_hcalIso03);  
+      tree->Branch("patPhoton_trkIso04","std::vector<float> ",&patPhoton_trkIso04);  
+      tree->Branch("patPhoton_ecalIso04","std::vector<float> ",&patPhoton_ecalIso04);  
+      tree->Branch("patPhoton_hcalIso04","std::vector<float> ",&patPhoton_hcalIso04);  
       tree->Branch("patPhoton_patParticleIso","std::vector<float> ",&patPhoton_patParticleIso);  
       tree->Branch("patPhoton_pfChargedHadronIso","std::vector<float> ",&patPhoton_pfChargedHadronIso);  
       tree->Branch("patPhoton_pfNeutralHadronIso","std::vector<float> ",&patPhoton_pfNeutralHadronIso);   
       tree->Branch("patPhoton_pfPhotonIso","std::vector<float> ",&patPhoton_pfPhotonIso);  
       tree->Branch("patPhoton_pfPuChargedHadronIso","std::vector<float> ",&patPhoton_pfPuChargedHadronIso);   
+      tree->Branch("patPhoton_nClusterOutsideMustache","std::vector<int> ",&patPhoton_nClusterOutsideMustache);   
+      tree->Branch("patPhoton_etOutsideMustache","std::vector<float> ",&patPhoton_etOutsideMustache);   
+      tree->Branch("patPhoton_pfMVA","std::vector<float> ",&patPhoton_pfMVA);   
+      tree->Branch("patPhoton_pfDNN","std::vector<float> ",&patPhoton_pfDNN);
       tree->Branch("patPhoton_egmCutBasedPhotonIDloose","std::vector<int> ",&patPhoton_egmCutBasedPhotonIDloose);  
       tree->Branch("patPhoton_egmCutBasedPhotonIDmedium","std::vector<int> ",&patPhoton_egmCutBasedPhotonIDmedium);
       tree->Branch("patPhoton_egmCutBasedPhotonIDtight","std::vector<int> ",&patPhoton_egmCutBasedPhotonIDtight);   
       tree->Branch("patPhoton_egmMVAPhotonIDmedium","std::vector<int> ",&patPhoton_egmMVAPhotonIDmedium);
       tree->Branch("patPhoton_egmMVAPhotonIDtight","std::vector<int> ",&patPhoton_egmMVAPhotonIDtight);  
    }
+
+   if(savePatJets_){
+      tree->Branch("patJet_index","std::vector<int> ",&patJet_index); 
+      tree->Branch("patJet_isCaloJet","std::vector<bool> ",&patJet_isCaloJet); 
+      tree->Branch("patJet_isJPTJet","std::vector<bool> ",&patJet_isJPTJet); 
+      tree->Branch("patJet_isPFJet","std::vector<bool> ",&patJet_isPFJet); 
+      tree->Branch("patJet_isBasicJet","std::vector<bool> ",&patJet_isBasicJet); 
+      tree->Branch("patJet_charge","std::vector<float> ",&patJet_charge);  
+      tree->Branch("patJet_energy","std::vector<float> ",&patJet_energy);
+      tree->Branch("patJet_uncorrectedEnergy","std::vector<float> ",&patJet_uncorrectedEnergy);    
+      tree->Branch("patJet_pt","std::vector<float> ",&patJet_pt); 
+      tree->Branch("patJet_uncorrectedPt","std::vector<float> ",&patJet_uncorrectedPt); 
+      tree->Branch("patJet_eta","std::vector<float> ",&patJet_eta);  
+      tree->Branch("patJet_phi","std::vector<float> ",&patJet_phi);  
+      tree->Branch("patJet_energyFractionHadronic","std::vector<float> ",&patJet_energyFractionHadronic);  
+      tree->Branch("patJet_hadEnergyInHB","std::vector<float> ",&patJet_hadEnergyInHB);  
+      tree->Branch("patJet_hadEnergyInHO","std::vector<float> ",&patJet_hadEnergyInHO); 
+      tree->Branch("patJet_hadEnergyInHE","std::vector<float> ",&patJet_hadEnergyInHE);  
+      tree->Branch("patJet_hadEnergyInHF","std::vector<float> ",&patJet_hadEnergyInHF);  
+      tree->Branch("patJet_emEnergyInEB","std::vector<float> ",&patJet_emEnergyInEB);  
+      tree->Branch("patJet_emEnergyInEE","std::vector<float> ",&patJet_emEnergyInEE); 
+      tree->Branch("patJet_emEnergyInHF","std::vector<float> ",&patJet_emEnergyInHF);  
+      tree->Branch("patJet_chargedHadronEnergyFraction","std::vector<float> ",&patJet_chargedHadronEnergyFraction);  
+      tree->Branch("patJet_neutralHadronEnergyFraction","std::vector<float> ",&patJet_neutralHadronEnergyFraction);  
+      tree->Branch("patJet_chargedEmEnergyFraction","std::vector<float> ",&patJet_chargedEmEnergyFraction); 
+      tree->Branch("patJet_neutralEmEnergyFraction","std::vector<float> ",&patJet_neutralEmEnergyFraction);  
+      tree->Branch("patJet_photonEnergy","std::vector<float> ",&patJet_photonEnergy);  
+      tree->Branch("patJet_photonEnergyFraction","std::vector<float> ",&patJet_photonEnergyFraction);  
+      tree->Branch("patJet_electronEnergy","std::vector<float> ",&patJet_electronEnergy); 
+      tree->Branch("patJet_electronEnergyFraction","std::vector<float> ",&patJet_electronEnergyFraction);  
+      tree->Branch("patJet_muonEnergy","std::vector<float> ",&patJet_muonEnergy);  
+      tree->Branch("patJet_muonEnergyFraction","std::vector<float> ",&patJet_muonEnergyFraction);  
+      tree->Branch("patJet_HFHadronEnergy","std::vector<float> ",&patJet_HFHadronEnergy); 
+      tree->Branch("patJet_HFHadronEnergyFraction","std::vector<float> ",&patJet_HFHadronEnergyFraction);  
+      tree->Branch("patJet_chargedMuEnergy","std::vector<float> ",&patJet_chargedMuEnergy);  
+      tree->Branch("patJet_chargedMuEnergyFraction","std::vector<float> ",&patJet_chargedMuEnergyFraction);  
+      tree->Branch("patJet_hoEnergy","std::vector<float> ",&patJet_hoEnergy);   
+      tree->Branch("patJet_hoEnergyFraction","std::vector<float> ",&patJet_hoEnergyFraction);  
+      tree->Branch("patJet_nCandidates","std::vector<int> ",&patJet_nCandidates);
+      tree->Branch("patJet_nCandInEcal","std::vector<int> ",&patJet_nCandInEcal);
+      tree->Branch("patJet_nCandInEcalWithCharge","std::vector<int> ",&patJet_nCandInEcalWithCharge);
+      tree->Branch("patJet_candInEcal_charge","std::vector<std::vector<float> >",&patJet_candInEcal_charge);
+      tree->Branch("patJet_candInEcal_ecalEnergy","std::vector<std::vector<float> >",&patJet_candInEcal_ecalEnergy);
+      tree->Branch("patJet_candInEcal_ecalEnergyFraction","std::vector<std::vector<float> >",&patJet_candInEcal_ecalEnergyFraction);
+      tree->Branch("patJet_candInEcal_hcalEnergy","std::vector<std::vector<float> >",&patJet_candInEcal_hcalEnergy);
+      tree->Branch("patJet_candInEcal_hcalEnergyFraction","std::vector<std::vector<float> >",&patJet_candInEcal_hcalEnergyFraction);
+      tree->Branch("patJet_candInEcal_eta","std::vector<std::vector<float> >",&patJet_candInEcal_eta);
+      tree->Branch("patJet_candInEcal_phi","std::vector<std::vector<float> >",&patJet_candInEcal_phi);
+      tree->Branch("patJet_bTagScore_pfDeepCSV","std::vector<float> ",&patJet_bTagScore_pfDeepCSV);   
+      tree->Branch("patJet_puID","std::vector<float> ",&patJet_puID);   
+   } 
  
    if(saveSuperCluster_){
       tree->Branch("superCluster_seedRawId","std::vector<uint32_t> ",&superCluster_seedRawId);     
@@ -4130,7 +4398,8 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gsfElectron_trkPOut.clear();
    gsfElectron_trkChi2.clear();
    gsfElectron_trkNDof.clear();
-   gsfElectron_fbrem.clear();
+   gsfElectron_trackFbrem.clear();
+   gsfElectron_superClusterFbrem.clear();
    gsfElectron_hademTow.clear();
    gsfElectron_hademCone.clear();
    gsfElectron_ecalDrivenSeed.clear();
@@ -4157,12 +4426,22 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gsfElectron_full5x5_refinedSCSigmaIEtaIPhi.clear();
    gsfElectron_full5x5_refinedSCSigmaIPhiIPhi.clear();
    gsfElectron_HoE.clear(); 
-   gsfElectron_trkIso.clear(); 
-   gsfElectron_ecalIso.clear();  
-   gsfElectron_hcalIso.clear();
+   gsfElectron_trkIso03.clear(); 
+   gsfElectron_ecalIso03.clear();  
+   gsfElectron_hcalIso03.clear();
+   gsfElectron_trkIso04.clear(); 
+   gsfElectron_ecalIso04.clear();  
+   gsfElectron_hcalIso04.clear();
    gsfElectron_pfPhotonIso.clear();     
    gsfElectron_pfChargedHadronIso.clear();     
    gsfElectron_pfNeutralHadronIso.clear(); 
+   gsfElectron_mva_Isolated.clear(); 
+   gsfElectron_mva_e_pi.clear();
+   gsfElectron_dnn_signal_Isolated.clear();
+   gsfElectron_dnn_signal_nonIsolated.clear();  
+   gsfElectron_dnn_bkg_nonIsolated.clear(); 
+   gsfElectron_dnn_bkg_Tau.clear();
+   gsfElectron_dnn_bkg_Photon.clear();
 
    gedPhoton_index.clear();  
    gedPhoton_seedRawId.clear();  
@@ -4204,12 +4483,19 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gedPhoton_full5x5_refinedSCSigmaIEtaIPhi.clear();
    gedPhoton_full5x5_refinedSCSigmaIPhiIPhi.clear();
    gedPhoton_HoE.clear();  
-   gedPhoton_trkIso.clear(); 
-   gedPhoton_ecalIso.clear();  
-   gedPhoton_hcalIso.clear();
+   gedPhoton_trkIso03.clear(); 
+   gedPhoton_ecalIso03.clear();  
+   gedPhoton_hcalIso03.clear();
+   gedPhoton_trkIso04.clear(); 
+   gedPhoton_ecalIso04.clear();  
+   gedPhoton_hcalIso04.clear();
    gedPhoton_pfPhotonIso.clear();     
    gedPhoton_pfChargedHadronIso.clear();     
    gedPhoton_pfNeutralHadronIso.clear(); 
+   gedPhoton_nClusterOutsideMustache.clear(); 
+   gedPhoton_etOutsideMustache.clear(); 
+   gedPhoton_pfMVA.clear(); 
+   gedPhoton_pfDNN.clear(); 
 
    patElectron_index.clear();
    patElectron_seedRawId.clear();
@@ -4233,7 +4519,8 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_deltaPhiSeedClusterAtCalo.clear();
    patElectron_misHits.clear();
    patElectron_nAmbiguousGsfTracks.clear(); 
-   patElectron_fbrem.clear();
+   patElectron_trackFbrem.clear();
+   patElectron_superClusterFbrem.clear();
    patElectron_energy.clear();
    patElectron_energyErr.clear();
    patElectron_ecalEnergy.clear();
@@ -4268,12 +4555,22 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_full5x5_refinedSCSigmaIEtaIPhi.clear();
    patElectron_full5x5_refinedSCSigmaIPhiIPhi.clear();
    patElectron_HoE.clear();
-   patElectron_trkIso.clear(); 
-   patElectron_ecalIso.clear();  
-   patElectron_hcalIso.clear();
+   patElectron_trkIso03.clear(); 
+   patElectron_ecalIso03.clear();  
+   patElectron_hcalIso03.clear();
+   patElectron_trkIso04.clear(); 
+   patElectron_ecalIso04.clear();  
+   patElectron_hcalIso04.clear(); 
    patElectron_pfPhotonIso.clear();     
    patElectron_pfChargedHadronIso.clear();     
    patElectron_pfNeutralHadronIso.clear(); 
+   patElectron_mva_Isolated.clear(); 
+   patElectron_mva_e_pi.clear();
+   patElectron_dnn_signal_Isolated.clear();
+   patElectron_dnn_signal_nonIsolated.clear();  
+   patElectron_dnn_bkg_nonIsolated.clear(); 
+   patElectron_dnn_bkg_Tau.clear();
+   patElectron_dnn_bkg_Photon.clear();
    patElectron_egmCutBasedElectronIDVeto.clear();
    patElectron_egmCutBasedElectronIDloose.clear();
    patElectron_egmCutBasedElectronIDmedium.clear();
@@ -4285,7 +4582,6 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_egmMVAElectronIDmediumNoIso.clear();
    patElectron_egmMVAElectronIDtightNoIso.clear();
    patElectron_heepElectronID.clear();
-
    patPhoton_index.clear();
    patPhoton_seedRawId.clear();
    patPhoton_nPFClusters.clear();
@@ -4331,19 +4627,76 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patPhoton_full5x5_refinedSCSigmaIEtaIPhi.clear();
    patPhoton_full5x5_refinedSCSigmaIPhiIPhi.clear();
    patPhoton_HoE.clear();
-   patPhoton_trkIso.clear();
-   patPhoton_ecalIso.clear();
-   patPhoton_hcalIso.clear();
+   patPhoton_trkIso03.clear();
+   patPhoton_ecalIso03.clear();
+   patPhoton_hcalIso03.clear();
+   patPhoton_trkIso04.clear();
+   patPhoton_ecalIso04.clear();
+   patPhoton_hcalIso04.clear();
    patPhoton_patParticleIso.clear();
    patPhoton_pfChargedHadronIso.clear();
    patPhoton_pfNeutralHadronIso.clear();
    patPhoton_pfPhotonIso.clear();
    patPhoton_pfPuChargedHadronIso.clear();
+   patPhoton_nClusterOutsideMustache.clear(); 
+   patPhoton_etOutsideMustache.clear(); 
+   patPhoton_pfMVA.clear(); 
+   patPhoton_pfDNN.clear(); 
    patPhoton_egmCutBasedPhotonIDloose.clear();
    patPhoton_egmCutBasedPhotonIDmedium.clear();
    patPhoton_egmCutBasedPhotonIDtight.clear();
    patPhoton_egmMVAPhotonIDmedium.clear();
    patPhoton_egmMVAPhotonIDtight.clear();
+   patJet_index.clear();
+   patJet_isCaloJet.clear();
+   patJet_isJPTJet.clear();
+   patJet_isPFJet.clear();
+   patJet_isBasicJet.clear();
+   patJet_charge.clear();
+   patJet_energy.clear();  
+   patJet_eta.clear();    
+   patJet_phi.clear(); 
+   patJet_pt.clear();  
+   patJet_uncorrectedEnergy.clear();  
+   patJet_uncorrectedPt.clear();      
+   patJet_energyFractionHadronic.clear();
+   patJet_hadEnergyInHB.clear();
+   patJet_hadEnergyInHO.clear();
+   patJet_hadEnergyInHE.clear();
+   patJet_hadEnergyInHF.clear();
+   patJet_emEnergyInEB.clear();
+   patJet_emEnergyInEE.clear();
+   patJet_emEnergyInHF.clear();
+   patJet_chargedHadronEnergyFraction.clear();
+   patJet_neutralHadronEnergyFraction.clear();
+   patJet_chargedEmEnergyFraction.clear();
+   patJet_neutralEmEnergyFraction.clear();
+   patJet_photonEnergy.clear();
+   patJet_photonEnergyFraction.clear();
+   patJet_electronEnergy.clear();
+   patJet_electronEnergyFraction.clear();
+   patJet_muonEnergy.clear();
+   patJet_muonEnergyFraction.clear();
+   patJet_HFHadronEnergy.clear();       
+   patJet_HFHadronEnergyFraction.clear();
+   patJet_HFEMEnergy.clear();   
+   patJet_HFEMEnergyFraction.clear();
+   patJet_chargedMuEnergy.clear(); 
+   patJet_chargedMuEnergyFraction.clear();
+   patJet_hoEnergy.clear();  
+   patJet_hoEnergyFraction.clear();
+   patJet_nCandidates.clear();
+   patJet_nCandInEcal.clear();
+   patJet_nCandInEcalWithCharge.clear();
+   patJet_candInEcal_charge.clear(); 
+   patJet_candInEcal_ecalEnergy.clear();
+   patJet_candInEcal_ecalEnergyFraction.clear();
+   patJet_candInEcal_hcalEnergy.clear();
+   patJet_candInEcal_hcalEnergyFraction.clear();
+   patJet_candInEcal_eta.clear();
+   patJet_candInEcal_phi.clear();  
+   patJet_bTagScore_pfDeepCSV.clear();
+   patJet_puID.clear();
    
    superCluster_seedRawId.clear();
    superCluster_rawEnergy.clear(); 
