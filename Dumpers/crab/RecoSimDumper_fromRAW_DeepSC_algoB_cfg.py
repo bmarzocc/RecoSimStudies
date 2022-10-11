@@ -46,7 +46,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1),
+    input = cms.untracked.int32(20),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -116,9 +116,9 @@ muonSimClassificationByHitsTask.remove(muonSimClassifier)
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '123X_mcRun3_2021_realistic_v11', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '125X_mcRun3_2022_realistic_v4', '')
 
-
+'''
 process.mySCReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
@@ -137,6 +137,29 @@ process.mySCReg = cms.ESSource("PoolDBESSource",
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022GammasDeepSCAlgoB"),
          connect = cms.string("sqlite_file:scReg_2022GammasDeepSCAlgoB.db")),
+     )
+)
+process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
+'''
+
+process.mySCReg = cms.ESSource("PoolDBESSource",
+     toGet = cms.VPSet(
+       cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
+         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoB"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
+       cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
+         tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoB"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
+         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoB"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
+         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoB"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
      )
 )
 process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -162,30 +185,6 @@ process.myPhoReg = cms.ESSource("PoolDBESSource",
      ) 
 )
 process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
-
-
-'''
-process.mySCReg = cms.ESSource("PoolDBESSource",
-     toGet = cms.VPSet(
-       cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
-         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
-       cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
-         tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
-      cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
-         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
-      cms.PSet(record = cms.string("GBRDWrapperRcd"),
-         label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
-         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
-     )
-)
-process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
 
 process.myEleReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
@@ -224,8 +223,6 @@ process.myEleReg = cms.ESSource("PoolDBESSource",
      ) 
 )
 process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
-'''
-
 
 #process.myICs = cms.ESSource("PoolDBESSource",
 #     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),

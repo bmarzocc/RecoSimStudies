@@ -42,7 +42,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10),
+    input = cms.untracked.int32(20),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -105,65 +105,111 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '123X_dataRun2_v4', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun2_v2', '')
+
+'''
+process.mySCReg = cms.ESSource("PoolDBESSource",
+     toGet = cms.VPSet(
+       cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
+         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022GammasDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022GammasDeepSCAlgoA.db")),
+       cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
+         tag = cms.string("pfscecal_EECorrection_offline_v2_2022GammasDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022GammasDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
+         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022GammasDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022GammasDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
+         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022GammasDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022GammasDeepSCAlgoA.db")),
+     )
+)
+process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
+'''
 
 process.mySCReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
-         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
-         tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
-         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
-         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
      )
 )
 process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
+
+process.myPhoReg = cms.ESSource("PoolDBESSource",
+     toGet = cms.VPSet(
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
+         tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
+         tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
+         tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
+         tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
+     ) 
+)
+process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
 
 process.myEleReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
-         tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
-         tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
-         tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
-         tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
+         tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
-         tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
-     cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
-         tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
-     cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
-         tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
-     cms.PSet(record = cms.string("GBRDWrapperRcd"),
+         tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
+      cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
-         tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
-     )
+         tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db"))
+     ) 
 )
 process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
 
@@ -284,15 +330,16 @@ process.highetFilter = cms.EDFilter(
 process.load('Calibration.EcalAlCaRecoProducers.WZElectronSkims_cff')
 process.load('RecoSimStudies.Dumpers.RecoSimDumper_cfi')
 process.dumper_step = cms.Path(
-     process.ZeeSkimFilterSeq
-    *process.AllEvents  
+    process.AllEvents
+    #process.ZeeSkimFilterSeq
+    #*process.AllEvents  
     #*process.hltLevel1GTSeed 
-    *process.hltHighLevel
-    *process.goodPrimaryVertices
-    *process.highetele
-    *process.highetFilter
-    *process.FilterReRECOEvents   
-    *process.FilterPatDefaultSequenceEvents 
+    #*process.hltHighLevel
+    #*process.goodPrimaryVertices
+    #*process.highetele
+    #*process.highetFilter
+    #*process.FilterReRECOEvents   
+    #*process.FilterPatDefaultSequenceEvents 
     *process.recosimdumper
 )
 

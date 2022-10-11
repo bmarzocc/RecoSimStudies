@@ -114,9 +114,9 @@ muonSimClassificationByHitsTask.remove(muonSimClassifier)
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '123X_mcRun3_2021_realistic_v11', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '125X_mcRun3_2022_realistic_v4', '')
 
-
+'''
 process.mySCReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
@@ -137,9 +137,8 @@ process.mySCReg = cms.ESSource("PoolDBESSource",
          connect = cms.string("sqlite_file:scReg_2022GammasMustacheSC.db")),
      )
 )
-
-
 '''
+
 process.mySCReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
@@ -160,8 +159,6 @@ process.mySCReg = cms.ESSource("PoolDBESSource",
          connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
      )
 )
-'''
-
 process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
 
 
@@ -187,8 +184,6 @@ process.myPhoReg = cms.ESSource("PoolDBESSource",
 )
 process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
 
-
-'''
 process.myEleReg = cms.ESSource("PoolDBESSource",
      toGet = cms.VPSet(
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
@@ -226,7 +221,6 @@ process.myEleReg = cms.ESSource("PoolDBESSource",
      )
 )
 process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
-'''
 
 #process.myICs = cms.ESSource("PoolDBESSource",
 #     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),

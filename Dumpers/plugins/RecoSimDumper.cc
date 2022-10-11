@@ -194,7 +194,8 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    saveSuperCluster_              = iConfig.getParameter<bool>("saveSuperCluster"); 
    saveRetunedSC_                 = iConfig.getParameter<bool>("saveRetunedSC");  
    saveDeepSC_                    = iConfig.getParameter<bool>("saveDeepSC");  
-   saveGedParticles_              = iConfig.getParameter<bool>("saveGedParticles");
+   saveGsfElectrons_              = iConfig.getParameter<bool>("saveGsfElectrons");
+   saveGedPhotons_                = iConfig.getParameter<bool>("saveGedPhotons");
    savePatPhotons_                = iConfig.getParameter<bool>("savePatPhotons"); 
    savePatElectrons_              = iConfig.getParameter<bool>("savePatElectrons");
    savePatJets_                   = iConfig.getParameter<bool>("savePatJets");   
@@ -430,12 +431,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
    edm::Handle<std::vector<reco::GsfElectron> > gsfElectron;
    edm::Handle<std::vector<reco::Photon> > gedPhoton;
-   if(saveGedParticles_){
+   if(saveGsfElectrons_){
       ev.getByToken(gsfElectronToken_, gsfElectron);
       if (!gsfElectron.isValid()) {
           std::cerr << "Analyze --> gsfElectron not found" << std::endl; 
           return;
       }
+   }
+   if(saveGedPhotons_){
       ev.getByToken(gedPhotonToken_, gedPhoton);
       if (!gedPhoton.isValid()) {
           std::cerr << "Analyze --> gedPhoton not found" << std::endl; 
@@ -1239,7 +1242,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       }
    } 
    
-   if(saveGedParticles_)
+   if(saveGsfElectrons_)
    {
       //save gsfElectron infos
       int iEle=0;
@@ -1291,6 +1294,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gsfElectron_seedRawId.push_back(iElectron.superCluster()->seed()->seed().rawId());
           gsfElectron_isEB.push_back(iElectron.isEB()); 
           gsfElectron_isEE.push_back(iElectron.isEE());  
+          gsfElectron_isEBEEGap.push_back(iElectron.isEBEEGap());  
+          gsfElectron_isEBEtaGap.push_back(iElectron.isEBEtaGap());  
+          gsfElectron_isEBPhiGap.push_back(iElectron.isEBPhiGap());  
+          gsfElectron_isEEDeeGap.push_back(iElectron.isEEDeeGap());  
+          gsfElectron_isEERingGap.push_back(iElectron.isEERingGap());   
+          gsfElectron_isEcalDriven.push_back(iElectron.ecalDrivenSeed()); 
+          gsfElectron_isTrackerDriven.push_back(iElectron.trackerDrivenSeed()); 
           gsfElectron_classification.push_back(iElectron.classification()); 
           gsfElectron_nPFClusters.push_back(iElectron.superCluster()->clusters().size());
           gsfElectron_p.push_back(reduceFloat(iElectron.trackMomentumAtVtx().R(),nBits_));
@@ -1359,7 +1369,10 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     
           iEle++; 
       }
-
+   }
+ 
+   if(saveGedPhotons_)
+   {
       //save gedPhoton infos
       int iPho=0;
       for(const auto& iPhoton : *(gedPhoton.product())){ 
@@ -1410,7 +1423,12 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gedPhoton_index.push_back(iPho);  
           gedPhoton_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
           gedPhoton_isEB.push_back(iPhoton.isEB());
-          gedPhoton_isEE.push_back(iPhoton.isEE()); 
+          gedPhoton_isEE.push_back(iPhoton.isEE());  
+          gedPhoton_isEBEEGap.push_back(iPhoton.isEBEEGap());  
+          gedPhoton_isEBEtaGap.push_back(iPhoton.isEBEtaGap());  
+          gedPhoton_isEBPhiGap.push_back(iPhoton.isEBPhiGap());  
+          gedPhoton_isEEDeeGap.push_back(iPhoton.isEEDeeGap());  
+          gedPhoton_isEERingGap.push_back(iPhoton.isEERingGap());   
           gedPhoton_nPFClusters.push_back(iPhoton.superCluster()->clusters().size());
           gedPhoton_hasConversionTracks.push_back(iPhoton.hasConversionTracks());
           gedPhoton_nConversions.push_back(phoCoreRef->conversions().size());
@@ -1554,7 +1572,14 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patElectron_nPFClusters.push_back(iElectron.superCluster()->clusters().size());
           patElectron_charge.push_back(iElectron.charge()); 
           patElectron_isEB.push_back(iElectron.isEB()); 
-          patElectron_isEE.push_back(iElectron.isEE()); 
+          patElectron_isEE.push_back(iElectron.isEE());  
+          patElectron_isEBEEGap.push_back(iElectron.isEBEEGap());  
+          patElectron_isEBEtaGap.push_back(iElectron.isEBEtaGap());  
+          patElectron_isEBPhiGap.push_back(iElectron.isEBPhiGap());  
+          patElectron_isEEDeeGap.push_back(iElectron.isEEDeeGap());  
+          patElectron_isEERingGap.push_back(iElectron.isEERingGap());   
+          patElectron_isEcalDriven.push_back(iElectron.ecalDrivenSeed()); 
+          patElectron_isTrackerDriven.push_back(iElectron.trackerDrivenSeed()); 
           patElectron_eta.push_back(reduceFloat(iElectron.p4().eta(),nBits_));
           patElectron_phi.push_back(reduceFloat(iElectron.p4().phi(),nBits_));
           patElectron_p.push_back(reduceFloat(iElectron.trackMomentumAtVtx().R(),nBits_));
@@ -1700,8 +1725,13 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patPhoton_index.push_back(iPho);
           patPhoton_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
           patPhoton_nPFClusters.push_back(iPhoton.superCluster()->clusters().size());
-          patPhoton_isEB.push_back(iPhoton.isEB()); 
-          patPhoton_isEE.push_back(iPhoton.isEE()); 
+          patPhoton_isEB.push_back(iPhoton.isEB());
+          patPhoton_isEE.push_back(iPhoton.isEE());  
+          patPhoton_isEBEEGap.push_back(iPhoton.isEBEEGap());  
+          patPhoton_isEBEtaGap.push_back(iPhoton.isEBEtaGap());  
+          patPhoton_isEBPhiGap.push_back(iPhoton.isEBPhiGap());  
+          patPhoton_isEEDeeGap.push_back(iPhoton.isEEDeeGap());  
+          patPhoton_isEERingGap.push_back(iPhoton.isEERingGap());   
           patPhoton_passElectronVeto.push_back(iPhoton.passElectronVeto()); 
           patPhoton_hasPixelSeed.push_back(iPhoton.hasPixelSeed());  
           patPhoton_hasConversionTracks.push_back(iPhoton.hasConversionTracks());
@@ -3439,11 +3469,18 @@ void RecoSimDumper::setTree(TTree* tree)
       }   
    }
    
-   if(saveGedParticles_){
+   if(saveGsfElectrons_){
       tree->Branch("gsfElectron_index","std::vector<int> ",&gsfElectron_index);    
       tree->Branch("gsfElectron_seedRawId","std::vector<uint32_t> ",&gsfElectron_seedRawId);   
-      tree->Branch("gsfElectron_isEB","std::vector<int> ",&gsfElectron_isEB);   
-      tree->Branch("gsfElectron_isEE","std::vector<int> ",&gsfElectron_isEE);
+      tree->Branch("gsfElectron_isEB","std::vector<bool> ",&gsfElectron_isEB);   
+      tree->Branch("gsfElectron_isEE","std::vector<bool> ",&gsfElectron_isEE);
+      tree->Branch("gsfElectron_isEBEEGap","std::vector<bool> ",&gsfElectron_isEBEEGap);
+      tree->Branch("gsfElectron_isEBEtaGap","std::vector<bool> ",&gsfElectron_isEBEtaGap);
+      tree->Branch("gsfElectron_isEBPhiGap","std::vector<bool> ",&gsfElectron_isEBPhiGap);
+      tree->Branch("gsfElectron_isEEDeeGap","std::vector<bool> ",&gsfElectron_isEEDeeGap);
+      tree->Branch("gsfElectron_isEERingGap","std::vector<bool> ",&gsfElectron_isEERingGap);
+      tree->Branch("gsfElectron_isEcalDriven","std::vector<bool> ",&gsfElectron_isEcalDriven);
+      tree->Branch("gsfElectron_isTrackerDriven","std::vector<bool> ",&gsfElectron_isTrackerDriven);
       tree->Branch("gsfElectron_classification","std::vector<int> ",&gsfElectron_classification);  
       tree->Branch("gsfElectron_nPFClusters","std::vector<int> ",&gsfElectron_nPFClusters);      
       tree->Branch("gsfElectron_p","std::vector<float> ",&gsfElectron_p);     
@@ -3509,10 +3546,18 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gsfElectron_dnn_bkg_nonIsolated","std::vector<float> ",&gsfElectron_dnn_bkg_nonIsolated);  
       tree->Branch("gsfElectron_dnn_bkg_Tau","std::vector<float> ",&gsfElectron_dnn_bkg_Tau);  
       tree->Branch("gsfElectron_dnn_bkg_Photon","std::vector<float> ",&gsfElectron_dnn_bkg_Photon);  
+   }
+
+   if(saveGsfElectrons_){
       tree->Branch("gedPhoton_index","std::vector<int> ",&gedPhoton_index);    
       tree->Branch("gedPhoton_seedRawId","std::vector<uint32_t> ",&gedPhoton_seedRawId);   
-      tree->Branch("gedPhoton_isEB","std::vector<int> ",&gedPhoton_isEB);  
-      tree->Branch("gedPhoton_isEE","std::vector<int> ",&gedPhoton_isEE);   
+      tree->Branch("gedPhoton_isEB","std::vector<bool> ",&gedPhoton_isEB);  
+      tree->Branch("gedPhoton_isEE","std::vector<bool> ",&gedPhoton_isEE);  
+      tree->Branch("gedPhoton_isEBEEGap","std::vector<bool> ",&gedPhoton_isEBEEGap);
+      tree->Branch("gedPhoton_isEBEtaGap","std::vector<bool> ",&gedPhoton_isEBEtaGap);
+      tree->Branch("gedPhoton_isEBPhiGap","std::vector<bool> ",&gedPhoton_isEBPhiGap);
+      tree->Branch("gedPhoton_isEEDeeGap","std::vector<bool> ",&gedPhoton_isEEDeeGap);
+      tree->Branch("gedPhoton_isEERingGap","std::vector<bool> ",&gedPhoton_isEERingGap);  
       tree->Branch("gedPhoton_nPFClusters","std::vector<int> ",&gedPhoton_nPFClusters);   
       tree->Branch("gedPhoton_hasConversionTracks","std::vector<bool> ",&gedPhoton_hasConversionTracks); 
       tree->Branch("gedPhoton_nConversions","std::vector<int> ",&gedPhoton_nConversions);     
@@ -3577,6 +3622,13 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patElectron_charge","std::vector<int> ",&patElectron_charge); 
       tree->Branch("patElectron_isEB","std::vector<bool> ",&patElectron_isEB); 
       tree->Branch("patElectron_isEE","std::vector<bool> ",&patElectron_isEE); 
+      tree->Branch("patElectron_isEBEEGap","std::vector<bool> ",&patElectron_isEBEEGap);
+      tree->Branch("patElectron_isEBEtaGap","std::vector<bool> ",&patElectron_isEBEtaGap);
+      tree->Branch("patElectron_isEBPhiGap","std::vector<bool> ",&patElectron_isEBPhiGap);
+      tree->Branch("patElectron_isEEDeeGap","std::vector<bool> ",&patElectron_isEEDeeGap);
+      tree->Branch("patElectron_isEERingGap","std::vector<bool> ",&patElectron_isEERingGap);
+      tree->Branch("patElectron_isEcalDriven","std::vector<bool> ",&patElectron_isEcalDriven);
+      tree->Branch("patElectron_isTrackerDriven","std::vector<bool> ",&patElectron_isTrackerDriven);
       tree->Branch("patElectron_eta","std::vector<float> ",&patElectron_eta); 
       tree->Branch("patElectron_phi","std::vector<float> ",&patElectron_phi); 
       tree->Branch("patElectron_p","std::vector<float> ",&patElectron_p); 
@@ -3667,6 +3719,11 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patPhoton_nConversionsOneLeg","std::vector<int> ",&patPhoton_nConversionsOneLeg);     
       tree->Branch("patPhoton_isEB","std::vector<bool> ",&patPhoton_isEB); 
       tree->Branch("patPhoton_isEE","std::vector<bool> ",&patPhoton_isEE); 
+      tree->Branch("patPhoton_isEBEEGap","std::vector<bool> ",&patPhoton_isEBEEGap);
+      tree->Branch("patPhoton_isEBEtaGap","std::vector<bool> ",&patPhoton_isEBEtaGap);
+      tree->Branch("patPhoton_isEBPhiGap","std::vector<bool> ",&patPhoton_isEBPhiGap);
+      tree->Branch("patPhoton_isEEDeeGap","std::vector<bool> ",&patPhoton_isEEDeeGap);
+      tree->Branch("patPhoton_isEERingGap","std::vector<bool> ",&patPhoton_isEERingGap);  
       tree->Branch("patPhoton_eta","std::vector<float> ",&patPhoton_eta); 
       tree->Branch("patPhoton_phi","std::vector<float> ",&patPhoton_phi); 
       tree->Branch("patPhoton_energy","std::vector<float> ",&patPhoton_energy);   
@@ -4377,6 +4434,13 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gsfElectron_seedRawId.clear();
    gsfElectron_isEB.clear();
    gsfElectron_isEE.clear();
+   gsfElectron_isEBEEGap.clear();
+   gsfElectron_isEBEtaGap.clear();
+   gsfElectron_isEBPhiGap.clear();
+   gsfElectron_isEEDeeGap.clear();
+   gsfElectron_isEERingGap.clear();  
+   gsfElectron_isEcalDriven.clear();
+   gsfElectron_isTrackerDriven.clear(); 
    gsfElectron_nPFClusters.clear();  
    gsfElectron_classification.clear(); 
    gsfElectron_p.clear();
@@ -4445,8 +4509,13 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
 
    gedPhoton_index.clear();  
    gedPhoton_seedRawId.clear();  
-   gedPhoton_isEB.clear();  
-   gedPhoton_isEE.clear();  
+   gedPhoton_isEB.clear();
+   gedPhoton_isEE.clear();
+   gedPhoton_isEBEEGap.clear();
+   gedPhoton_isEBEtaGap.clear();
+   gedPhoton_isEBPhiGap.clear();
+   gedPhoton_isEEDeeGap.clear();
+   gedPhoton_isEERingGap.clear();  
    gedPhoton_nPFClusters.clear();  
    gedPhoton_hasConversionTracks.clear();
    gedPhoton_nConversions.clear();
@@ -4504,6 +4573,13 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_charge.clear();
    patElectron_isEB.clear();
    patElectron_isEE.clear();
+   patElectron_isEBEEGap.clear();
+   patElectron_isEBEtaGap.clear();
+   patElectron_isEBPhiGap.clear();
+   patElectron_isEEDeeGap.clear();
+   patElectron_isEERingGap.clear();  
+   patElectron_isEcalDriven.clear();
+   patElectron_isTrackerDriven.clear(); 
    patElectron_eta.clear();
    patElectron_phi.clear();
    patElectron_p.clear();
@@ -4587,6 +4663,11 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patPhoton_nPFClusters.clear();
    patPhoton_isEB.clear();
    patPhoton_isEE.clear();
+   patPhoton_isEBEEGap.clear();
+   patPhoton_isEBEtaGap.clear();
+   patPhoton_isEBPhiGap.clear();
+   patPhoton_isEEDeeGap.clear();
+   patPhoton_isEERingGap.clear();  
    patPhoton_passElectronVeto.clear();
    patPhoton_hasPixelSeed.clear();
    patPhoton_hasConversionTracks.clear();
