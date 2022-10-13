@@ -19,14 +19,17 @@
 
 3) Run general dumper (GenParticle, CaloParticle, PFcluster, superCluster, pat::objects infos) on a RECO sample (produced in the previous steps):
     
-    #Turn on the collections that you want to save in RecoSimDumper_cfg.py, and select the proper data/MC GT
+    Turn on the collections that you want to save in RecoSimDumper_cfg.py, and select the proper data/MC GT
+
     * cd RecoSimStudies/Dumpers/
     * cmsRun python/RecoSimDumper_cfg.py
 
 4) Run on condor RECO+Dumper (set properly the voms-key in the cfg before):
 
-    #Turn on the collections that you want to save in RecoSimDumper_cfg.py, and select the proper data/MC GT in RecoSimDumper_cfi.py
-    #Run only special 2021-MC RAW samples produced for these studies
+    Turn on the collections that you want to save in RecoSimDumper_cfg.py, and select the proper data/MC GT in RecoSimDumper_cfi.py
+
+    Run only special 2021-MC RAW samples produced for these studies
+
     * cd RecoSimStudies/Dumpers/condor/
     * module load lxbatch/tzero
     * voms-proxy-init --voms cms --valid 168:00
@@ -36,11 +39,16 @@
 
 5) Run on crab RECO+Dumper (set properly the voms-key in the cfg before):
     
-    #Turn on the collections that you want to save in RecoSimDumper_cfg.py, and select the proper data/MC GT
-    #To run on MC use: RecoSimDumper_fromRAW_*_cfg.py
-    #To run on 2018 Data use: RecoSimDumper_fromRAW_*_Data2018_cfg.py
-    #Select the filters you want in process.dumper_step while running on data
-    #Prepare the proper CRAB cfg options
+    Turn on the collections that you want to save in RecoSimDumper_cfg.py, and select the proper data/MC GT
+
+    To run on MC use: RecoSimDumper_fromRAW_*_cfg.py
+
+    To run on 2018 Data use: RecoSimDumper_fromRAW_*_Data2018_cfg.py
+
+    Select the filters you want in process.dumper_step while running on data
+
+    Prepare the proper CRAB cfg options
+
     * cd RecoSimStudies/Dumpers/crab/
     * crab submit crab_cfg_reco.py
     
