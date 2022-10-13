@@ -8,13 +8,13 @@ CaloTowerConstituentsMapBuilder = cms.ESProducer("CaloTowerConstituentsMapBuilde
 recosimdumper = cms.EDAnalyzer("RecoSimDumper",
 
     rhoCollection                   = cms.InputTag("fixedGridRhoAll","","ECALClustering"),
-    pileupSummary                   = cms.InputTag("addPileupInfo","","ECALClustering"),
+    pileupSummary                   = cms.InputTag("addPileupInfo",""),
     #vertexCollection                = cms.InputTag("offlinePrimaryVertices","","ECALClustering"),
     vertexCollection                = cms.InputTag("offlineSlimmedPrimaryVertices","","ECALClustering"), 
-    genParticleCollection           = cms.InputTag("genParticles","","ECALClustering"),
-    caloParticleCollection          = cms.InputTag("signalCaloParticles","","ECALClustering"),
-    puCaloParticleCollection        = cms.InputTag("reducedCaloParticlesPU","","ECALClustering"),
-    ootpuCaloParticleCollection     = cms.InputTag("reducedCaloParticlesOOTPU","","ECALClustering"),
+    genParticleCollection           = cms.InputTag("genParticles",""),
+    caloParticleCollection          = cms.InputTag("signalCaloParticles",""),
+    puCaloParticleCollection        = cms.InputTag("reducedCaloParticlesPU",""),
+    ootpuCaloParticleCollection     = cms.InputTag("reducedCaloParticlesOOTPU",""),
     ebRechitCollection              = cms.InputTag("ecalRecHit","EcalRecHitsEB","ECALClustering"),
     eeRechitCollection              = cms.InputTag("ecalRecHit","EcalRecHitsEE","ECALClustering"),
     pfRechitCollection              = cms.InputTag("particleFlowRecHitECAL","","ECALClustering"),
@@ -32,7 +32,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     ebDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALBarrel","ECALClustering"), 
     eeDeepSuperClusterCollection    = cms.InputTag("particleFlowDeepSuperClusterECAL","particleFlowDeepSuperClusterECALEndcapWithPreshower","ECALClustering"),
     
-    isMC                            = cms.bool(False),  #isMC
+    isMC                            = cms.bool(True),  #isMC
     doCompression                   = cms.bool(True),  #do the compression of floats
     nBits                           = cms.int32(23),   #nbits for float compression (<=23)
     
