@@ -43,7 +43,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(20),
+    input = cms.untracked.int32(100),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
@@ -221,6 +221,16 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string('output.root')
 )
 
+process.linkedObjects = cms.EDProducer("PATObjectCrossLinker",
+    jets=cms.InputTag("slimmedJets"),
+    muons=cms.InputTag("slimmedMuons"),
+    electrons=cms.InputTag("slimmedElectrons"),
+    lowPtElectrons=cms.InputTag("slimmedLowPtElectrons"),
+    taus=cms.InputTag("slimmedTaus"),
+    photons=cms.InputTag("slimmedPhotons"),
+)
+process.linkedObjects_step = cms.Path(process.linkedObjects) 
+
 # Path and EndPath definitions
 process.raw2digi_step = cms.Path(process.RawToDigi)
 process.L1Reco_step = cms.Path(process.L1Reco)
@@ -333,16 +343,16 @@ process.highetFilter = cms.EDFilter(
 process.load('Calibration.EcalAlCaRecoProducers.WZElectronSkims_cff')
 process.load('RecoSimStudies.Dumpers.RecoSimDumper_cfi')
 process.dumper_step = cms.Path(
-    #process.AllEvents
-    process.ZeeSkimFilterSeq
-    *process.AllEvents  
+    process.AllEvents
+    #process.ZeeSkimFilterSeq
+    #*process.AllEvents  
     #*process.hltLevel1GTSeed 
-    *process.hltHighLevel
-    *process.goodPrimaryVertices
-    *process.highetele
-    *process.highetFilter
-    *process.FilterReRECOEvents   
-    *process.FilterPatDefaultSequenceEvents 
+    #*process.hltHighLevel
+    #*process.goodPrimaryVertices
+    #*process.highetele
+    #*process.highetFilter
+    #*process.FilterReRECOEvents   
+    #*process.FilterPatDefaultSequenceEvents 
     *process.recosimdumper
 )
 
@@ -375,7 +385,7 @@ process.gedPhotons.PhotonDNNPFid = dict(
 process.gedPhotons.PhotonDNNPFid.enabled = True  
 
 # Schedule definition
-process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadPFMuonDzFilter,process.Flag_hfNoisyHitsFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.dumper_step,process.endjob_step)
+process.schedule = cms.Schedule(process.raw2digi_step,process.L1Reco_step,process.reconstruction_step,process.Flag_HBHENoiseFilter,process.Flag_HBHENoiseIsoFilter,process.Flag_CSCTightHaloFilter,process.Flag_CSCTightHaloTrkMuUnvetoFilter,process.Flag_CSCTightHalo2015Filter,process.Flag_globalTightHalo2016Filter,process.Flag_globalSuperTightHalo2016Filter,process.Flag_HcalStripHaloFilter,process.Flag_hcalLaserEventFilter,process.Flag_EcalDeadCellTriggerPrimitiveFilter,process.Flag_EcalDeadCellBoundaryEnergyFilter,process.Flag_ecalBadCalibFilter,process.Flag_goodVertices,process.Flag_eeBadScFilter,process.Flag_ecalLaserCorrFilter,process.Flag_trkPOGFilters,process.Flag_chargedHadronTrackResolutionFilter,process.Flag_muonBadTrackFilter,process.Flag_BadChargedCandidateFilter,process.Flag_BadPFMuonFilter,process.Flag_BadPFMuonDzFilter,process.Flag_hfNoisyHitsFilter,process.Flag_BadChargedCandidateSummer16Filter,process.Flag_BadPFMuonSummer16Filter,process.Flag_trkPOG_manystripclus53X,process.Flag_trkPOG_toomanystripclus53X,process.Flag_trkPOG_logErrorTooManyClusters,process.Flag_METFilters,process.linkedObjects_step,process.dumper_step,process.endjob_step)
 process.schedule.associate(process.patTask)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
