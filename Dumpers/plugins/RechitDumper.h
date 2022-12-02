@@ -79,6 +79,14 @@
 #include <Math/VectorUtil.h>
 //#include <boost/tokenizer.hpp>
 
+struct Point {
+  double x;
+  double y;
+  double z;
+  double eta;
+  double phi;
+};
+
 class RechitDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
 {
       public:
@@ -95,6 +103,9 @@ class RechitDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       float reduceFloat(float val, int bits);
       void setTree(TTree* tree);
       void clearVectors(); 
+      std::vector<Point> makePolygon(CaloCellGeometry::CornersVec& corners, std::vector<int> indices);
+      Point computeBarycenter(std::vector<Point>& polygon); 
+      double computeMaxDR(std::vector<Point>& polygon, Point& barycenter);
       
       // ----------collection tokens-------------------
       edm::ESGetToken<CaloTopology, CaloTopologyRecord> caloTopologyToken_;
@@ -126,6 +137,8 @@ class RechitDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       int nBits_;
       bool saveEB_;       
       bool saveEE_;   
+      double matchingScale_;
+      std::vector<int> neighborXtalsMatrix_;   
       std::vector<uint32_t> deadXtalsEB_;   
       std::vector<uint32_t> deadXtalsEE_; 
       std::vector<uint32_t> saveXtalsEB_;   

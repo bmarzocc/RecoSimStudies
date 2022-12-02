@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import random
+import commands
 from math import *
 
 with open("command.txt", "w") as of:
@@ -14,17 +15,20 @@ group them in strips reading a DOF file
 parser = argparse.ArgumentParser()
 
 #parser.add_argument("-f", "--files", type=str, help="input file", required=True)
-parser.add_argument("-n", "--nevents", type=int, help="N events for each eta and energy", required=True)
-parser.add_argument("-s", "--split", type=int, help="Divide N events in S jobs", default=10)
+parser.add_argument("-i", "--inputdir", type=str, default="", help="Inputdir", required=False)
+parser.add_argument("-D", "--das", type=str, default="", help="input DAS dataset", required=False)
 parser.add_argument("-o", "--outputdir", type=str, help="Outputdir", required=True)
-parser.add_argument("-c", "--cmssw", type=str, help="Absolute path to CMSSW release", required=True)
+parser.add_argument("-c", "--cmssw", type=str, help="CMSSW tar", required=True)
 parser.add_argument("-q", "--queue", type=str, help="Condor queue", default="longlunch", required=True)
 parser.add_argument("-e", "--eos", type=str, default="user", help="EOS instance user/cms", required=False)
-parser.add_argument("-g", "--gun", type=str, help="GEN-SIM cfg", required=True)
-parser.add_argument("-S", "--seed", type=int, help="Seed offset", default=0)
 parser.add_argument("-p", "--proxy", type=str, help="Proxy key", required=False)
+parser.add_argument("-s", "--site", type=str, help="DAS site", required=False)
 parser.add_argument("--redo", action="store_true", default=False, help="Redo all files")
 args = parser.parse_args()
+
+if (args.inputdir=="" and args.das=="") or (args.inputdir!="" and args.das!=""):
+  print "ERROR: Give either inputdir, either DAS option"
+  exit()  
 
 if not os.path.isdir('error'): os.mkdir('error') 
 if not os.path.isdir('output'): os.mkdir('output') 
@@ -32,7 +36,6 @@ if not os.path.isdir('log'): os.mkdir('log')
 
 command = "tar -czvf cmssw.tar DIR"
 command = command.replace("DIR", args.cmssw)
-print "Command:",command
 os.system("rm -rf cmssw.tar")
 os.system(command)
 
@@ -45,9 +48,11 @@ transfer_input_files    = run_script.sh
 transfer_output_files   = ""
 on_exit_remove          = (ExitBySignal == False) && (ExitCode == 0)
 periodic_release        = (NumJobStarts < 3) && ((CurrentTime - EnteredCurrentStatus) > (60*60))
+
 +JobFlavour             = "{queue}"
-+AccountingGroup = "group_u_CMS.CAF.ALCA"
++AccountingGroup        = "group_u_CMS.CAF.ALCA" 
 queue arguments from arguments.txt
+
 '''
 
 condor = condor.replace("{queue}", args.queue)
@@ -62,23 +67,27 @@ cd {cmssw_file}/src
 echo -e "evaluate"
 eval `scramv1 ru -sh`
 export HOME='/afs/cern.ch/user/{user1}/{user}'
-JOBID=$1; shift; 
-OUTPUTFILE=$1;
-NEVENTS=$2;
-SEED1=$3
-SEED2=$4
-SEED3=$5
-SEED4=$6
-SEED5=$7
-SEED6=$8
-SEED7=$9
-cd RecoSimStudies/Dumpers/test
+
+JOBID=$1;  
+INPUTFILE=$2;
+OUTPUTFILE=$3;
+
+cd RecoSimStudies/Dumpers/crab/
+
 echo -e "cmsRun..";
-echo -e ">>> STEP1";
-cmsRun GEN_SIM_CFG jobid=$JOBID  maxEvents=$NEVENTS seed1=$SEED1 seed2=$SEED2 seed3=$SEED3 seed4=$SEED4 seed5=$SEED5 
-echo -e ">>> STEP2";
-cmsRun step2_DIGI_L1_DIGI2RAW_HLT_PU_Run3_2021.py jobid=$JOBID seed1=$SEED6 seed2=$SEED7 
-xrdcp --nopbar step2.root root://eoscms.cern.ch/${OUTPUTFILE}_step2.root;
+
+echo -e ">>> STEP3";
+cmsRun MiniAOD_fromRaw_Run3_rereco_DeepSC_algoA_Data2022_cfg.py inputFile=${INPUTFILE} outputFile=../../../output.root
+
+echo -e "Running JPsi-dumper.."
+
+cd ../../..;
+cd Bmmm/Analysis/test/;
+python3 inspector_kee_analysis.py --inputFiles ../../../output.root --filename output_${JOBID}
+
+echo -e "Copying result to: $OUTPUTFILE";
+xrdcp -f --nopbar  output_${JOBID}.root root://eoscms.cern.ch/${OUTPUTFILE};
+
 echo -e "DONE";
 '''
 
@@ -91,36 +100,42 @@ script = script.replace("{cmssw_file}", cmssw_file)
 script = script.replace("DIR", os.getcwd())
 script = script.replace("PROXYKEY", args.proxy)
 
-if args.gun == "Photons": script = script.replace("GEN_SIM_CFG", "GammasGunPt1-100_pythia8_cfi_GEN_SIM.py")
-elif args.gun == "Electrons": script = script.replace("GEN_SIM_CFG", "ElectronsGunPt1-100_pythia8_cfi_GEN_SIM.py")
-elif args.gun == "Jets": script = script.replace("GEN_SIM_CFG", "JetsGunPt1-100_EMEnriched_pythia8_cfi_GEN_SIM.py")
-elif args.gun == "QCD": script = script.replace("GEN_SIM_CFG", "QCD_Pt-15to7000_TuneCUETP8M1_Flat_14TeV-pythia8_cfi_GEN_SIM.py")
-else: 
-  print "Wrong GUN option, please use: 'Photons' or 'Electrons' or 'Jets' or 'QCD'"
-  exit() 
-
 arguments= []
 if not os.path.exists(args.outputdir):
   os.makedirs(args.outputdir)
 
 outputfiles = [args.outputdir +"/"+f for f in os.listdir(args.outputdir)]
 
+inputfiles = ""
+if args.inputdir!="":
+  inputfiles = [ f for f in os.listdir(args.inputdir)]
+if args.das!="":
+  print "Site:",args.site 
+  if args.site=="":
+    query = "dasgoclient --query='file dataset=/"+args.das+"'"
+  else: 
+    query = "dasgoclient --query='file dataset=/"+args.das+" site="+args.site+"'"
+    print "QUERY:",query 
+  #query = "dasgoclient --query='file dataset=/"+args.das+" site=T0_CH_CERN_Disk'"
+  status, output = commands.getstatusoutput(query) 
+  #print output
+  inputfiles = output.split()
+
 jobid = 0
-njobs = args.nevents // args.split
+for ifile in inputfiles:
+    jobid +=1
+    if args.inputdir!="": 
+      inputfile = args.inputdir + "/" + ifile
+      outputfile = args.outputdir + "/" + ifile[:-5] + "_output.root"
+    else: 
+      inputfile = "root://cms-xrd-global.cern.ch/" + ifile
+      outputfile = args.outputdir + "/" + ifile.split('/')[-1]
+    
 
-for ijob in range(njobs):
-            jobid +=1
-            outputfile = args.outputdir + "/cluster_job{}".format(jobid)
-        
-            if not args.redo and outputfile+".root" in outputfiles:
-                continue
-
-            arguments.append("{} {} {} {} {} {} {} {} {} {}".format(
-                jobid,outputfile,args.split, 
-                jobid+args.seed+1,jobid+args.seed+2, 
-                jobid+args.seed+3,jobid+args.seed+4,
-                jobid+args.seed+5,jobid+args.seed+6,
-                jobid+args.seed+7))
+    if not args.redo and outputfile in outputfiles:
+        continue
+    
+    arguments.append("{} {} {}".format(jobid,inputfile,outputfile))
 
 print("Njobs: ", len(arguments))
     
@@ -134,4 +149,7 @@ with open("run_script.sh", "w") as rs:
     rs.write(script)
 
 #os.system("condor_submit condor_job.txt")
+
+
+
 

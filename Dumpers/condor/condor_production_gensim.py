@@ -42,6 +42,7 @@ output                  = output/strips.$(ClusterId).$(ProcId).out
 error                   = error/strips.$(ClusterId).$(ProcId).err
 log                     = log/strips.$(ClusterId).log
 transfer_input_files    = run_script.sh
+transfer_output_files   = ""
 on_exit_remove          = (ExitBySignal == False) && (ExitCode == 0)
 periodic_release        = (NumJobStarts < 3) && ((CurrentTime - EnteredCurrentStatus) > (60*60))
 +JobFlavour             = "{queue}"

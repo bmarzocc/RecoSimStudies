@@ -104,8 +104,10 @@ RechitDumper::RechitDumper(const edm::ParameterSet& iConfig):
    saveEB_                        = iConfig.getParameter<bool>("saveEB");
    saveEE_                        = iConfig.getParameter<bool>("saveEE");
 
-   deadXtalsEB_                     = iConfig.getParameter<std::vector<uint32_t> >("deadXtalsEB");
-   deadXtalsEE_                     = iConfig.getParameter<std::vector<uint32_t> >("deadXtalsEE");
+   matchingScale_                 = iConfig.getParameter<double>("matchingScale"); 
+   neighborXtalsMatrix_           = iConfig.getParameter<std::vector<int> >("neighborXtalsMatrix");
+   deadXtalsEB_                   = iConfig.getParameter<std::vector<uint32_t> >("deadXtalsEB");
+   deadXtalsEE_                   = iConfig.getParameter<std::vector<uint32_t> >("deadXtalsEE");
   
    if(nBits_>23 && doCompression_){
       cout << "WARNING: float compression bits > 23 ---> Using 23 (i.e. no compression) instead!" << endl;
@@ -245,7 +247,16 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    GlobalPoint ecalCell;
    GlobalPoint hcalCell;
    GlobalPoint esCell; 
-
+   CaloCellGeometry::CornersVec ecalCornerVec;
+   CaloCellGeometry::CornersVec hcalCornerVec;
+   CaloCellGeometry::CornersVec esCornerVec;
+   std::vector<Point> ecalPolygon;
+   std::vector<Point> hcalPolygon;
+   std::vector<Point> esPolygon; 
+   Point ecalBar;
+   Point hcalBar;
+   Point esBar;
+   
    clearVectors();
    saveXtalsEB_.clear();
    saveXtalsEE_.clear();
@@ -255,7 +266,7 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //Find the xtals close to the deadXtals
       for(auto& xtal : deadXtalsEB_){
           DetId deadId(xtal);
-          std::vector<DetId> neighborXtals = topology->getSubdetectorTopology(DetId::Ecal, EcalBarrel)->getWindow(deadId,5,5);  
+          std::vector<DetId> neighborXtals = topology->getSubdetectorTopology(DetId::Ecal, EcalBarrel)->getWindow(deadId,neighborXtalsMatrix_.at(0), neighborXtalsMatrix_.at(1));  
           for(auto&  id: neighborXtals)
               saveXtalsEB_.push_back(id.rawId());      
       }
@@ -298,22 +309,30 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hcalRecHit_iz.clear();
           hcalRecHit_depth.clear();
 
+          ecalCornerVec = ebGeometry->getGeometry(rechit_id)->getCorners(); 
+
+          //ECAL crystal rear face
+          ecalPolygon = makePolygon(ecalCornerVec,std::vector<int>{4,5,6,7});
+          ecalBar = computeBarycenter(ecalPolygon);   
+          double dRmaxEcal = computeMaxDR(ecalPolygon, ecalBar);
+
           for (auto hcalRechit: *hcalHBHEHits){
  
               HcalDetId hcal_id(hcalRechit.id());
 
               hcalCell = hbGeometry->getGeometry(hcal_id)->getPosition();
-              double dEta = hbGeometry->deltaEta(hcal_id);
-              double dPhi = hbGeometry->deltaPhi(hcal_id);
- 
+              hcalCornerVec = hbGeometry->getGeometry(hcal_id)->getCorners(); 
               if(hcalCell==notFound){
                  hcalCell = heGeometry->getGeometry(hcal_id)->getPosition();
-                 dEta = heGeometry->deltaEta(hcal_id);
-                 dPhi = heGeometry->deltaPhi(hcal_id);
+                 hcalCornerVec = heGeometry->getGeometry(hcal_id)->getCorners(); 
               }
-   
-              if(fabs(ecalCell.eta()-hcalCell.eta()) > 1.1 * (ebGeometry->deltaEta(rechit_id) + dEta)) continue;
-              if(fabs(deltaPhi(double(ecalCell.phi()),double(hcalCell.phi()))) > 1.1 * (ebGeometry->deltaPhi(rechit_id) + dPhi)) continue;   
+
+              //HCAL crystal front face 
+              hcalPolygon = makePolygon(hcalCornerVec,std::vector<int>{0,1,2,3});
+              hcalBar = computeBarycenter(hcalPolygon);   
+              double dRmaxHcal = computeMaxDR(hcalPolygon, hcalBar);
+
+              if(deltaR(ecalBar.eta,ecalBar.phi,hcalBar.eta,hcalBar.phi)>matchingScale_*(dRmaxEcal+dRmaxHcal)) continue;  
               
               int iz=-99;
               if(hcal_id.zside()==0) iz=0;
@@ -348,7 +367,7 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       //Find the xtals close to the deadXtals
       for(auto& xtal : deadXtalsEE_){
           DetId deadId(xtal);
-          std::vector<DetId> neighborXtals = topology->getSubdetectorTopology(DetId::Ecal, EcalEndcap)->getWindow(deadId,5,5);  
+          std::vector<DetId> neighborXtals = topology->getSubdetectorTopology(DetId::Ecal, EcalEndcap)->getWindow(deadId,neighborXtalsMatrix_.at(0), neighborXtalsMatrix_.at(1));   
           for(auto&  id: neighborXtals)
               saveXtalsEE_.push_back(id.rawId());      
       }
@@ -359,7 +378,7 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
       saveXtalsEE_.erase(std::unique(saveXtalsEE_.begin(),saveXtalsEE_.end()),saveXtalsEE_.end());
 
       //std::cout << "saveXtalsEE_.size() = " << saveXtalsEE_.size() << std::endl; 
-
+ 
       for(const auto& iRechit : *ecalEEHits){
 
           DetId rechit_id(iRechit.detid());
@@ -394,24 +413,32 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           hcalRecHit_iz.clear();
           hcalRecHit_depth.clear();
 
+          ecalCornerVec = eeGeometry->getGeometry(rechit_id)->getCorners(); 
+
+          //ECAL crystal rear face
+          ecalPolygon = makePolygon(ecalCornerVec,std::vector<int>{4,5,6,7});
+          ecalBar = computeBarycenter(ecalPolygon); 
+          double dRmaxEcal = computeMaxDR(ecalPolygon, ecalBar); 
+
           for (auto hcalRechit: *hcalHBHEHits){
  
               HcalDetId hcal_id(hcalRechit.id());
-
-              hcalCell = heGeometry->getGeometry(hcal_id)->getPosition();
-              double dEta = heGeometry->deltaEta(hcal_id);
-              double dPhi = heGeometry->deltaPhi(hcal_id);
+              if(hcal_id.zside()!=ee_id.zside()) continue;
  
+              hcalCell = heGeometry->getGeometry(hcal_id)->getPosition();
+              hcalCornerVec = heGeometry->getGeometry(hcal_id)->getCorners(); 
               if(hcalCell==notFound){
                  hcalCell = hbGeometry->getGeometry(hcal_id)->getPosition();
-                 dEta = hbGeometry->deltaEta(hcal_id);
-                 dPhi = hbGeometry->deltaPhi(hcal_id);
+                 hcalCornerVec = hbGeometry->getGeometry(hcal_id)->getCorners(); 
               }
-              
-              if(hcal_id.zside()!=ee_id.zside()) continue;
-              if(fabs(ecalCell.eta()-hcalCell.eta()) > 1.1 * (eeGeometry->deltaEta(rechit_id) + dEta)) continue;
-              if(fabs(deltaPhi(double(ecalCell.phi()),double(hcalCell.phi()))) > 1.1 * (eeGeometry->deltaPhi(rechit_id) + dPhi)) continue;       
 
+              //HCAL crystal front face 
+              hcalPolygon = makePolygon(hcalCornerVec,std::vector<int>{0,1,2,3});
+              hcalBar = computeBarycenter(hcalPolygon);   
+              double dRmaxHcal = computeMaxDR(hcalPolygon, hcalBar); 
+   
+              if(deltaR(ecalBar.eta,ecalBar.phi,hcalBar.eta,hcalBar.phi)>matchingScale_*(dRmaxEcal+dRmaxHcal)) continue;  
+              
               int iz=-99;
               if(hcal_id.zside()<0) iz=-1;
               if(hcal_id.zside()>0) iz=1; 
@@ -426,7 +453,7 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               hcalRecHit_depth.push_back(hcal_id.depth());
           }
  
-          if(hcalRecHit_rawId.size()==0) std::cout << "WARNING: no matching HEHB Rechit for EE ecalHit: (" << ecalCell.eta() << "," << ecalCell.phi() << ") - ( " << ee_id.ix() << "," << ee_id.iy() << "," << ee_id.zside() << ")" << std::endl;
+          if(hcalRecHit_rawId.size()==0) std::cout << "WARNING: no matching HEHB Rechit for EE ecalHit: (" << (double)ecalCell.eta() << "," << (double)ecalCell.phi() << ") - ( " << (int)ee_id.ix() << "," << (int)ee_id.iy() << "," << (int)ee_id.zside() << ")" << std::endl;
 
           matchedHcalRecHit_rawId.push_back(hcalRecHit_rawId);
           matchedHcalRecHit_energy.push_back(hcalRecHit_energy);
@@ -447,15 +474,26 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           esRecHit_strip.clear();
           esRecHit_plane.clear();
 
+          //ECAL crystal front face
+          ecalPolygon = makePolygon(ecalCornerVec,std::vector<int>{0,1,2,3});
+          ecalBar = computeBarycenter(ecalPolygon); 
+          dRmaxEcal = computeMaxDR(ecalPolygon, ecalBar);
+
           for (auto esRechit: *ecalESHits){
 
               ESDetId es_id(esRechit.id()); 
-              esCell = esGeometry->getGeometry(es_id)->getPosition();
-
               if(es_id.zside()!=ee_id.zside()) continue;
-              if(fabs(ecalCell.eta()-esCell.eta()) > 1.1 * (eeGeometry->deltaEta(rechit_id) + esGeometry->deltaEta(es_id))) continue;
-              if(fabs(deltaPhi(double(ecalCell.phi()),double(esCell.phi()))) > 1.1 * (eeGeometry->deltaPhi(rechit_id) + esGeometry->deltaPhi(es_id))) continue;     
-             
+
+              esCell = esGeometry->getGeometry(es_id)->getPosition();
+              esCornerVec = esGeometry->getGeometry(es_id)->getCorners(); 
+
+              //ES strips rear face
+              esPolygon = makePolygon(esCornerVec,std::vector<int>{4,5,6,7});
+              esBar = computeBarycenter(esPolygon);     
+              double dRmaxES = computeMaxDR(esPolygon, esBar); 
+   
+              if(deltaR(ecalBar.eta,ecalBar.phi,esBar.eta,esBar.phi)>matchingScale_*(dRmaxEcal+dRmaxES)) continue; 
+
               esRecHit_rawId.push_back(es_id.rawId());
               esRecHit_energy.push_back(esRechit.energy());
               esRecHit_eta.push_back(esCell.eta()); 
@@ -467,7 +505,7 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
               esRecHit_plane.push_back(es_id.plane());  
           }
  
-          if(hcalRecHit_rawId.size()==0) std::cout << "WARNING: no matching ES Rechit for EE ecalHit: (" << ecalCell.eta() << "," << ecalCell.phi() << ") - ( " << ee_id.ix() << "," << ee_id.iy() << "," << ee_id.zside() << ")" << std::endl;
+          if(hcalRecHit_rawId.size()==0) std::cout << "WARNING: no matching ES Rechit for EE ecalHit: (" << (double)ecalCell.eta() << "," << (double)ecalCell.phi() << ") - ( " << (int)ee_id.ix() << "," << (int)ee_id.iy() << "," << (int)ee_id.zside() << ")" << std::endl;
 
           matchedESRecHit_rawId.push_back(esRecHit_rawId);
           matchedESRecHit_energy.push_back(esRecHit_energy);
@@ -477,7 +515,7 @@ void RechitDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           matchedESRecHit_iy.push_back(esRecHit_iy);
           matchedESRecHit_iz.push_back(esRecHit_iz); 
           matchedESRecHit_strip.push_back(esRecHit_strip); 
-          matchedESRecHit_plane.push_back(esRecHit_plane);  
+          matchedESRecHit_plane.push_back(esRecHit_plane); 
       }   
    }  
 
@@ -575,6 +613,42 @@ float RechitDumper::reduceFloat(float val, int bits)
     else return MiniFloatConverter::reduceMantissaToNbitsRounding(val,bits);
 }
 
+std::vector<Point> RechitDumper::makePolygon(CaloCellGeometry::CornersVec& corners, std::vector<int> indices)
+{
+    std::vector<Point> polygon;
+    polygon.resize(indices.size());
+    for(unsigned int i=0; i<indices.size(); i++){
+        int index = indices[i];
+        polygon[i] = Point{corners[index].x(),corners[index].y(),corners[index].z(),corners[index].eta(),corners[index].phi()};     
+    }
+    return polygon;
+}
+
+Point RechitDumper::computeBarycenter(std::vector<Point>& polygon)
+{
+    double barX=0.;
+    double barY=0.; 
+    double barZ=0.; 
+    double barEta=0.;
+    double barPhi=0.; 
+    for(unsigned int i=0; i<polygon.size(); i++){
+       barX += polygon[i].x;
+       barY += polygon[i].y;
+       barZ += polygon[i].z;
+       barEta += polygon[i].eta;
+       barPhi += polygon[i].phi;
+   }
+   return Point{barX/polygon.size(),barY/polygon.size(),barZ/polygon.size(),barEta/polygon.size(),barPhi/polygon.size()}; 
+}
+
+double RechitDumper::computeMaxDR(std::vector<Point>& polygon, Point& barycenter)
+{
+   std::vector<double> dRs;
+   for(unsigned int i=0; i<polygon.size(); i++)
+       dRs.push_back(deltaR(polygon[i].eta,polygon[i].phi,barycenter.eta,barycenter.phi));
+
+   return *max_element(dRs.begin(),dRs.end()); 
+}
 
 ///------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

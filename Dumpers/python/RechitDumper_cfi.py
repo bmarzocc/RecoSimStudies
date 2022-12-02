@@ -22,6 +22,8 @@ rechitdumper = cms.EDAnalyzer("RechitDumper",
     saveEB                          = cms.bool(False),  #save EB rechits  
     saveEE                          = cms.bool(True),  #save EE rechits  
 
+    matchingScale                   = cms.double(1.),
+    neighborXtalsMatrix             = cms.vint32(5,5),
     deadXtalsEB                     = cms.vuint32(),
     deadXtalsEE                     = cms.vuint32(
 872432455,872432456,872432457,872432458,872432459,872432583,872432584,872432585,872432586,872432587,872432711,872432712,872432713,872432714,872432715,
