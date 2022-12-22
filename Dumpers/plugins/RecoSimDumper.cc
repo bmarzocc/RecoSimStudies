@@ -181,6 +181,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    doCompression_                 = iConfig.getParameter<bool>("doCompression");
    isMC_                          = iConfig.getParameter<bool>("isMC"); 
    saveGenParticles_              = iConfig.getParameter<bool>("saveGenParticles");
+   genParticlesToSave_            = iConfig.getParameter<std::vector<int> >("genParticlesToSave");
    saveCaloParticles_             = iConfig.getParameter<bool>("saveCaloParticles");
    saveCaloParticlesPU_           = iConfig.getParameter<bool>("saveCaloParticlesPU");
    saveCaloParticlesOOTPU_        = iConfig.getParameter<bool>("saveCaloParticlesOOTPU");   
@@ -491,41 +492,62 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    nVtx = vertices->size();
    rho = *(rhos.product());
 
+   genParticle_genMotherIndex.clear();
+   genParticle_genDaughtersIndex.clear();
    genParticle_pdgId.clear();
    genParticle_status.clear();
    genParticle_energy.clear();
    genParticle_pt.clear();
    genParticle_eta.clear();
    genParticle_phi.clear();
-   genDaughters.clear();
-   std::vector<GenParticle> genParts;
-   genParts.clear(); 
+
+   genAllDaughters.clear();
+   genParts.clear();
+   genMapMother.clear();
+   genMapDaughters.clear(); 
+   int nGenParticles = 0;
    
    if(isMC_){ 
-    const auto& genParts_tmp = *(genParticles.product());
-    int genPart_index = 0;
-
-    for(const auto& iGen : *(genParticles.product()))
-    {
-       if(iGen.numberOfMothers()!=0) continue;
-
-       genParticle_pdgId.push_back(iGen.pdgId()); 
-       genParticle_status.push_back(iGen.status()); 
-       genParticle_energy.push_back(iGen.energy()); 
-       genParticle_pt.push_back(iGen.pt());
-       genParticle_eta.push_back(iGen.eta());
-       genParticle_phi.push_back(iGen.phi());
      
-       addDaughters(&genParts_tmp,genPart_index,genPart_index);    
-       genParts.push_back(iGen); 
-       genPart_index++;
+    const std::vector<reco::GenParticle>& genParts_total = *(genParticles.product());
+    selectGenParticles(&genParts_total);
+    nGenParticles = genParts.size(); 
+  
+    genParticle_genMotherIndex.resize(nGenParticles);
+    genParticle_genDaughtersIndex.resize(nGenParticles);
+    genParticle_pdgId.resize(nGenParticles);
+    genParticle_status.resize(nGenParticles);
+    genParticle_energy.resize(nGenParticles);
+    genParticle_pt.resize(nGenParticles);
+    genParticle_eta.resize(nGenParticles);
+    genParticle_phi.resize(nGenParticles);
+
+
+    // loop once to select the daughters
+    for(unsigned int iGen=0; iGen<genParts_total.size(); iGen++)
+    {
+       if(genParts_total.at(iGen).numberOfMothers()!=0) continue;
+
+       addAllDaughters(&genParts_total,iGen,iGen);    
     } 
+ 
+    // loop on all the selected genParticles 
+    for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
+    {
+       genParticle_genMotherIndex[iGen] = genMapMother[iGen];
+       genParticle_genDaughtersIndex[iGen] = genMapDaughters[iGen]; 
+       genParticle_pdgId[iGen] = genParts.at(iGen).pdgId(); 
+       genParticle_status[iGen] = genParts.at(iGen).status(); 
+       genParticle_energy[iGen] = genParts.at(iGen).energy(); 
+       genParticle_pt[iGen] = genParts.at(iGen).pt();
+       genParticle_eta[iGen] = genParts.at(iGen).eta();
+       genParticle_phi[iGen] = genParts.at(iGen).phi();
+    }
+
+    genParticle_size = nGenParticles; 
+    //std::cout << "GenParticles size  : " << nGenParticles << std::endl;
    }
 
-   int nGenParticles = genParts.size(); 
-   genParticle_size = nGenParticles; 
-   //std::cout << "GenParticles size  : " << nGenParticles << std::endl;
-   
    GlobalPoint cell;
    hitsAndEnergies_CaloPart.clear();
    hitsAndEnergies_CaloPartPU.clear();
@@ -540,6 +562,9 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    { 
     for(const auto& iCalo : *(caloParticles.product()))
     {
+
+       if(std::find(genParticlesToSave_.begin(),genParticlesToSave_.end(),fabs(iCalo.pdgId()))==genParticlesToSave_.end()) continue;
+
        caloParticle_size++;
        std::vector<std::pair<DetId, float> > caloParticle_hitsAndEnergies = *getHitsAndEnergiesCaloPart(&iCalo,-1.);
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(&caloParticle_hitsAndEnergies, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,true);
@@ -773,11 +798,11 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    
        int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;   
        const auto& genParts_tmp = *(genParticles.product()); 
-       auto genParticle = genParts_tmp[genIndex]; 
+       auto genParticle = genParts[genIndex]; 
        int partonIndex = -1;
-       if(genParticle.numberOfMothers()!=0) partonIndex = getGenMother(&genParts_tmp,genIndex); 
+       if(genParticle.numberOfMothers()!=0) partonIndex = getGenParton(&genParts_tmp,genIndex); 
        if(partonIndex>=0){
-          auto genMother = genParts_tmp[partonIndex]; 
+          auto genMother = genParts[partonIndex]; 
           caloParticle_partonIndex.push_back(partonIndex);
           caloParticle_partonPdgId.push_back(genMother.pdgId());
           caloParticle_partonCharge.push_back(genMother.charge());
@@ -3508,6 +3533,8 @@ void RecoSimDumper::setTree(TTree* tree)
    }
    if(saveGenParticles_ && isMC_){
       tree->Branch("genParticle_size", &genParticle_size, "genParticle_size/I");  
+      tree->Branch("genParticle_genMotherIndex","std::vector<int>",&genParticle_genMotherIndex); 
+      tree->Branch("genParticle_genDaughtersIndex","std::vector<std::vector<int> >",&genParticle_genDaughtersIndex);  
       tree->Branch("genParticle_pdgId","std::vector<int>",&genParticle_pdgId);
       tree->Branch("genParticle_status","std::vector<int>",&genParticle_status); 
       tree->Branch("genParticle_energy","std::vector<float>",&genParticle_energy);
@@ -5458,30 +5485,31 @@ double RecoSimDumper::ptFast(const double energy, const math::XYZPoint& position
    return energy * std::sqrt(v.perp2() / v.mag2()); 
 }
 
-void RecoSimDumper::addDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2)
+int RecoSimDumper::getGenMother(const reco::GenParticle* genParticle)
 {
-   if(genParticles->at(genIndex1).numberOfDaughters()==0){ 
-      //std::cout << "addDaughters ----> no Daughters! : " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
-      //if(genParticles->at(genIndex1).status()==1) genDaughters[genIndex2].push_back(genIndex1);
-      genDaughters[genIndex2].push_back(genIndex1);
-      return;
-   }else{
-      const GenParticleRefVector &daughters = genParticles->at(genIndex1).daughterRefVector();
-      //std::cout << "addDaughters - Mother: " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
-      for(GenParticleRefVector::const_iterator i = daughters.begin(); i != daughters.end(); ++i)
-      { 
-          //std::cout << "addDaughters ----> Daughter: " << i->key() << " - " << genParticles->at(i->key()).pdgId() << std::endl;
-          //if(genParticles->at(i->key()).status()==1) genDaughters[genIndex2].push_back(i->key()); 
-          genDaughters[genIndex2].push_back(i->key());  
-          addDaughters(genParticles,i->key(),genIndex2); 
-      }  
-   }
+   int genMotherIndex=-1;
+   if(genParticle->numberOfMothers()>0) genMotherIndex = genParticle->motherRef(0).key();
+   return genMotherIndex; 
 }
 
-int RecoSimDumper::getGenMother(const std::vector<reco::GenParticle>* genParticles, const int genIndex)
+std::vector<int> RecoSimDumper::getGenDaughters(const reco::GenParticle* genParticle)
+{
+   std::vector<int> genDaughters; 
+   if(genParticle->numberOfDaughters()>0)
+   {
+      const GenParticleRefVector &daughters = genParticle->daughterRefVector();
+      for(GenParticleRefVector::const_iterator i = daughters.begin(); i != daughters.end(); ++i)
+      { 
+          genDaughters.push_back(i->key());  
+      }  
+   }
+   return genDaughters;
+}
+
+int RecoSimDumper::getGenParton(const std::vector<reco::GenParticle>* genParticles, const int genIndex)
 {
    std::vector<int> indices;
-   for(auto const& iGen : genDaughters)
+   for(auto const& iGen : genAllDaughters)
    {
        if(std::find(iGen.second.begin(),iGen.second.end(),genIndex)!= iGen.second.end())
           indices.push_back(iGen.first);
@@ -5499,6 +5527,69 @@ int RecoSimDumper::getGenMother(const std::vector<reco::GenParticle>* genParticl
    }
 
    return index; 
+}
+
+
+void RecoSimDumper::addAllDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2)
+{
+   if(genParticles->at(genIndex1).numberOfDaughters()==0){ 
+      //std::cout << "addDaughters ----> no Daughters! : " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
+      //if(genParticles->at(genIndex1).status()==1) genDaughters[genIndex2].push_back(genIndex1);
+      genAllDaughters[genIndex2].push_back(genIndex1);
+      return;
+   }else{
+      const GenParticleRefVector &daughters = genParticles->at(genIndex1).daughterRefVector();
+      //std::cout << "addDaughters - Mother: " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
+      for(GenParticleRefVector::const_iterator i = daughters.begin(); i != daughters.end(); ++i)
+      { 
+          //std::cout << "addDaughters ----> Daughter: " << i->key() << " - " << genParticles->at(i->key()).pdgId() << std::endl;
+          //if(genParticles->at(i->key()).status()==1) genDaughters[genIndex2].push_back(i->key()); 
+          genAllDaughters[genIndex2].push_back(i->key());  
+          addAllDaughters(genParticles,i->key(),genIndex2); 
+      }  
+   }
+}
+
+
+void RecoSimDumper::selectGenParticles(const std::vector<reco::GenParticle>* genParticles)
+{
+   std::vector<int> selectedGenIndices;
+   for(unsigned int iGen=0; iGen<genParticles->size(); iGen++)
+   {
+       if(std::find(genParticlesToSave_.begin(),genParticlesToSave_.end(),fabs(genParticles->at(iGen).pdgId()))==genParticlesToSave_.end()) continue;
+
+       genParts.push_back(genParticles->at(iGen)); 
+       
+       int index = genParts.size()-1;
+
+       int mother = getGenMother(&genParticles->at(iGen));
+       int indexMother = -1; 
+       if(mother!=-1){
+
+          genParts.push_back(genParticles->at(mother));
+          indexMother = genParts.size()-1; 
+
+          genMapMother[index] = indexMother;
+          genMapMother[indexMother] = -1;
+          genMapDaughters[indexMother] = std::vector<int>({-1});
+
+       }else genMapMother[index] = indexMother;
+
+       std::vector<int> daughters = getGenDaughters(&genParticles->at(iGen)); 
+       std::vector<int> daughtersIndices;  
+       if(daughters.size()!=0){ 
+          for(auto daughter: daughters){
+
+              genParts.push_back(genParticles->at(daughter)); 
+              int indexDaughter = genParts.size()-1;   
+              daughtersIndices.push_back(indexDaughter);
+
+              genMapMother[indexDaughter] = -1;
+              genMapDaughters[indexDaughter] = std::vector<int>({-1});
+          }   
+          genMapDaughters[index] = daughtersIndices;
+       }else genMapDaughters[index] = std::vector<int>({-1}); 
+   }
 }
 
 std::vector<std::pair<DetId,std::pair<float,float>>>* RecoSimDumper::getSharedHitsAndEnergies(const std::vector<std::pair<DetId, float> >* hitsAndEnergies1, const std::vector<std::pair<DetId, float> >* hitsAndEnergies2)
