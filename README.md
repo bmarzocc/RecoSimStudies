@@ -9,9 +9,10 @@
     * git cms-checkout-topic valsdav:deepsc-opt-zeropad-13_0_0pre4
     * cd RecoEcal/EgammaClusterProducers/data
     * git clone -b deepsc-pfthres https://github.com/valsdav/RecoEcal-EgammaClusterProducers/
+    * cd -
     * git clone https://github.com/bmarzocc/RecoSimStudies
     * cd RecoSimStudies
-    * git checkout CMSSW_13_0_0_pre4
+    * git checkout CMSSW_13_0_0
     * cd -
     * scram b -j 5
 
