@@ -10,10 +10,13 @@
     * cd RecoEcal/EgammaClusterProducers/data
     * git clone -b deepsc-pfthres https://github.com/valsdav/RecoEcal-EgammaClusterProducers/
     * cd -
-    * git clone https://github.com/bmarzocc/RecoSimStudies
+    * git clone git@github.com:bmarzocc/RecoSimStudies.git
     * cd RecoSimStudies
     * git checkout CMSSW_13_0_0
     * cd -
+    * git clone git@github.com:bmarzocc/SHarper.git SHarper #if you want to rerun the regressions
+    * cd SHarper                                            #if you want to rerun the regressions
+    * git checkout 130XNtup                                 #if you want to rerun the regressions
     * scram b -j 5
 
 2) Produce RECO:
