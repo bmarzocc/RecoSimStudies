@@ -1,8 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
-#Produce cfg for running RecoSimDumper on RAW with Mustache using nonStdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_NonStdMC_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 125X_mcRun3_2022_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-100_pythia8_StdMix_Flat55To75_14TeV_112X_mcRun3_2021_realistic_v15/GEN-SIM-RAW-Reduced/210519_101349/0003/cluster_job3235_step2_3245.root --era Run3,ctpps_2018 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_nonStdMC --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * \n from SimMuon.MCTruth.muonSimClassificationByHits_cff import *' -n 10
+#Produce cfg for running RecoSimDumper on RAW with Mustache using nonStdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_NonStdMC_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-100_pythia8_StdMix_Flat55To75_14TeV_112X_mcRun3_2021_realistic_v15/GEN-SIM-RAW-Reduced/210519_101349/0003/cluster_job3235_step2_3245.root --era Run3,ctpps_2018 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_nonStdMC --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * \n from SimMuon.MCTruth.muonSimClassificationByHits_cff import *' -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with Mustache using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_StdMC_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 125X_mcRun3_2022_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
+#Produce cfg for running RecoSimDumper on RAW with Mustache using StdMC (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_StdMC_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
 #Produce cfg for running RecoSimDumper on RAW with Mustache_noise235_thresUL18 using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_StdMC_noise235_thresUL18_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache_noise235fb_thresUL18,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
@@ -12,33 +12,31 @@ import FWCore.ParameterSet.Config as cms
 
 #Produce cfg for running RecoSimDumper on RAW with DeepSC_algoA_noise235fb_thres235fb using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoA_noise235fb_thres235fb_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCA_noise235fb_thres235fb,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' --procModifier ecal_deepsc -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoA using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoA_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 125X_mcRun3_2022_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoB_noise235fb_thresUL18 using StdMC (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoB_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoB --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * ' --procModifier ecal_deepsc -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoB using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoB_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 125X_mcRun3_2022_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoB --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * ' --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoC_noise235fb_thresUL18 using StdMC (N.B.:regressions not-updated) using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoC_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoC --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * ' --procModifier ecal_deepsc -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoC using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoC_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 125X_mcRun3_2022_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoC --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * ' --procModifier ecal_deepsc -n 10
-
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoD using StdMC: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoD_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 125X_mcRun3_2022_realistic_v4 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoD --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * ' --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoD_noise235fb_thresUL18 using StdMC (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoD_cfg.py --eventcontent MINIAODSIM --datatier MINIAODSIM --fileout file:step3.root --conditions 130X_mcRun3_2022_realistic_v2 --step RAW2DIGI,L1Reco,RECO,RECOSIM,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/group/dpg_ecal/Clustering/FourElectronsGunPt1-500_pythia8_PremixRun3_13p6TeV_122X_mcRun3_2021_realistic_v9_235fbNoise/GEN-SIM-RAW-CALO/221026_074347/0001/cluster_job99_step2_1778.root --era Run3 --no_exec --mc --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineMC,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepMC,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_addConditions,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoD --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import * ' --procModifier ecal_deepsc -n 10
 
 #Produce cfg for running RecoSimDumper on RAW with Mustache using Data2018: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_Data2018_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 124X_dataRun2_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2018C/EGamma/RAW/v1/000/320/026/00000/8CF35F1E-678D-E811-84C0-FA163E8CC774.root --era Run2_2018 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
 #Produce cfg for running RecoSimDumper on RAW with Mustache using Data2018 with ZeeSkim: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_Data2018_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 124X_dataRun2_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2018C/EGamma/RAW/v1/000/320/026/00000/8CF35F1E-678D-E811-84C0-FA163E8CC774.root --era Run2_2018 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_zeeFilterDumperData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoA using Data2018: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoA_Data2018_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 124X_dataRun2_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2018C/EGamma/RAW/v1/000/320/026/00000/8CF35F1E-678D-E811-84C0-FA163E8CC774.root --era Run2_2018 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoA_noise235fb_thresUL18 using Data2018 (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoA_Data2018_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 124X_dataRun2_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2018C/EGamma/RAW/v1/000/320/026/00000/8CF35F1E-678D-E811-84C0-FA163E8CC774.root --era Run2_2018 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoB using Data2018: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoB_Data2018_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 124X_dataRun2_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2018C/EGamma/RAW/v1/000/320/026/00000/8CF35F1E-678D-E811-84C0-FA163E8CC774.root --era Run2_2018 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoB --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoB_noise235fb_thresUL18 using Data2018 (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoB_Data2018_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 124X_dataRun2_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2018C/EGamma/RAW/v1/000/320/026/00000/8CF35F1E-678D-E811-84C0-FA163E8CC774.root --era Run2_2018 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoB --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with Mustache using Data2022: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 125X_dataRun3_relval_v4 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
+#Produce cfg for running RecoSimDumper on RAW with Mustache using Data2022: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 126X_dataRun3_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with Mustache using Data2022 with ZeeSkim: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 125X_dataRun3_relval_v4 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_zeeFilterDumperData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
+#Produce cfg for running RecoSimDumper on RAW with Mustache using Data2022 with ZeeSkim: cmsDriver.py --python_filename RecoSimDumper_fromRAW_Mustache_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 126X_dataRun3_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_zeeFilterDumperData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoA using Data2022: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoA_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 125X_dataRun3_relval_v4 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoA_noise235fb_thresUL18 using Data2022 (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoA_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 126X_dataRun3_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
 
-#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoB using Data2022: cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoB_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 125X_dataRun3_relval_v4 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoB --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
+#Produce cfg for running RecoSimDumper on RAW with DeepSC_algoB_noise235fb_thresUL18 using Data2022 (N.B.:regressions not-updated): cmsDriver.py --python_filename RecoSimDumper_fromRAW_DeepSC_algoB_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 126X_dataRun3_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_dumperStepData,RecoSimStudies/Dumpers/customize_recodumper.customize_linkedObjectsStep,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoB --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
 
-#Produce cfg for producing standard MINIAOD from RAW with Mustache using Data2022: cmsDriver.py --python_filename MiniAOD_fromRAW_Mustache_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 125X_dataRun3_relval_v4 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
+#Produce cfg for producing standard MINIAOD from RAW with Mustache using Data2022: cmsDriver.py --python_filename MiniAOD_fromRAW_Mustache_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 126X_dataRun3_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_mustache,RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *' -n 10
 
-#Produce cfg for producing standard MINIAOD from RAW with DeepSC_algoA using Data2022: cmsDriver.py --python_filename MiniAOD_fromRAW_DeepSC_algoA_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 125X_dataRun3_relval_v4 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
+#Produce cfg for producing standard MINIAOD from RAW with DeepSC_algoA_noise235fb_thresUL18 using Data2022 (N.B.:regressions not-updated): cmsDriver.py --python_filename MiniAOD_fromRAW_DeepSC_algoA_Data2022_cfg.py --eventcontent MINIAOD --datatier MINIAOD --fileout file:step3.root --conditions 126X_dataRun3_v2 --step RAW2DIGI,L1Reco,RECO,PAT --geometry DB:Extended --filein root://cms-xrd-global.cern.ch//store/data/Run2022F/EGamma/RAW-RECO/ZElectron-PromptReco-v1/000/360/390/00000/00d2f8c6-db74-477a-b106-e723005f62ac.root --era Run3 --no_exec --data --customise RecoSimStudies/Dumpers/customize_recodumper.customize_baselineData,RecoSimStudies/Dumpers/customize_recodumper.customize_deepSCAlgoA --processName ECALClustering --customise_commands 'from RecoEgamma.EgammaElectronProducers.gsfElectrons_cfi import * \n from RecoEgamma.EgammaPhotonProducers.gedPhotons_cfi import *'  --procModifier ecal_deepsc -n 10
 
 def customize_baselineData(process):
 
@@ -145,19 +143,19 @@ def customize_deepSCA_noise235fb_thres235fb(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")), 
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")), 
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thres235fb_34sigma.db")),
     )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -167,35 +165,35 @@ def customize_deepSCA_noise235fb_thres235fb(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
      )
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -234,19 +232,19 @@ def customize_deepSCA_noise235fb_thresUL18(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
     )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -256,35 +254,35 @@ def customize_deepSCA_noise235fb_thresUL18(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsDeepSCAlgoAthresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsDeepSCAlgoA_thresUL18_2e3sigma.db")),
      )
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -301,19 +299,19 @@ def customize_mustache_noise235fb_thres235fb(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
     )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -323,35 +321,35 @@ def customize_mustache_noise235fb_thres235fb(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThres235"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thres235fb_34sigma.db")),
      )
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -368,19 +366,19 @@ def customize_mustache_noise235fb_thresUL18(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:SCReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
     )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -390,35 +388,35 @@ def customize_mustache_noise235fb_thresUL18(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_235fbNoise_ElectronsMustacheThresUL18"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
+         connect = cms.string("sqlite_file:EleReg_13_0_0_235fbNoise_ElectronsMustache_thresUL18_2e3sigma.db")),
      )
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -472,62 +470,6 @@ def customize_dumperStepData(process):
 
 def customize_addConditions(process):
 
- process.myTPGLinear = cms.ESSource("PoolDBESSource",
-     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
-     toGet = cms.VPSet(
-         cms.PSet(
-             record = cms.string('EcalTPGLinearizationConstRcd'),
-             tag = cms.string('EcalTPGLinearizationConst_UL_2018_mc_EE_BTCP_116_SIC_1')
-         )
-     )
- )
- process.es_prefer_tpg = cms.ESPrefer("PoolDBESSource","myTPGLinear")
-
- process.myLaser = cms.ESSource("PoolDBESSource",
-     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
-     toGet = cms.VPSet(
-         cms.PSet(
-             record = cms.string('EcalLaserAPDPNRatiosRcd'),
-             tag = cms.string('EcalLaserAPDPNRatios_UL_2018_mc_3sigma_v2')
-         )
-     )
- )
- process.es_prefer_laser = cms.ESPrefer("PoolDBESSource","myLaser")
-
- process.myNoise = cms.ESSource("PoolDBESSource",
-     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
-     toGet = cms.VPSet(
-         cms.PSet(
-             record = cms.string('EcalPedestalsRcd'),
-             tag = cms.string('EcalPedestals_mid2021_235fb_mc')
-         )
-     )
- )
- process.es_prefer_noise = cms.ESPrefer("PoolDBESSource","myNoise")
-
- process.myLaser = cms.ESSource("PoolDBESSource",
-     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
-     toGet = cms.VPSet(
-         cms.PSet(
-             record = cms.string('EcalLaserAPDPNRatiosRcd'),
-             tag = cms.string('EcalLaserAPDPNRatios_UL_2018_mc_3sigma_v2')
-         )
-     )
- )
- process.es_prefer_laser = cms.ESPrefer("PoolDBESSource","myLaser")
-
-
- process.myNoise = cms.ESSource("PoolDBESSource",
-     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
-     toGet = cms.VPSet(
-         cms.PSet(
-             record = cms.string('EcalPedestalsRcd'),
-             tag = cms.string('EcalPedestals_UL_2018_mc')
-         )
-     )
- )
- process.es_prefer_pedestals = cms.ESPrefer("PoolDBESSource","myNoise")
-
  process.myPFRechitThres = cms.ESSource("PoolDBESSource",
      connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
      toGet = cms.VPSet(
@@ -538,6 +480,50 @@ def customize_addConditions(process):
      )
  )
  process.es_prefer_pfRechitThres = cms.ESPrefer("PoolDBESSource","myPFRechitThres")
+
+ process.myNoise = cms.ESSource("PoolDBESSource",
+     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+     toGet = cms.VPSet(
+         cms.PSet(
+             record = cms.string('EcalPedestalsRcd'),
+             tag = cms.string('EcalPedestals_mid2021_235fb_mc')
+         )
+     )
+ )
+ process.es_prefer_pedestals = cms.ESPrefer("PoolDBESSource","myNoise")
+
+ process.myLaser = cms.ESSource("PoolDBESSource",
+     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+     toGet = cms.VPSet(
+         cms.PSet(
+             record = cms.string('EcalLaserAPDPNRatiosRcd'),
+             tag = cms.string('EcalLaserAPDPNRatios_UL_2018_mc_3sigma_v2')
+         )
+     )
+ )
+ process.es_prefer_laser = cms.ESPrefer("PoolDBESSource","myLaser")
+
+ process.myTPGLinear = cms.ESSource("PoolDBESSource",
+     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+     toGet = cms.VPSet(
+         cms.PSet(
+             record = cms.string('EcalTPGLinearizationConstRcd'),
+             tag = cms.string('EcalTPGLinearizationConst_UL_2018_mc_EE_BTCP_116_SIC_1')
+         )
+     )
+ )
+ process.es_prefer_tpglinear = cms.ESPrefer("PoolDBESSource","myTPGLinear")
+
+ process.myTPGPedestals = cms.ESSource("PoolDBESSource",
+     connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS"),
+     toGet = cms.VPSet(
+         cms.PSet(
+             record = cms.string('EcalTPGPedestalsRcd'),
+             tag = cms.string('EcalTPGPedestals_UL_2018_mc')
+         )
+     )
+ )
+ process.es_prefer_tpgpedestals = cms.ESPrefer("PoolDBESSource","myTPGPedestals")
 
  return process
 
@@ -566,19 +552,19 @@ def customize_mustache(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsMustacheSC.db")),
      )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -588,19 +574,19 @@ def customize_mustache(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsMustacheSC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsMustacheSC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsMustacheSC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsMustacheSC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsMustacheSC.db")),
      ) 
  )
  process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
@@ -610,35 +596,35 @@ def customize_mustache(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
      cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
      cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
      cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsMustacheSC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsMustacheSC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsMustacheSC.db")),
      )
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -648,6 +634,28 @@ def customize_mustache(process):
 
 def customize_deepSCAlgoA(process):
 
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+
  import os
  CMSSW_BASE = os.environ["CMSSW_BASE"] 
  
@@ -656,19 +664,19 @@ def customize_deepSCAlgoA(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoA.db")),
      )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -678,19 +686,19 @@ def customize_deepSCAlgoA(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoA.db")),
      ) 
  )
  process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
@@ -700,35 +708,35 @@ def customize_deepSCAlgoA(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoA"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoA.db"))
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoA.db"))
      ) 
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -738,6 +746,28 @@ def customize_deepSCAlgoA(process):
 
 def customize_deepSCAlgoB(process):
 
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+  
  import os
  CMSSW_BASE = os.environ["CMSSW_BASE"]
  
@@ -746,19 +776,19 @@ def customize_deepSCAlgoB(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoB.db")),
      )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -768,19 +798,19 @@ def customize_deepSCAlgoB(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoB.db")),
      ) 
  )
  process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
@@ -790,35 +820,35 @@ def customize_deepSCAlgoB(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoB"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoB.db"))
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoB.db"))
      ) 
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -828,6 +858,28 @@ def customize_deepSCAlgoB(process):
 
 def customize_deepSCAlgoC(process):
 
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+ 
  import os
  CMSSW_BASE = os.environ["CMSSW_BASE"]
  
@@ -836,19 +888,19 @@ def customize_deepSCAlgoC(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoC.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoC.db")),
      )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -858,19 +910,19 @@ def customize_deepSCAlgoC(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoC.db")),
      ) 
  )
  process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
@@ -880,35 +932,35 @@ def customize_deepSCAlgoC(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoC"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoC.db"))
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoC.db"))
      ) 
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
@@ -918,6 +970,28 @@ def customize_deepSCAlgoC(process):
 
 def customize_deepSCAlgoD(process):
 
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.modelFiles = cms.vstring("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_smallpadding.pb", "RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/model_largepadding.pb")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileClusterFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_cls_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileWindowFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/scaler_config_wind_norm.txt")
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.configFileHitsFeatures = cms.string("RecoEcal/EgammaClusterProducers/data/RecoEcal-EgammaClusterProducers/DeepSCModels/models_pfthres/model_noise235fb_thresUL18/config_hits_inputs.txt")
+
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nClusterFeatures = cms.uint32(17)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.nWindowFeatures = cms.uint32(6)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNClusters = cms.vuint32(15,60)
+ process.particleFlowSuperClusterOOTECAL.deepSuperClusterConfig.maxNRechits = cms.vuint32(20,60)
+
  import os
  CMSSW_BASE = os.environ["CMSSW_BASE"]
 
@@ -926,19 +1000,19 @@ def customize_deepSCAlgoD(process):
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBCorrection_offline_v2"),
          tag = cms.string("pfscecal_EBCorrection_offline_v2_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoD.db")),
        cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EECorrection_offline_v2"),
          tag = cms.string("pfscecal_EECorrection_offline_v2_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EBUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EBUncertainty_offline_v2_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("pfscecal_EEUncertainty_offline_v2"),
          tag = cms.string("pfscecal_EEUncertainty_offline_v2_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/scReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:scReg_2022ElectronsDeepSCAlgoD.db")),
      )
  )
  process.es_prefer_scReg = cms.ESPrefer("PoolDBESSource","mySCReg")
@@ -948,19 +1022,19 @@ def customize_deepSCAlgoD(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p2To2_mean"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p2To2_mean_2022PhotonsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_eb_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma"),
          tag = cms.string("photon_ee_ecalOnly_5To300_0p0002To0p5_sigma_2022PhotonsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/phoReg_2022PhotonsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:phoReg_2022PhotonsDeepSCAlgoD.db")),
      ) 
  )
  process.es_prefer_phoReg = cms.ESPrefer("PoolDBESSource","myPhoReg")
@@ -970,35 +1044,35 @@ def customize_deepSCAlgoD(process):
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalOnly_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p2To2_mean"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p2To2_mean_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_eb_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db")),
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db")),
       cms.PSet(record = cms.string("GBRDWrapperRcd"),
          label = cms.untracked.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma"),
          tag = cms.string("electron_ee_ecalTrk_1To300_0p0002To0p5_sigma_2022ElectronsDeepSCAlgoD"),
-         connect = cms.string("sqlite_file:"+CMSSW_BASE+"/src/RecoSimStudies/Dumpers/data/regressions/EleReg_2022ElectronsDeepSCAlgoD.db"))
+         connect = cms.string("sqlite_file:EleReg_2022ElectronsDeepSCAlgoD.db"))
      ) 
  )
  process.es_prefer_eleReg = cms.ESPrefer("PoolDBESSource","myEleReg")
