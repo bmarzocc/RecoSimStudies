@@ -11,7 +11,9 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     pileupSummary                   = cms.InputTag("addPileupInfo",""),
     vertexCollection                = cms.InputTag("offlinePrimaryVertices","","ECALClustering"),
     #vertexCollection                = cms.InputTag("offlineSlimmedPrimaryVertices","","ECALClustering"), 
-    genParticleCollection           = cms.InputTag("genParticles",""),
+    #genParticleCollection           = cms.InputTag("genParticles",""),
+    genParticleCollection           = cms.InputTag("prunedGenParticles"),
+    #genParticleCollection           = cms.InputTag("finalGenParticles","ECALClustering"),
     caloParticleCollection          = cms.InputTag("mix","MergedCaloTruth"),
     #caloParticleCollection          = cms.InputTag("signalCaloParticles",""),
     puCaloParticleCollection        = cms.InputTag("reducedCaloParticlesPU",""),
@@ -41,11 +43,11 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveGenParticles                = cms.bool(True),  #save genParticles information   
     genParticlesToSave              = cms.vint32(1,2,3,4,5,6,21,22,11,111,211,113,130,213,221,223,310,311,321,331,333),  #genParticles to save 
     #genParticlesToSave              = cms.vint32(5,6,24,11),  #genParticles to save   
-    saveCaloParticles               = cms.bool(True),  #save caloParticles information
+    saveCaloParticles               = cms.bool(False),  #save caloParticles information
     saveCaloParticlesPU             = cms.bool(False),  #save PU caloParticles information
     saveCaloParticlesOOTPU          = cms.bool(False),  #save OOT PU caloParticles information
     subtractSignalCalo              = cms.bool(False),  #subtract signal caloParticle to PU caloParticle
-    saveSimhits                     = cms.bool(True), #save simHits information
+    saveSimhits                     = cms.bool(False), #save simHits information
     saveSimhitsPU                   = cms.bool(False), #save simHits of PU information
 
     #Standard info

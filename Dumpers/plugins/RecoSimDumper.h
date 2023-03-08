@@ -156,11 +156,9 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       void setTree(TTree* tree);
       void setVectors(int nGenParticles, int nCaloParticles, int nPFClusters, int nSuperClustersEB, int nSuperClustersEE, int nRetunedSuperClustersEB, int nRetunedSuperClustersEE, int nDeepSuperClustersEB, int nDeepSuperClustersEE); 
       double ptFast(const double energy, const math::XYZPoint& position, const math::XYZPoint& origin);
+      int getGenStatusFlag(const reco::GenParticle* genParticle);
       int getGenMother(const reco::GenParticle* genParticle);
-      std::vector<int> getGenDaughters(const reco::GenParticle* genParticle);
       int getGenParton(const std::vector<reco::GenParticle>* genParticles, const int genIndex);
-      void addAllDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2);
-      void selectGenParticles(const std::vector<reco::GenParticle>* genParticles);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(const CaloParticle* iCaloParticle, float simHitEnergy_cut);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
@@ -308,6 +306,7 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       std::vector<std::vector<int> > genParticle_genDaughtersIndex;
       std::vector<int> genParticle_pdgId;
       std::vector<int> genParticle_status; 
+      std::vector<int> genParticle_statusFlag; 
       std::vector<float> genParticle_energy;
       std::vector<float> genParticle_pt;
       std::vector<float> genParticle_eta;

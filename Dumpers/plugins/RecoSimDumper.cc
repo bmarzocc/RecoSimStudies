@@ -496,6 +496,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    genParticle_genDaughtersIndex.clear();
    genParticle_pdgId.clear();
    genParticle_status.clear();
+   genParticle_statusFlag.clear();
    genParticle_energy.clear();
    genParticle_pt.clear();
    genParticle_eta.clear();
@@ -510,34 +511,27 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    if(isMC_){ 
      
     const std::vector<reco::GenParticle>& genParts_total = *(genParticles.product());
-    selectGenParticles(&genParts_total);
+    genParts = genParts_total;
     nGenParticles = genParts.size(); 
   
     genParticle_genMotherIndex.resize(nGenParticles);
     genParticle_genDaughtersIndex.resize(nGenParticles);
     genParticle_pdgId.resize(nGenParticles);
     genParticle_status.resize(nGenParticles);
+    genParticle_statusFlag.resize(nGenParticles);
     genParticle_energy.resize(nGenParticles);
     genParticle_pt.resize(nGenParticles);
     genParticle_eta.resize(nGenParticles);
     genParticle_phi.resize(nGenParticles);
 
-
-    // loop once to select the daughters
-    for(unsigned int iGen=0; iGen<genParts_total.size(); iGen++)
-    {
-       if(genParts_total.at(iGen).numberOfMothers()!=0) continue;
-
-       addAllDaughters(&genParts_total,iGen,iGen);    
-    } 
- 
     // loop on all the selected genParticles 
     for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
     {
-       genParticle_genMotherIndex[iGen] = genMapMother[iGen];
-       genParticle_genDaughtersIndex[iGen] = genMapDaughters[iGen]; 
+       genParticle_genMotherIndex[iGen] = getGenMother(&genParts.at(iGen));;
+       //genParticle_genDaughtersIndex[iGen] = genMapDaughters[iGen]; 
        genParticle_pdgId[iGen] = genParts.at(iGen).pdgId(); 
        genParticle_status[iGen] = genParts.at(iGen).status(); 
+       genParticle_statusFlag[iGen] = getGenStatusFlag(&genParts.at(iGen)); 
        genParticle_energy[iGen] = genParts.at(iGen).energy(); 
        genParticle_pt[iGen] = genParts.at(iGen).pt();
        genParticle_eta[iGen] = genParts.at(iGen).eta();
@@ -3537,6 +3531,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("genParticle_genDaughtersIndex","std::vector<std::vector<int> >",&genParticle_genDaughtersIndex);  
       tree->Branch("genParticle_pdgId","std::vector<int>",&genParticle_pdgId);
       tree->Branch("genParticle_status","std::vector<int>",&genParticle_status); 
+      tree->Branch("genParticle_statusFlag","std::vector<int>",&genParticle_statusFlag); 
       tree->Branch("genParticle_energy","std::vector<float>",&genParticle_energy);
       tree->Branch("genParticle_pt","std::vector<float>",&genParticle_pt);
       tree->Branch("genParticle_eta","std::vector<float>",&genParticle_eta);
@@ -5492,18 +5487,26 @@ int RecoSimDumper::getGenMother(const reco::GenParticle* genParticle)
    return genMotherIndex; 
 }
 
-std::vector<int> RecoSimDumper::getGenDaughters(const reco::GenParticle* genParticle)
+int RecoSimDumper::getGenStatusFlag(const reco::GenParticle* genParticle)
 {
-   std::vector<int> genDaughters; 
-   if(genParticle->numberOfDaughters()>0)
-   {
-      const GenParticleRefVector &daughters = genParticle->daughterRefVector();
-      for(GenParticleRefVector::const_iterator i = daughters.begin(); i != daughters.end(); ++i)
-      { 
-          genDaughters.push_back(i->key());  
-      }  
-   }
-   return genDaughters;
+   int statusFlag = 
+   genParticle->statusFlags().isLastCopyBeforeFSR()                  * 16384 +
+   genParticle->statusFlags().isLastCopy()                           * 8192  +
+   genParticle->statusFlags().isFirstCopy()                          * 4096  +
+   genParticle->statusFlags().fromHardProcessBeforeFSR()             * 2048  +
+   genParticle->statusFlags().isDirectHardProcessTauDecayProduct()   * 1024  +
+   genParticle->statusFlags().isHardProcessTauDecayProduct()         * 512   +
+   genParticle->statusFlags().fromHardProcess()                      * 256   +  
+   genParticle->statusFlags().isHardProcess()                        * 128   +
+   genParticle->statusFlags().isDirectHadronDecayProduct()           * 64    +
+   genParticle->statusFlags().isDirectPromptTauDecayProduct()        * 32    +
+   genParticle->statusFlags().isDirectTauDecayProduct()              * 16    +
+   genParticle->statusFlags().isPromptTauDecayProduct()              * 8     +
+   genParticle->statusFlags().isTauDecayProduct()                    * 4     +
+   genParticle->statusFlags().isDecayedLeptonHadron()                * 2     +
+   genParticle->statusFlags().isPrompt()                             * 1      ;
+   
+   return statusFlag; 
 }
 
 int RecoSimDumper::getGenParton(const std::vector<reco::GenParticle>* genParticles, const int genIndex)
@@ -5530,7 +5533,7 @@ int RecoSimDumper::getGenParton(const std::vector<reco::GenParticle>* genParticl
 }
 
 
-void RecoSimDumper::addAllDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2)
+/*void RecoSimDumper::addAllDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2)
 {
    if(genParticles->at(genIndex1).numberOfDaughters()==0){ 
       //std::cout << "addDaughters ----> no Daughters! : " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
@@ -5548,49 +5551,7 @@ void RecoSimDumper::addAllDaughters(const std::vector<reco::GenParticle>* genPar
           addAllDaughters(genParticles,i->key(),genIndex2); 
       }  
    }
-}
-
-
-void RecoSimDumper::selectGenParticles(const std::vector<reco::GenParticle>* genParticles)
-{
-   std::vector<int> selectedGenIndices;
-   for(unsigned int iGen=0; iGen<genParticles->size(); iGen++)
-   {
-       if(std::find(genParticlesToSave_.begin(),genParticlesToSave_.end(),fabs(genParticles->at(iGen).pdgId()))==genParticlesToSave_.end()) continue;
-
-       genParts.push_back(genParticles->at(iGen)); 
-       
-       int index = genParts.size()-1;
-
-       int mother = getGenMother(&genParticles->at(iGen));
-       int indexMother = -1; 
-       if(mother!=-1){
-
-          genParts.push_back(genParticles->at(mother));
-          indexMother = genParts.size()-1; 
-
-          genMapMother[index] = indexMother;
-          genMapMother[indexMother] = -1;
-          genMapDaughters[indexMother] = std::vector<int>({-1});
-
-       }else genMapMother[index] = indexMother;
-
-       std::vector<int> daughters = getGenDaughters(&genParticles->at(iGen)); 
-       std::vector<int> daughtersIndices;  
-       if(daughters.size()!=0){ 
-          for(auto daughter: daughters){
-
-              genParts.push_back(genParticles->at(daughter)); 
-              int indexDaughter = genParts.size()-1;   
-              daughtersIndices.push_back(indexDaughter);
-
-              genMapMother[indexDaughter] = -1;
-              genMapDaughters[indexDaughter] = std::vector<int>({-1});
-          }   
-          genMapDaughters[index] = daughtersIndices;
-       }else genMapDaughters[index] = std::vector<int>({-1}); 
-   }
-}
+}*/
 
 std::vector<std::pair<DetId,std::pair<float,float>>>* RecoSimDumper::getSharedHitsAndEnergies(const std::vector<std::pair<DetId, float> >* hitsAndEnergies1, const std::vector<std::pair<DetId, float> >* hitsAndEnergies2)
 {
