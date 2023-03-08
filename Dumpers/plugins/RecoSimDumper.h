@@ -158,7 +158,9 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       double ptFast(const double energy, const math::XYZPoint& position, const math::XYZPoint& origin);
       int getGenStatusFlag(const reco::GenParticle* genParticle);
       int getGenMother(const reco::GenParticle* genParticle);
+      std::vector<int> getGenDaughters(const reco::GenParticle* genParticle);
       int getGenParton(const std::vector<reco::GenParticle>* genParticles, const int genIndex);
+      void addAllDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesCaloPart(const CaloParticle* iCaloParticle, float simHitEnergy_cut);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesBC(reco::CaloCluster* iPFCluster, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
       std::vector<std::pair<DetId, float> >* getHitsAndEnergiesSC(const reco::SuperCluster* iSuperCluster, const EcalRecHitCollection* recHitsEB, const EcalRecHitCollection* recHitsEE);
@@ -303,7 +305,6 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       int genParticle_size; 
       int caloParticle_size;
       std::vector<int> genParticle_genMotherIndex;
-      std::vector<std::vector<int> > genParticle_genDaughtersIndex;
       std::vector<int> genParticle_pdgId;
       std::vector<int> genParticle_status; 
       std::vector<int> genParticle_statusFlag; 

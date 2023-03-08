@@ -493,7 +493,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    rho = *(rhos.product());
 
    genParticle_genMotherIndex.clear();
-   genParticle_genDaughtersIndex.clear();
    genParticle_pdgId.clear();
    genParticle_status.clear();
    genParticle_statusFlag.clear();
@@ -515,7 +514,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     nGenParticles = genParts.size(); 
   
     genParticle_genMotherIndex.resize(nGenParticles);
-    genParticle_genDaughtersIndex.resize(nGenParticles);
     genParticle_pdgId.resize(nGenParticles);
     genParticle_status.resize(nGenParticles);
     genParticle_statusFlag.resize(nGenParticles);
@@ -527,8 +525,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
     // loop on all the selected genParticles 
     for(unsigned int iGen=0; iGen<genParts.size(); iGen++)
     {
-       genParticle_genMotherIndex[iGen] = getGenMother(&genParts.at(iGen));;
-       //genParticle_genDaughtersIndex[iGen] = genMapDaughters[iGen]; 
+       genParticle_genMotherIndex[iGen] = getGenMother(&genParts.at(iGen)); 
        genParticle_pdgId[iGen] = genParts.at(iGen).pdgId(); 
        genParticle_status[iGen] = genParts.at(iGen).status(); 
        genParticle_statusFlag[iGen] = getGenStatusFlag(&genParts.at(iGen)); 
@@ -3528,7 +3525,6 @@ void RecoSimDumper::setTree(TTree* tree)
    if(saveGenParticles_ && isMC_){
       tree->Branch("genParticle_size", &genParticle_size, "genParticle_size/I");  
       tree->Branch("genParticle_genMotherIndex","std::vector<int>",&genParticle_genMotherIndex); 
-      tree->Branch("genParticle_genDaughtersIndex","std::vector<std::vector<int> >",&genParticle_genDaughtersIndex);  
       tree->Branch("genParticle_pdgId","std::vector<int>",&genParticle_pdgId);
       tree->Branch("genParticle_status","std::vector<int>",&genParticle_status); 
       tree->Branch("genParticle_statusFlag","std::vector<int>",&genParticle_statusFlag); 
