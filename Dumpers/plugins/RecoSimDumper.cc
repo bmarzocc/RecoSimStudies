@@ -157,6 +157,7 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    vtxToken_                      = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
    rhoToken_                      = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoCollection"));
    genToken_                      = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
+   genTokenTot_                   = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollectionTot"));
    caloPartToken_                 = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticleCollection"));
    puCaloPartToken_               = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("puCaloParticleCollection"));
    ootpuCaloPartToken_            = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("ootpuCaloParticleCollection"));
@@ -181,7 +182,6 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    doCompression_                 = iConfig.getParameter<bool>("doCompression");
    isMC_                          = iConfig.getParameter<bool>("isMC"); 
    saveGenParticles_              = iConfig.getParameter<bool>("saveGenParticles");
-   genParticlesToSave_            = iConfig.getParameter<std::vector<int> >("genParticlesToSave");
    saveCaloParticles_             = iConfig.getParameter<bool>("saveCaloParticles");
    saveCaloParticlesPU_           = iConfig.getParameter<bool>("saveCaloParticlesPU");
    saveCaloParticlesOOTPU_        = iConfig.getParameter<bool>("saveCaloParticlesOOTPU");   
@@ -293,7 +293,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    truePU=-1.;
    obsPU=-1.;
    edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
-   edm::Handle<std::vector<reco::GenParticle> > genParticles;
+   edm::Handle<std::vector<reco::GenParticle> > genParticlesTot;
+   edm::Handle<std::vector<reco::GenParticle> > genParticles; 
    edm::Handle<std::vector<CaloParticle> > caloParticles;
    edm::Handle<std::vector<CaloParticle> > puCaloParticle;
    edm::Handle<std::vector<CaloParticle> > ootpuCaloParticle;
@@ -311,6 +312,12 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        } 
     }else{
        std::cerr << "Analyze --> PupInfo not found" << std::endl;
+    }
+
+    ev.getByToken(genTokenTot_,genParticlesTot);
+    if (!genParticlesTot.isValid()) {
+        std::cerr << "Analyze --> genParticlesTot not found" << std::endl; 
+        return;
     }
 
     ev.getByToken(genToken_,genParticles);
@@ -501,10 +508,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    genParticle_eta.clear();
    genParticle_phi.clear();
 
-   genAllDaughters.clear();
    genParts.clear();
-   genMapMother.clear();
-   genMapDaughters.clear(); 
    int nGenParticles = 0;
    
    if(isMC_){ 
@@ -533,8 +537,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        genParticle_pt[iGen] = genParts.at(iGen).pt();
        genParticle_eta[iGen] = genParts.at(iGen).eta();
        genParticle_phi[iGen] = genParts.at(iGen).phi();
-    }
-
+    } 
+    
     genParticle_size = nGenParticles; 
     //std::cout << "GenParticles size  : " << nGenParticles << std::endl;
    }
@@ -553,9 +557,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    { 
     for(const auto& iCalo : *(caloParticles.product()))
     {
-
-       if(std::find(genParticlesToSave_.begin(),genParticlesToSave_.end(),fabs(iCalo.pdgId()))==genParticlesToSave_.end()) continue;
-
        caloParticle_size++;
        std::vector<std::pair<DetId, float> > caloParticle_hitsAndEnergies = *getHitsAndEnergiesCaloPart(&iCalo,-1.);
        GlobalPoint caloParticle_position = calculateAndSetPositionActual(&caloParticle_hitsAndEnergies, 7.4, 3.1, 1.2, 4.2, 0.89, 0.,true);
@@ -781,26 +782,25 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
    energies_CaloParticle.clear();
  
    if(isMC_ && saveCaloParticles_){
-
+   
     for(unsigned int iCalo=0; iCalo<caloParts.size(); iCalo++){
    
        caloParticle_index.push_back(iCalo); 
        caloParticle_nXtals.push_back(hitsAndEnergies_CaloPart.at(iCalo).size()); 
-   
-       int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;   
-       const auto& genParts_tmp = *(genParticles.product()); 
-       auto genParticle = genParts[genIndex]; 
+       int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;     
+       const auto& genParts_tmp = *(genParticlesTot.product());    
+       auto genParticle = genParts_tmp[genIndex]; 
        int partonIndex = -1;
        if(genParticle.numberOfMothers()!=0) partonIndex = getGenParton(&genParts_tmp,genIndex); 
        if(partonIndex>=0){
-          auto genMother = genParts[partonIndex]; 
+          auto genParton = genParts_tmp[partonIndex]; 
           caloParticle_partonIndex.push_back(partonIndex);
-          caloParticle_partonPdgId.push_back(genMother.pdgId());
-          caloParticle_partonCharge.push_back(genMother.charge());
-          caloParticle_partonEnergy.push_back(reduceFloat(genMother.energy(),nBits_));
-          caloParticle_partonPt.push_back(reduceFloat(genMother.pt(),nBits_));
-          caloParticle_partonEta.push_back(reduceFloat(genMother.eta(),nBits_));
-          caloParticle_partonPhi.push_back(reduceFloat(genMother.phi(),nBits_)); 
+          caloParticle_partonPdgId.push_back(genParton.pdgId());
+          caloParticle_partonCharge.push_back(genParton.charge());
+          caloParticle_partonEnergy.push_back(reduceFloat(genParton.energy(),nBits_));
+          caloParticle_partonPt.push_back(reduceFloat(genParton.pt(),nBits_));
+          caloParticle_partonEta.push_back(reduceFloat(genParton.eta(),nBits_));
+          caloParticle_partonPhi.push_back(reduceFloat(genParton.phi(),nBits_)); 
        }else{
           caloParticle_partonIndex.push_back(-99);
           caloParticle_partonPdgId.push_back(0);
@@ -1353,7 +1353,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gsfElectron_isEcalDriven.push_back(iElectron.ecalDrivenSeed()); 
           gsfElectron_isTrackerDriven.push_back(iElectron.trackerDrivenSeed()); 
           gsfElectron_classification.push_back(iElectron.classification()); 
-          gsfElectron_refinedSCNPFClusters.push_back(scRef->clusters().size());
+          gsfElectron_scNPFClusters.push_back(scRef->clusters().size());
           if(isMatchedInEB || isMatchedInEE) gsfElectron_ecalSCNPFClusters.push_back(matchedEcalSC.clusters().size());
           else gsfElectron_ecalSCNPFClusters.push_back(-1);  
           gsfElectron_p.push_back(reduceFloat(iElectron.trackMomentumAtVtx().R(),nBits_));
@@ -1381,14 +1381,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gsfElectron_hademCone.push_back(reduceFloat(iElectron.hcalOverEcal(),nBits_));
           gsfElectron_ecalDrivenSeed.push_back(reduceFloat(iElectron.ecalDrivenSeed(),nBits_));
           gsfElectron_nrSatCrys.push_back(reduceFloat(iElectron.nSaturatedXtals(),nBits_));
-          gsfElectron_refinedSCEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
-          gsfElectron_refinedSCRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
-          gsfElectron_refinedSCRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
-          gsfElectron_refinedSCEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
-          gsfElectron_refinedSCPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
-          gsfElectron_refinedSCEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
-          gsfElectron_refinedSCEoP.push_back(reduceFloat(scRef->energy()/iElectron.trackMomentumAtVtx().R(),nBits_)); 
+          gsfElectron_scEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
+          gsfElectron_scRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
+          gsfElectron_scRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
+          gsfElectron_scEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
+          gsfElectron_scPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
+          gsfElectron_scEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
+          gsfElectron_scEoP.push_back(reduceFloat(scRef->energy()/iElectron.trackMomentumAtVtx().R(),nBits_)); 
+          gsfElectron_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
+          gsfElectron_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));  
           if(isMatchedInEB || isMatchedInEE){
+             gsfElectron_ecalSCEta.push_back(reduceFloat(matchedEcalSC.eta(),nBits_)); 
+             gsfElectron_ecalSCPhi.push_back(reduceFloat(matchedEcalSC.phi(),nBits_)); 
              gsfElectron_ecalSCEnergy.push_back(reduceFloat(matchedEcalSC.energy(),nBits_)); 
              gsfElectron_ecalSCRawEnergy.push_back(reduceFloat(matchedEcalSC.rawEnergy(),nBits_)); 
              gsfElectron_ecalSCRawESEnergy.push_back(reduceFloat(matchedEcalSC.preshowerEnergy(),nBits_)); 
@@ -1397,6 +1401,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              gsfElectron_ecalSCEtaWidth.push_back(reduceFloat(matchedEcalSC.etaWidth(),nBits_)); 
              gsfElectron_ecalSCEoP.push_back(reduceFloat(matchedEcalSC.energy()/iElectron.trackMomentumAtVtx().R(),nBits_));  
           }else{
+             gsfElectron_ecalSCEta.push_back(-999.); 
+             gsfElectron_ecalSCPhi.push_back(-999.); 
              gsfElectron_ecalSCEnergy.push_back(-999.); 
              gsfElectron_ecalSCRawEnergy.push_back(-999.); 
              gsfElectron_ecalSCRawESEnergy.push_back(-999.); 
@@ -1404,9 +1410,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              gsfElectron_ecalSCPhiWidth.push_back(-999.);
              gsfElectron_ecalSCEtaWidth.push_back(-999.); 
              gsfElectron_ecalSCEoP.push_back(-999.);  
-          }  
-          gsfElectron_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
-          gsfElectron_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));  
+          } 
           gsfElectron_scSwissCross.push_back(reduceFloat(swissCross,nBits_));  
           gsfElectron_scEMax.push_back(reduceFloat(eMax,nBits_));  
           gsfElectron_scE2x2.push_back(reduceFloat(e2x2,nBits_));
@@ -1528,7 +1532,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gedPhoton_isEBPhiGap.push_back(iPhoton.isEBPhiGap());  
           gedPhoton_isEEDeeGap.push_back(iPhoton.isEEDeeGap());  
           gedPhoton_isEERingGap.push_back(iPhoton.isEERingGap());   
-          gedPhoton_refinedSCNPFClusters.push_back(scRef->clusters().size());
+          gedPhoton_scNPFClusters.push_back(scRef->clusters().size());
           if(isMatchedInEB || isMatchedInEE) gedPhoton_ecalSCNPFClusters.push_back(matchedEcalSC.clusters().size());  
           else gedPhoton_ecalSCNPFClusters.push_back(-1);  
           gedPhoton_hasConversionTracks.push_back(iPhoton.hasConversionTracks());
@@ -1544,13 +1548,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           gedPhoton_hademTow.push_back(reduceFloat(iPhoton.hadTowOverEm(),nBits_));
           gedPhoton_hademCone.push_back(reduceFloat(iPhoton.hadronicOverEm(),nBits_));
           gedPhoton_nrSatCrys.push_back(reduceFloat(iPhoton.nSaturatedXtals(),nBits_));
-          gedPhoton_refinedSCEnergy.push_back(reduceFloat(scRef->energy(),nBits_));
-          gedPhoton_refinedSCRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_));
-          gedPhoton_refinedSCRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_));
-          gedPhoton_refinedSCEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
-          gedPhoton_refinedSCEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_));  
-          gedPhoton_refinedSCPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
+          gedPhoton_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
+          gedPhoton_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));
+          gedPhoton_scEnergy.push_back(reduceFloat(scRef->energy(),nBits_));
+          gedPhoton_scRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_));
+          gedPhoton_scRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_));
+          gedPhoton_scEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
+          gedPhoton_scEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_));  
+          gedPhoton_scPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
           if(isMatchedInEB || isMatchedInEE){
+             gedPhoton_ecalSCEta.push_back(reduceFloat(matchedEcalSC.eta(),nBits_));
+             gedPhoton_ecalSCPhi.push_back(reduceFloat(matchedEcalSC.phi(),nBits_)); 
              gedPhoton_ecalSCEnergy.push_back(reduceFloat(matchedEcalSC.energy(),nBits_)); 
              gedPhoton_ecalSCRawEnergy.push_back(reduceFloat(matchedEcalSC.rawEnergy(),nBits_)); 
              gedPhoton_ecalSCRawESEnergy.push_back(reduceFloat(matchedEcalSC.preshowerEnergy(),nBits_)); 
@@ -1558,6 +1566,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              gedPhoton_ecalSCPhiWidth.push_back(reduceFloat(matchedEcalSC.phiWidth(),nBits_));
              gedPhoton_ecalSCEtaWidth.push_back(reduceFloat(matchedEcalSC.etaWidth(),nBits_)); 
           }else{
+             gedPhoton_ecalSCEta.push_back(-999.);
+             gedPhoton_ecalSCPhi.push_back(-999.); 
              gedPhoton_ecalSCEnergy.push_back(-999.); 
              gedPhoton_ecalSCRawEnergy.push_back(-999.); 
              gedPhoton_ecalSCRawESEnergy.push_back(-999.); 
@@ -1565,8 +1575,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              gedPhoton_ecalSCPhiWidth.push_back(-999.);
              gedPhoton_ecalSCEtaWidth.push_back(-999.); 
           }
-          gedPhoton_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
-          gedPhoton_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));
           gedPhoton_scSwissCross.push_back(reduceFloat(swissCross,nBits_));  
           gedPhoton_scEMax.push_back(reduceFloat(eMax,nBits_));  
           gedPhoton_scE2x2.push_back(reduceFloat(e2x2,nBits_));
@@ -1723,7 +1731,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patElectron_index.push_back(iEle);
           patElectron_seedRawId.push_back(iElectron.superCluster()->seed()->seed().rawId());
           patElectron_classification.push_back(iElectron.classification());
-          patElectron_refinedSCNPFClusters.push_back(scRef->clusters().size());
+          patElectron_scNPFClusters.push_back(scRef->clusters().size());
           if(isMatchedInEB || isMatchedInEE) patElectron_ecalSCNPFClusters.push_back(matchedEcalSC.clusters().size());  
           else patElectron_ecalSCNPFClusters.push_back(-1);   
           patElectron_charge.push_back(iElectron.charge()); 
@@ -1769,14 +1777,18 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patElectron_et.push_back(reduceFloat(iElectron.p4().Et(),nBits_));
           patElectron_mt.push_back(reduceFloat(Mt,nBits_));
           patElectron_dphiMET.push_back(reduceFloat(dphiMET,nBits_));
-          patElectron_refinedSCEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
-          patElectron_refinedSCRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
-          patElectron_refinedSCRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
-          patElectron_refinedSCEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
-          patElectron_refinedSCPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
-          patElectron_refinedSCEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
-          patElectron_refinedSCEoP.push_back(reduceFloat(scRef->energy()/iElectron.trackMomentumAtVtx().R(),nBits_)); 
+          patElectron_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
+          patElectron_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));
+          patElectron_scEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
+          patElectron_scRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
+          patElectron_scRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
+          patElectron_scEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
+          patElectron_scPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
+          patElectron_scEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
+          patElectron_scEoP.push_back(reduceFloat(scRef->energy()/iElectron.trackMomentumAtVtx().R(),nBits_)); 
           if(isMatchedInEB || isMatchedInEE){
+             patElectron_ecalSCEta.push_back(reduceFloat(matchedEcalSC.eta(),nBits_)); 
+             patElectron_ecalSCPhi.push_back(reduceFloat(matchedEcalSC.phi(),nBits_)); 
              patElectron_ecalSCEnergy.push_back(reduceFloat(matchedEcalSC.energy(),nBits_)); 
              patElectron_ecalSCRawEnergy.push_back(reduceFloat(matchedEcalSC.rawEnergy(),nBits_)); 
              patElectron_ecalSCRawESEnergy.push_back(reduceFloat(matchedEcalSC.preshowerEnergy(),nBits_)); 
@@ -1785,6 +1797,8 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              patElectron_ecalSCEtaWidth.push_back(reduceFloat(matchedEcalSC.etaWidth(),nBits_)); 
              patElectron_ecalSCEoP.push_back(reduceFloat(matchedEcalSC.energy()/iElectron.trackMomentumAtVtx().R(),nBits_));   
           }else{
+             patElectron_ecalSCEta.push_back(-999.); 
+             patElectron_ecalSCPhi.push_back(-999.); 
              patElectron_ecalSCEnergy.push_back(-999.); 
              patElectron_ecalSCRawEnergy.push_back(-999.); 
              patElectron_ecalSCRawESEnergy.push_back(-999.); 
@@ -1793,8 +1807,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              patElectron_ecalSCEtaWidth.push_back(-999.); 
              patElectron_ecalSCEoP.push_back(-999.);  
           }
-          patElectron_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
-          patElectron_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));
           patElectron_scSwissCross.push_back(reduceFloat(swissCross,nBits_)); 
           patElectron_scE2x2.push_back(reduceFloat(e2x2,nBits_)); 
           patElectron_scE3x3.push_back(reduceFloat(e3x3,nBits_)); 
@@ -1940,7 +1952,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
 
           patPhoton_index.push_back(iPho);
           patPhoton_seedRawId.push_back(iPhoton.superCluster()->seed()->seed().rawId());
-          patPhoton_refinedSCNPFClusters.push_back(scRef->clusters().size());
+          patPhoton_scNPFClusters.push_back(scRef->clusters().size());
           if(isMatchedInEB || isMatchedInEE) patPhoton_ecalSCNPFClusters.push_back(matchedEcalSC.clusters().size());  
           else patPhoton_ecalSCNPFClusters.push_back(-1);   
           patPhoton_isEB.push_back(iPhoton.isEB());
@@ -1968,13 +1980,17 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
           patPhoton_et.push_back(reduceFloat(iPhoton.p4().Et(),nBits_));
           patPhoton_mt.push_back(reduceFloat(Mt,nBits_));
           patPhoton_dphiMET.push_back(reduceFloat(dphiMET,nBits_));
-          patPhoton_refinedSCEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
-          patPhoton_refinedSCRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
-          patPhoton_refinedSCRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
-          patPhoton_refinedSCEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
-          patPhoton_refinedSCPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
-          patPhoton_refinedSCEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
+          patPhoton_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
+          patPhoton_scPhi.push_back(reduceFloat(scRef->phi(),nBits_));
+          patPhoton_scEnergy.push_back(reduceFloat(scRef->energy(),nBits_)); 
+          patPhoton_scRawEnergy.push_back(reduceFloat(scRef->rawEnergy(),nBits_)); 
+          patPhoton_scRawESEnergy.push_back(reduceFloat(scRef->preshowerEnergy(),nBits_)); 
+          patPhoton_scEt.push_back(reduceFloat(scRef->energy()*(Rt/R),nBits_));
+          patPhoton_scPhiWidth.push_back(reduceFloat(scRef->phiWidth(),nBits_));
+          patPhoton_scEtaWidth.push_back(reduceFloat(scRef->etaWidth(),nBits_)); 
           if(isMatchedInEB || isMatchedInEE){
+             patPhoton_ecalSCEta.push_back(reduceFloat(matchedEcalSC.eta(),nBits_)); 
+             patPhoton_ecalSCPhi.push_back(reduceFloat(matchedEcalSC.phi(),nBits_));  
              patPhoton_ecalSCEnergy.push_back(reduceFloat(matchedEcalSC.energy(),nBits_)); 
              patPhoton_ecalSCRawEnergy.push_back(reduceFloat(matchedEcalSC.rawEnergy(),nBits_)); 
              patPhoton_ecalSCRawESEnergy.push_back(reduceFloat(matchedEcalSC.preshowerEnergy(),nBits_)); 
@@ -1982,15 +1998,15 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
              patPhoton_ecalSCPhiWidth.push_back(reduceFloat(matchedEcalSC.phiWidth(),nBits_));
              patPhoton_ecalSCEtaWidth.push_back(reduceFloat(matchedEcalSC.etaWidth(),nBits_)); 
           }else{
+             patPhoton_ecalSCEta.push_back(-999.); 
+             patPhoton_ecalSCPhi.push_back(-999.);  
              patPhoton_ecalSCEnergy.push_back(-999.); 
              patPhoton_ecalSCRawEnergy.push_back(-999.); 
              patPhoton_ecalSCRawESEnergy.push_back(-999.); 
              patPhoton_ecalSCEt.push_back(-999.);
              patPhoton_ecalSCPhiWidth.push_back(-999.);
              patPhoton_ecalSCEtaWidth.push_back(-999.);   
-          }   
-          patPhoton_scEta.push_back(reduceFloat(scRef->eta(),nBits_));
-          patPhoton_scPhi.push_back(reduceFloat(scRef->phi(),nBits_)); 
+          }    
           patPhoton_scSwissCross.push_back(reduceFloat(swissCross,nBits_)); 
           patPhoton_scE2x2.push_back(reduceFloat(e2x2,nBits_)); 
           patPhoton_scE3x3.push_back(reduceFloat(e3x3,nBits_)); 
@@ -3803,7 +3819,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gsfElectron_isEcalDriven","std::vector<bool> ",&gsfElectron_isEcalDriven);
       tree->Branch("gsfElectron_isTrackerDriven","std::vector<bool> ",&gsfElectron_isTrackerDriven);
       tree->Branch("gsfElectron_classification","std::vector<int> ",&gsfElectron_classification);  
-      tree->Branch("gsfElectron_refinedSCNPFClusters","std::vector<int> ",&gsfElectron_refinedSCNPFClusters); 
+      tree->Branch("gsfElectron_scNPFClusters","std::vector<int> ",&gsfElectron_scNPFClusters); 
       tree->Branch("gsfElectron_ecalSCNPFClusters","std::vector<int> ",&gsfElectron_ecalSCNPFClusters);     
       tree->Branch("gsfElectron_p","std::vector<float> ",&gsfElectron_p);     
       tree->Branch("gsfElectron_pt","std::vector<float> ",&gsfElectron_pt);     
@@ -3830,22 +3846,24 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gsfElectron_hademCone","std::vector<float> ",&gsfElectron_hademCone);  
       tree->Branch("gsfElectron_ecalDrivenSeed","std::vector<float> ",&gsfElectron_ecalDrivenSeed); 
       tree->Branch("gsfElectron_nrSatCrys","std::vector<float> ",&gsfElectron_nrSatCrys); 
-      tree->Branch("gsfElectron_refinedSCEnergy","std::vector<float> ",&gsfElectron_refinedSCEnergy);   
-      tree->Branch("gsfElectron_refinedSCRawEnergy","std::vector<float> ",&gsfElectron_refinedSCRawEnergy);   
-      tree->Branch("gsfElectron_refinedSCRawESEnergy","std::vector<float> ",&gsfElectron_refinedSCRawESEnergy); 
-      tree->Branch("gsfElectron_refinedSCEt","std::vector<float> ",&gsfElectron_refinedSCEt); 
-      tree->Branch("gsfElectron_refinedSCEtaWidth","std::vector<float> ",&gsfElectron_refinedSCEtaWidth);   
-      tree->Branch("gsfElectron_refinedSCPhiWidth","std::vector<float> ",&gsfElectron_refinedSCPhiWidth);   
-      tree->Branch("gsfElectron_refinedSCEoP","std::vector<float> ",&gsfElectron_refinedSCEoP);   
+      tree->Branch("gsfElectron_scEta","std::vector<float> ",&gsfElectron_scEta);  
+      tree->Branch("gsfElectron_scPhi","std::vector<float> ",&gsfElectron_scPhi);  
+      tree->Branch("gsfElectron_scEnergy","std::vector<float> ",&gsfElectron_scEnergy);   
+      tree->Branch("gsfElectron_scRawEnergy","std::vector<float> ",&gsfElectron_scRawEnergy);   
+      tree->Branch("gsfElectron_scRawESEnergy","std::vector<float> ",&gsfElectron_scRawESEnergy); 
+      tree->Branch("gsfElectron_scEt","std::vector<float> ",&gsfElectron_scEt); 
+      tree->Branch("gsfElectron_scEtaWidth","std::vector<float> ",&gsfElectron_scEtaWidth);   
+      tree->Branch("gsfElectron_scPhiWidth","std::vector<float> ",&gsfElectron_scPhiWidth);   
+      tree->Branch("gsfElectron_scEoP","std::vector<float> ",&gsfElectron_scEoP);   
+      tree->Branch("gsfElectron_ecalSCEta","std::vector<float> ",&gsfElectron_ecalSCEta);  
+      tree->Branch("gsfElectron_ecalSCPhi","std::vector<float> ",&gsfElectron_ecalSCPhi);   
       tree->Branch("gsfElectron_ecalSCEnergy","std::vector<float> ",&gsfElectron_ecalSCEnergy);   
       tree->Branch("gsfElectron_ecalSCRawEnergy","std::vector<float> ",&gsfElectron_ecalSCRawEnergy);   
       tree->Branch("gsfElectron_ecalSCRawESEnergy","std::vector<float> ",&gsfElectron_ecalSCRawESEnergy); 
       tree->Branch("gsfElectron_ecalSCEt","std::vector<float> ",&gsfElectron_ecalSCEt); 
       tree->Branch("gsfElectron_ecalSCEtaWidth","std::vector<float> ",&gsfElectron_ecalSCEtaWidth);   
       tree->Branch("gsfElectron_ecalSCPhiWidth","std::vector<float> ",&gsfElectron_ecalSCPhiWidth);   
-      tree->Branch("gsfElectron_ecalSCEoP","std::vector<float> ",&gsfElectron_ecalSCEoP);      
-      tree->Branch("gsfElectron_scEta","std::vector<float> ",&gsfElectron_scEta);  
-      tree->Branch("gsfElectron_scPhi","std::vector<float> ",&gsfElectron_scPhi);   
+      tree->Branch("gsfElectron_ecalSCEoP","std::vector<float> ",&gsfElectron_ecalSCEoP);       
       tree->Branch("gsfElectron_scSwissCross","std::vector<float> ",&gsfElectron_scSwissCross);  
       tree->Branch("gsfElectron_scEMax","std::vector<float> ",&gsfElectron_scEMax);  
       tree->Branch("gsfElectron_scE2x2","std::vector<float> ",&gsfElectron_scE2x2);  
@@ -3892,7 +3910,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gedPhoton_isEBPhiGap","std::vector<bool> ",&gedPhoton_isEBPhiGap);
       tree->Branch("gedPhoton_isEEDeeGap","std::vector<bool> ",&gedPhoton_isEEDeeGap);
       tree->Branch("gedPhoton_isEERingGap","std::vector<bool> ",&gedPhoton_isEERingGap);  
-      tree->Branch("gedPhoton_refinedSCNPFClusters","std::vector<int> ",&gedPhoton_refinedSCNPFClusters); 
+      tree->Branch("gedPhoton_scNPFClusters","std::vector<int> ",&gedPhoton_scNPFClusters); 
       tree->Branch("gedPhoton_ecalSCNPFClusters","std::vector<int> ",&gedPhoton_ecalSCNPFClusters);     
       tree->Branch("gedPhoton_hasConversionTracks","std::vector<bool> ",&gedPhoton_hasConversionTracks); 
       tree->Branch("gedPhoton_nConversions","std::vector<int> ",&gedPhoton_nConversions);     
@@ -3907,20 +3925,22 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gedPhoton_hademTow","std::vector<float> ",&gedPhoton_hademTow); 
       tree->Branch("gedPhoton_hademCone","std::vector<float> ",&gedPhoton_hademCone);  
       tree->Branch("gedPhoton_nrSatCrys","std::vector<float> ",&gedPhoton_nrSatCrys); 
-      tree->Branch("gedPhoton_refinedSCEnergy","std::vector<float> ",&gedPhoton_refinedSCEnergy); 
-      tree->Branch("gedPhoton_refinedSCRawEnergy","std::vector<float> ",&gedPhoton_refinedSCRawEnergy); 
-      tree->Branch("gedPhoton_refinedSCRawESEnergy","std::vector<float> ",&gedPhoton_refinedSCRawESEnergy);
-      tree->Branch("gedPhoton_refinedSCEt","std::vector<float> ",&gedPhoton_refinedSCEt); 
-      tree->Branch("gedPhoton_refinedSCEtaWidth","std::vector<float> ",&gedPhoton_refinedSCEtaWidth);   
-      tree->Branch("gedPhoton_refinedSCPhiWidth","std::vector<float> ",&gedPhoton_refinedSCPhiWidth);   
+      tree->Branch("gedPhoton_scEta","std::vector<float> ",&gedPhoton_scEta); 
+      tree->Branch("gedPhoton_scPhi","std::vector<float> ",&gedPhoton_scPhi); 
+      tree->Branch("gedPhoton_scEnergy","std::vector<float> ",&gedPhoton_scEnergy); 
+      tree->Branch("gedPhoton_scRawEnergy","std::vector<float> ",&gedPhoton_scRawEnergy); 
+      tree->Branch("gedPhoton_scRawESEnergy","std::vector<float> ",&gedPhoton_scRawESEnergy);
+      tree->Branch("gedPhoton_scEt","std::vector<float> ",&gedPhoton_scEt); 
+      tree->Branch("gedPhoton_scEtaWidth","std::vector<float> ",&gedPhoton_scEtaWidth);   
+      tree->Branch("gedPhoton_scPhiWidth","std::vector<float> ",&gedPhoton_scPhiWidth);   
+      tree->Branch("gedPhoton_ecalSCEta","std::vector<float> ",&gedPhoton_ecalSCEta); 
+      tree->Branch("gedPhoton_ecalSCPhi","std::vector<float> ",&gedPhoton_ecalSCPhi); 
       tree->Branch("gedPhoton_ecalSCEnergy","std::vector<float> ",&gedPhoton_ecalSCEnergy); 
       tree->Branch("gedPhoton_ecalSCRawEnergy","std::vector<float> ",&gedPhoton_ecalSCRawEnergy); 
       tree->Branch("gedPhoton_ecalSCRawESEnergy","std::vector<float> ",&gedPhoton_ecalSCRawESEnergy);
       tree->Branch("gedPhoton_ecalSCEt","std::vector<float> ",&gedPhoton_ecalSCEt); 
       tree->Branch("gedPhoton_ecalSCEtaWidth","std::vector<float> ",&gedPhoton_ecalSCEtaWidth);   
-      tree->Branch("gedPhoton_ecalSCPhiWidth","std::vector<float> ",&gedPhoton_ecalSCPhiWidth);  
-      tree->Branch("gedPhoton_scEta","std::vector<float> ",&gedPhoton_scEta); 
-      tree->Branch("gedPhoton_scPhi","std::vector<float> ",&gedPhoton_scPhi);   
+      tree->Branch("gedPhoton_ecalSCPhiWidth","std::vector<float> ",&gedPhoton_ecalSCPhiWidth);    
       tree->Branch("gedPhoton_scSwissCross","std::vector<float> ",&gedPhoton_scSwissCross);  
       tree->Branch("gedPhoton_scEMax","std::vector<float> ",&gedPhoton_scEMax);  
       tree->Branch("gedPhoton_scE2x2","std::vector<float> ",&gedPhoton_scE2x2);  
@@ -3963,7 +3983,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patElectron_index","std::vector<int> ",&patElectron_index); 
       tree->Branch("patElectron_seedRawId","std::vector<uint32_t> ",&patElectron_seedRawId);   
       tree->Branch("patElectron_classification","std::vector<int> ",&patElectron_classification); 
-      tree->Branch("patElectron_refinedSCNPFClusters","std::vector<int> ",&patElectron_refinedSCNPFClusters); 
+      tree->Branch("patElectron_scNPFClusters","std::vector<int> ",&patElectron_scNPFClusters); 
       tree->Branch("patElectron_ecalSCNPFClusters","std::vector<int> ",&patElectron_ecalSCNPFClusters);     
       tree->Branch("patElectron_charge","std::vector<int> ",&patElectron_charge); 
       tree->Branch("patElectron_isEB","std::vector<bool> ",&patElectron_isEB); 
@@ -4008,22 +4028,24 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patElectron_et","std::vector<float> ",&patElectron_et); 
       tree->Branch("patElectron_mt","std::vector<float> ",&patElectron_mt); 
       tree->Branch("patElectron_dphiMET","std::vector<float> ",&patElectron_dphiMET); 
-      tree->Branch("patElectron_refinedSCEnergy","std::vector<float> ",&patElectron_refinedSCEnergy); 
-      tree->Branch("patElectron_refinedSCRawEnergy","std::vector<float> ",&patElectron_refinedSCRawEnergy); 
-      tree->Branch("patElectron_refinedSCRawESEnergy","std::vector<float> ",&patElectron_refinedSCRawESEnergy); 
-      tree->Branch("patElectron_refinedSCEt","std::vector<float> ",&patElectron_refinedSCEt); 
-      tree->Branch("patElectron_refinedSCPhiWidth","std::vector<float> ",&patElectron_refinedSCPhiWidth);  
-      tree->Branch("patElectron_refinedSCEtaWidth","std::vector<float> ",&patElectron_refinedSCEtaWidth);  
-      tree->Branch("patElectron_refinedSCEoP","std::vector<float> ",&patElectron_refinedSCEoP);  
+      tree->Branch("patElectron_scEta","std::vector<float> ",&patElectron_scEta); 
+      tree->Branch("patElectron_scPhi","std::vector<float> ",&patElectron_scPhi);
+      tree->Branch("patElectron_scEnergy","std::vector<float> ",&patElectron_scEnergy); 
+      tree->Branch("patElectron_scRawEnergy","std::vector<float> ",&patElectron_scRawEnergy); 
+      tree->Branch("patElectron_scRawESEnergy","std::vector<float> ",&patElectron_scRawESEnergy); 
+      tree->Branch("patElectron_scEt","std::vector<float> ",&patElectron_scEt); 
+      tree->Branch("patElectron_scPhiWidth","std::vector<float> ",&patElectron_scPhiWidth);  
+      tree->Branch("patElectron_scEtaWidth","std::vector<float> ",&patElectron_scEtaWidth);  
+      tree->Branch("patElectron_scEoP","std::vector<float> ",&patElectron_scEoP);  
+      tree->Branch("patElectron_ecalSCEta","std::vector<float> ",&patElectron_ecalSCEta); 
+      tree->Branch("patElectron_ecalSCPhi","std::vector<float> ",&patElectron_ecalSCPhi); 
       tree->Branch("patElectron_ecalSCEnergy","std::vector<float> ",&patElectron_ecalSCEnergy); 
       tree->Branch("patElectron_ecalSCRawEnergy","std::vector<float> ",&patElectron_ecalSCRawEnergy); 
       tree->Branch("patElectron_ecalSCRawESEnergy","std::vector<float> ",&patElectron_ecalSCRawESEnergy); 
       tree->Branch("patElectron_ecalSCEt","std::vector<float> ",&patElectron_ecalSCEt); 
       tree->Branch("patElectron_ecalSCPhiWidth","std::vector<float> ",&patElectron_ecalSCPhiWidth);  
       tree->Branch("patElectron_ecalSCEtaWidth","std::vector<float> ",&patElectron_ecalSCEtaWidth);  
-      tree->Branch("patElectron_ecalSCEoP","std::vector<float> ",&patElectron_ecalSCEoP);  
-      tree->Branch("patElectron_scEta","std::vector<float> ",&patElectron_scEta); 
-      tree->Branch("patElectron_scPhi","std::vector<float> ",&patElectron_scPhi); 
+      tree->Branch("patElectron_ecalSCEoP","std::vector<float> ",&patElectron_ecalSCEoP);   
       tree->Branch("patElectron_scSwissCross","std::vector<float> ",&patElectron_scSwissCross);  
       tree->Branch("patElectron_scE2x2","std::vector<float> ",&patElectron_scE2x2);  
       tree->Branch("patElectron_scE3x3","std::vector<float> ",&patElectron_scE3x3);  
@@ -4073,7 +4095,7 @@ void RecoSimDumper::setTree(TTree* tree)
    if(savePatPhotons_){
       tree->Branch("patPhoton_index","std::vector<int> ",&patPhoton_index); 
       tree->Branch("patPhoton_seedRawId","std::vector<uint32_t> ",&patPhoton_seedRawId);   
-      tree->Branch("patPhoton_refinedSCNPFClusters","std::vector<int> ",&patPhoton_refinedSCNPFClusters); 
+      tree->Branch("patPhoton_scNPFClusters","std::vector<int> ",&patPhoton_scNPFClusters); 
       tree->Branch("patPhoton_ecalSCNPFClusters","std::vector<int> ",&patPhoton_ecalSCNPFClusters);     
       tree->Branch("patPhoton_passElectronVeto","std::vector<bool> ",&patPhoton_passElectronVeto); 
       tree->Branch("patPhoton_hasPixelSeed","std::vector<bool> ",&patPhoton_hasPixelSeed); 
@@ -4100,20 +4122,22 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("patPhoton_et","std::vector<float> ",&patPhoton_et); 
       tree->Branch("patPhoton_mt","std::vector<float> ",&patPhoton_mt); 
       tree->Branch("patPhoton_dphiMET","std::vector<float> ",&patPhoton_dphiMET); 
-      tree->Branch("patPhoton_refinedSCEnergy","std::vector<float> ",&patPhoton_refinedSCEnergy); 
-      tree->Branch("patPhoton_refinedSCRawEnergy","std::vector<float> ",&patPhoton_refinedSCRawEnergy); 
-      tree->Branch("patPhoton_refinedSCRawESEnergy","std::vector<float> ",&patPhoton_refinedSCRawESEnergy); 
-      tree->Branch("patPhoton_refinedSCEt","std::vector<float> ",&patPhoton_refinedSCEt); 
-      tree->Branch("patPhoton_refinedSCPhiWidth","std::vector<float> ",&patPhoton_refinedSCPhiWidth);  
-      tree->Branch("patPhoton_refinedSCEtaWidth","std::vector<float> ",&patPhoton_refinedSCEtaWidth);  
+      tree->Branch("patPhoton_scEta","std::vector<float> ",&patPhoton_scEta); 
+      tree->Branch("patPhoton_scPhi","std::vector<float> ",&patPhoton_scPhi);  
+      tree->Branch("patPhoton_scEnergy","std::vector<float> ",&patPhoton_scEnergy); 
+      tree->Branch("patPhoton_scRawEnergy","std::vector<float> ",&patPhoton_scRawEnergy); 
+      tree->Branch("patPhoton_scRawESEnergy","std::vector<float> ",&patPhoton_scRawESEnergy); 
+      tree->Branch("patPhoton_scEt","std::vector<float> ",&patPhoton_scEt); 
+      tree->Branch("patPhoton_scPhiWidth","std::vector<float> ",&patPhoton_scPhiWidth);  
+      tree->Branch("patPhoton_scEtaWidth","std::vector<float> ",&patPhoton_scEtaWidth);  
+      tree->Branch("patPhoton_ecalSCEta","std::vector<float> ",&patPhoton_ecalSCEta); 
+      tree->Branch("patPhoton_ecalSCPhi","std::vector<float> ",&patPhoton_ecalSCPhi);
       tree->Branch("patPhoton_ecalSCEnergy","std::vector<float> ",&patPhoton_ecalSCEnergy); 
       tree->Branch("patPhoton_ecalSCRawEnergy","std::vector<float> ",&patPhoton_ecalSCRawEnergy); 
       tree->Branch("patPhoton_ecalSCRawESEnergy","std::vector<float> ",&patPhoton_ecalSCRawESEnergy); 
       tree->Branch("patPhoton_ecalSCEt","std::vector<float> ",&patPhoton_ecalSCEt); 
       tree->Branch("patPhoton_ecalSCPhiWidth","std::vector<float> ",&patPhoton_ecalSCPhiWidth);  
       tree->Branch("patPhoton_ecalSCEtaWidth","std::vector<float> ",&patPhoton_ecalSCEtaWidth); 
-      tree->Branch("patPhoton_scEta","std::vector<float> ",&patPhoton_scEta); 
-      tree->Branch("patPhoton_scPhi","std::vector<float> ",&patPhoton_scPhi);  
       tree->Branch("patPhoton_scSwissCross","std::vector<float> ",&patPhoton_scSwissCross);  
       tree->Branch("patPhoton_scE2x2","std::vector<float> ",&patPhoton_scE2x2);  
       tree->Branch("patPhoton_scE3x3","std::vector<float> ",&patPhoton_scE3x3);  
@@ -4784,7 +4808,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gsfElectron_isEERingGap.clear();  
    gsfElectron_isEcalDriven.clear();
    gsfElectron_isTrackerDriven.clear(); 
-   gsfElectron_refinedSCNPFClusters.clear();  
+   gsfElectron_scNPFClusters.clear();  
    gsfElectron_ecalSCNPFClusters.clear();  
    gsfElectron_classification.clear(); 
    gsfElectron_p.clear();
@@ -4812,13 +4836,13 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gsfElectron_hademCone.clear();
    gsfElectron_ecalDrivenSeed.clear();
    gsfElectron_nrSatCrys.clear();
-   gsfElectron_refinedSCEnergy.clear();
-   gsfElectron_refinedSCRawEnergy.clear();
-   gsfElectron_refinedSCRawESEnergy.clear();
-   gsfElectron_refinedSCEt.clear();
-   gsfElectron_refinedSCEtaWidth.clear();
-   gsfElectron_refinedSCPhiWidth.clear(); 
-   gsfElectron_refinedSCEoP.clear(); 
+   gsfElectron_scEnergy.clear();
+   gsfElectron_scRawEnergy.clear();
+   gsfElectron_scRawESEnergy.clear();
+   gsfElectron_scEt.clear();
+   gsfElectron_scEtaWidth.clear();
+   gsfElectron_scPhiWidth.clear(); 
+   gsfElectron_scEoP.clear(); 
    gsfElectron_ecalSCEnergy.clear();
    gsfElectron_ecalSCRawEnergy.clear();
    gsfElectron_ecalSCRawESEnergy.clear();
@@ -4826,6 +4850,8 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gsfElectron_ecalSCEtaWidth.clear();
    gsfElectron_ecalSCPhiWidth.clear(); 
    gsfElectron_ecalSCEoP.clear(); 
+   gsfElectron_ecalSCEta.clear();
+   gsfElectron_ecalSCPhi.clear(); 
    gsfElectron_scEta.clear();
    gsfElectron_scPhi.clear();
    gsfElectron_scSwissCross.clear();
@@ -4872,7 +4898,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gedPhoton_isEBPhiGap.clear();
    gedPhoton_isEEDeeGap.clear();
    gedPhoton_isEERingGap.clear();  
-   gedPhoton_refinedSCNPFClusters.clear();  
+   gedPhoton_scNPFClusters.clear();  
    gedPhoton_ecalSCNPFClusters.clear();   
    gedPhoton_hasConversionTracks.clear();
    gedPhoton_nConversions.clear();
@@ -4887,18 +4913,20 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    gedPhoton_hademTow.clear();  
    gedPhoton_hademCone.clear();  
    gedPhoton_nrSatCrys.clear();  
-   gedPhoton_refinedSCEnergy.clear();  
-   gedPhoton_refinedSCRawEnergy.clear();  
-   gedPhoton_refinedSCRawESEnergy.clear();
-   gedPhoton_refinedSCEt.clear();
-   gedPhoton_refinedSCEtaWidth.clear();
-   gedPhoton_refinedSCPhiWidth.clear();  
+   gedPhoton_scEnergy.clear();  
+   gedPhoton_scRawEnergy.clear();  
+   gedPhoton_scRawESEnergy.clear();
+   gedPhoton_scEt.clear();
+   gedPhoton_scEtaWidth.clear();
+   gedPhoton_scPhiWidth.clear();  
    gedPhoton_ecalSCEnergy.clear();  
    gedPhoton_ecalSCRawEnergy.clear();  
    gedPhoton_ecalSCRawESEnergy.clear();
    gedPhoton_ecalSCEt.clear();
    gedPhoton_ecalSCEtaWidth.clear();
    gedPhoton_ecalSCPhiWidth.clear(); 
+   gedPhoton_ecalSCEta.clear();
+   gedPhoton_ecalSCPhi.clear();  
    gedPhoton_scEta.clear();
    gedPhoton_scPhi.clear();     
    gedPhoton_scSwissCross.clear();
@@ -4936,7 +4964,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_index.clear();
    patElectron_seedRawId.clear();
    patElectron_classification.clear();
-   patElectron_refinedSCNPFClusters.clear();  
+   patElectron_scNPFClusters.clear();  
    patElectron_ecalSCNPFClusters.clear();   
    patElectron_charge.clear();
    patElectron_isEB.clear();
@@ -4981,13 +5009,13 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_et.clear();
    patElectron_mt.clear();
    patElectron_dphiMET.clear();
-   patElectron_refinedSCEnergy.clear();
-   patElectron_refinedSCRawEnergy.clear();
-   patElectron_refinedSCRawESEnergy.clear();
-   patElectron_refinedSCEt.clear();
-   patElectron_refinedSCEtaWidth.clear();
-   patElectron_refinedSCPhiWidth.clear(); 
-   patElectron_refinedSCEoP.clear(); 
+   patElectron_scEnergy.clear();
+   patElectron_scRawEnergy.clear();
+   patElectron_scRawESEnergy.clear();
+   patElectron_scEt.clear();
+   patElectron_scEtaWidth.clear();
+   patElectron_scPhiWidth.clear(); 
+   patElectron_scEoP.clear(); 
    patElectron_ecalSCEnergy.clear();
    patElectron_ecalSCRawEnergy.clear();
    patElectron_ecalSCRawESEnergy.clear();
@@ -4995,6 +5023,8 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patElectron_ecalSCEtaWidth.clear();
    patElectron_ecalSCPhiWidth.clear(); 
    patElectron_ecalSCEoP.clear(); 
+   patElectron_ecalSCEta.clear();
+   patElectron_ecalSCPhi.clear();
    patElectron_scEta.clear();
    patElectron_scPhi.clear();
    patElectron_scSwissCross.clear();
@@ -5045,7 +5075,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
 
    patPhoton_index.clear();
    patPhoton_seedRawId.clear();
-   patPhoton_refinedSCNPFClusters.clear();  
+   patPhoton_scNPFClusters.clear();  
    patPhoton_ecalSCNPFClusters.clear(); 
    patPhoton_isEB.clear();
    patPhoton_isEE.clear();
@@ -5072,18 +5102,20 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patPhoton_et.clear();
    patPhoton_mt.clear();
    patPhoton_dphiMET.clear();  
-   patPhoton_refinedSCEnergy.clear();  
-   patPhoton_refinedSCRawEnergy.clear();  
-   patPhoton_refinedSCRawESEnergy.clear();
-   patPhoton_refinedSCEt.clear();
-   patPhoton_refinedSCEtaWidth.clear();
-   patPhoton_refinedSCPhiWidth.clear(); 
+   patPhoton_scEnergy.clear();  
+   patPhoton_scRawEnergy.clear();  
+   patPhoton_scRawESEnergy.clear();
+   patPhoton_scEt.clear();
+   patPhoton_scEtaWidth.clear();
+   patPhoton_scPhiWidth.clear(); 
    patPhoton_ecalSCEnergy.clear();  
    patPhoton_ecalSCRawEnergy.clear();  
    patPhoton_ecalSCRawESEnergy.clear();
    patPhoton_ecalSCEt.clear();
    patPhoton_ecalSCEtaWidth.clear();
-   patPhoton_ecalSCPhiWidth.clear(); 
+   patPhoton_ecalSCPhiWidth.clear();
+   patPhoton_ecalSCEta.clear();
+   patPhoton_ecalSCPhi.clear();  
    patPhoton_scEta.clear();
    patPhoton_scPhi.clear();   
    patPhoton_scSwissCross.clear();
@@ -5124,6 +5156,7 @@ void RecoSimDumper::setVectors(int nGenParticles, int nCaloParticles, int nPFClu
    patPhoton_egmCutBasedPhotonIDtight.clear();
    patPhoton_egmMVAPhotonIDmedium.clear();
    patPhoton_egmMVAPhotonIDtight.clear();
+
    patJet_index.clear();
    patJet_isCaloJet.clear();
    patJet_isJPTJet.clear();
@@ -5505,49 +5538,45 @@ int RecoSimDumper::getGenStatusFlag(const reco::GenParticle* genParticle)
    return statusFlag; 
 }
 
-int RecoSimDumper::getGenParton(const std::vector<reco::GenParticle>* genParticles, const int genIndex)
+void RecoSimDumper::printGenStatusFlag(const reco::GenParticle* genParticle)
 {
-   std::vector<int> indices;
-   for(auto const& iGen : genAllDaughters)
-   {
-       if(std::find(iGen.second.begin(),iGen.second.end(),genIndex)!= iGen.second.end())
-          indices.push_back(iGen.first);
-   } 
-
-   float min = 999.;
-   int index = -1;
-   for(unsigned int i=0; i<indices.size(); i++)
-   {
-       float dR = deltaR(genParticles->at(genIndex).eta(),genParticles->at(genIndex).phi(),genParticles->at(indices.at(i)).eta(),genParticles->at(indices.at(i)).phi());
-       if(dR<min){
-          min = dR;
-          index = indices.at(i);
-       }
-   }
-
-   return index; 
+   
+   std::cout << " -- Flags: "; 
+   if(genParticle->statusFlags().isLastCopyBeforeFSR()) std::cout << "isLastCopyBeforeFSR() && ";
+   if(genParticle->statusFlags().isLastCopy()) std::cout << "isLastCopy() && ";     
+   if(genParticle->statusFlags().isFirstCopy()) std::cout << "isFirstCopy() && ";
+   if(genParticle->statusFlags().fromHardProcessBeforeFSR()) std::cout << "fromHardProcessBeforeFSR() && ";
+   if(genParticle->statusFlags().isDirectHardProcessTauDecayProduct()) std::cout << "isDirectHardProcessTauDecayProduct() && ";
+   if(genParticle->statusFlags().isHardProcessTauDecayProduct()) std::cout << "isHardProcessTauDecayProduct() && ";
+   if(genParticle->statusFlags().fromHardProcess()) std::cout << "fromHardProcess() && "; 
+   if(genParticle->statusFlags().isHardProcess()) std::cout << "isHardProcess() && ";
+   if(genParticle->statusFlags().isDirectHadronDecayProduct()) std::cout << "isDirectHadronDecayProduct() && ";
+   if(genParticle->statusFlags().isDirectPromptTauDecayProduct()) std::cout << "isDirectPromptTauDecayProduct() && ";
+   if(genParticle->statusFlags().isDirectTauDecayProduct()) std::cout << "isDirectTauDecayProduct() && ";
+   if(genParticle->statusFlags().isPromptTauDecayProduct()) std::cout << "isPromptTauDecayProduct() && ";
+   if(genParticle->statusFlags().isTauDecayProduct()) std::cout << "isTauDecayProduct() && ";
+   if(genParticle->statusFlags().isDecayedLeptonHadron()) std::cout << "isDecayedLeptonHadron() && ";
+   if(genParticle->statusFlags().isPrompt()) std::cout << "isPrompt() ";
+   std::cout << "-- " << getGenStatusFlag(genParticle) << " -- ";
 }
 
-
-/*void RecoSimDumper::addAllDaughters(const std::vector<reco::GenParticle>* genParticles, const int genIndex1, const int genIndex2)
+int RecoSimDumper::getGenParton(const std::vector<reco::GenParticle>* genParticles, const int genIndex)
 {
-   if(genParticles->at(genIndex1).numberOfDaughters()==0){ 
-      //std::cout << "addDaughters ----> no Daughters! : " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
-      //if(genParticles->at(genIndex1).status()==1) genDaughters[genIndex2].push_back(genIndex1);
-      genAllDaughters[genIndex2].push_back(genIndex1);
-      return;
-   }else{
-      const GenParticleRefVector &daughters = genParticles->at(genIndex1).daughterRefVector();
-      //std::cout << "addDaughters - Mother: " << genIndex1 << " - " << genParticles->at(genIndex1).pdgId() << std::endl;
-      for(GenParticleRefVector::const_iterator i = daughters.begin(); i != daughters.end(); ++i)
-      { 
-          //std::cout << "addDaughters ----> Daughter: " << i->key() << " - " << genParticles->at(i->key()).pdgId() << std::endl;
-          //if(genParticles->at(i->key()).status()==1) genDaughters[genIndex2].push_back(i->key()); 
-          genAllDaughters[genIndex2].push_back(i->key());  
-          addAllDaughters(genParticles,i->key(),genIndex2); 
-      }  
+   int genMotherIndex = -1;
+   genMotherIndices.clear();
+   if(genIndex>=0) genMotherIndex = genIndex;
+   while(genMotherIndex>=0)
+   {  
+      genMotherIndex = getGenMother(&genParticles->at(genMotherIndex));
+      if(genMotherIndex<0) break; 
+      //printGenStatusFlag(&genParticles->at(genMotherIndex));
+      genMotherIndices.push_back(genMotherIndex);
    }
-}*/
+    
+   int genPartonIndex = -1;
+   if(genMotherIndices.size()>=1) genPartonIndex = genMotherIndices.at(genMotherIndices.size()-1);
+   return genPartonIndex; 
+}
 
 std::vector<std::pair<DetId,std::pair<float,float>>>* RecoSimDumper::getSharedHitsAndEnergies(const std::vector<std::pair<DetId, float> >* hitsAndEnergies1, const std::vector<std::pair<DetId, float> >* hitsAndEnergies2)
 {

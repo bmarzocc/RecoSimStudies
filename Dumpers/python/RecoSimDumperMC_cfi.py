@@ -11,7 +11,7 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     pileupSummary                   = cms.InputTag("addPileupInfo",""),
     vertexCollection                = cms.InputTag("offlinePrimaryVertices","","ECALClustering"),
     #vertexCollection                = cms.InputTag("offlineSlimmedPrimaryVertices","","ECALClustering"), 
-    #genParticleCollection           = cms.InputTag("genParticles",""),
+    genParticleCollectionTot        = cms.InputTag("genParticles",""),
     genParticleCollection           = cms.InputTag("prunedGenParticles"),
     #genParticleCollection           = cms.InputTag("finalGenParticles","ECALClustering"),
     caloParticleCollection          = cms.InputTag("mix","MergedCaloTruth"),
@@ -40,14 +40,12 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     nBits                           = cms.int32(23),   #nbits for float compression (<=23)
     
     #MC-only info (turned off if isMC == False)
-    saveGenParticles                = cms.bool(True),  #save genParticles information   
-    genParticlesToSave              = cms.vint32(1,2,3,4,5,6,21,22,11,111,211,113,130,213,221,223,310,311,321,331,333),  #genParticles to save 
-    #genParticlesToSave              = cms.vint32(5,6,24,11),  #genParticles to save   
-    saveCaloParticles               = cms.bool(False),  #save caloParticles information
+    saveGenParticles                = cms.bool(True),  #save genParticles information     
+    saveCaloParticles               = cms.bool(True),  #save caloParticles information
     saveCaloParticlesPU             = cms.bool(False),  #save PU caloParticles information
     saveCaloParticlesOOTPU          = cms.bool(False),  #save OOT PU caloParticles information
     subtractSignalCalo              = cms.bool(False),  #subtract signal caloParticle to PU caloParticle
-    saveSimhits                     = cms.bool(False), #save simHits information
+    saveSimhits                     = cms.bool(True), #save simHits information
     saveSimhitsPU                   = cms.bool(False), #save simHits of PU information
 
     #Standard info
@@ -59,8 +57,8 @@ recosimdumper = cms.EDAnalyzer("RecoSimDumper",
     saveSuperCluster                = cms.bool(True),  #save superClusters information
     saveRetunedSC                   = cms.bool(False),  #save additional retunedSCs information (missing from the standard RECO)
     saveDeepSC                      = cms.bool(False),  #save additional deepSCs information (missing from the standard RECO)
-    saveGsfElectrons                = cms.bool(False),  #save gedGsfElectrons information
-    saveGedPhotons                  = cms.bool(False),  #save gedPhotons information 
+    saveGsfElectrons                = cms.bool(True),  #save gedGsfElectrons information
+    saveGedPhotons                  = cms.bool(True),  #save gedPhotons information 
     savePatPhotons                  = cms.bool(True),  #save patPhotons and patMET information
     savePatElectrons                = cms.bool(True),  #save patElectrons and patMET information
     savePatJets                     = cms.bool(True),  #save patJets and patMET information
