@@ -157,7 +157,6 @@ RecoSimDumper::RecoSimDumper(const edm::ParameterSet& iConfig):
    vtxToken_                      = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vertexCollection"));
    rhoToken_                      = consumes<double>(iConfig.getParameter<edm::InputTag>("rhoCollection"));
    genToken_                      = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollection"));
-   genTokenTot_                   = consumes<std::vector<reco::GenParticle> >(iConfig.getParameter<edm::InputTag>("genParticleCollectionTot"));
    caloPartToken_                 = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("caloParticleCollection"));
    puCaloPartToken_               = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("puCaloParticleCollection"));
    ootpuCaloPartToken_            = consumes<std::vector<CaloParticle> >(iConfig.getParameter<edm::InputTag>("ootpuCaloParticleCollection"));
@@ -312,12 +311,6 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        } 
     }else{
        std::cerr << "Analyze --> PupInfo not found" << std::endl;
-    }
-
-    ev.getByToken(genTokenTot_,genParticlesTot);
-    if (!genParticlesTot.isValid()) {
-        std::cerr << "Analyze --> genParticlesTot not found" << std::endl; 
-        return;
     }
 
     ev.getByToken(genToken_,genParticles);
@@ -788,7 +781,7 @@ void RecoSimDumper::analyze(const edm::Event& ev, const edm::EventSetup& iSetup)
        caloParticle_index.push_back(iCalo); 
        caloParticle_nXtals.push_back(hitsAndEnergies_CaloPart.at(iCalo).size()); 
        int genIndex = caloParts.at(iCalo).g4Tracks()[0].genpartIndex()-1;     
-       const auto& genParts_tmp = *(genParticlesTot.product());    
+       const auto& genParts_tmp = *(genParticles.product());    
        auto genParticle = genParts_tmp[genIndex]; 
        int partonIndex = -1;
        if(genParticle.numberOfMothers()!=0) partonIndex = getGenParton(&genParts_tmp,genIndex); 

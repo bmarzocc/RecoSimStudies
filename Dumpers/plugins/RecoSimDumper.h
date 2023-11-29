@@ -204,7 +204,6 @@ class RecoSimDumper : public edm::one::EDAnalyzer<edm::one::SharedResources>
       edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
       edm::EDGetTokenT<reco::VertexCollection> vtxToken_; 
       edm::EDGetTokenT<std::vector<reco::GenParticle> > genToken_; 
-      edm::EDGetTokenT<std::vector<reco::GenParticle> > genTokenTot_; 
       edm::EDGetTokenT<std::vector<CaloParticle> > caloPartToken_;
       edm::EDGetTokenT<std::vector<CaloParticle> > puCaloPartToken_;
       edm::EDGetTokenT<std::vector<CaloParticle> > ootpuCaloPartToken_;
