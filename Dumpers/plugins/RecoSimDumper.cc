@@ -3893,7 +3893,7 @@ void RecoSimDumper::setTree(TTree* tree)
       tree->Branch("gsfElectron_dnn_bkg_Photon","std::vector<float> ",&gsfElectron_dnn_bkg_Photon);  
    }
 
-   if(saveGsfElectrons_){
+   if(saveGedPhotons_){
       tree->Branch("gedPhoton_index","std::vector<int> ",&gedPhoton_index);    
       tree->Branch("gedPhoton_seedRawId","std::vector<uint32_t> ",&gedPhoton_seedRawId);   
       tree->Branch("gedPhoton_isEB","std::vector<bool> ",&gedPhoton_isEB);  
